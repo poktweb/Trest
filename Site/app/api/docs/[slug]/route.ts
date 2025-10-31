@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { join } from 'path'
 import { NextResponse } from 'next/server'
 
@@ -17,7 +17,17 @@ export async function GET(
     }
     
     const fileName = fileMap[slug] || slug
-    const filePath = join(process.cwd(), '..', 'docs', `${fileName}.md`)
+    
+    // Primeiro tentar usar a pasta docs local
+    const localDocsPath = join(process.cwd(), 'docs', `${fileName}.md`)
+    const externalDocsPath = join(process.cwd(), '..', 'docs', `${fileName}.md`)
+    
+    let filePath = localDocsPath
+    if (!existsSync(filePath)) {
+      // Se não encontrar localmente, tentar pasta externa (compatibilidade)
+      filePath = externalDocsPath
+    }
+    
     const content = readFileSync(filePath, 'utf-8')
     
     return new NextResponse(content, {
