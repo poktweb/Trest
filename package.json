@@ -1,0 +1,43 @@
+{
+  "name": "trest-language",
+  "version": "2.0.0",
+  "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop",
+  "main": "dist/index.js",
+  "bin": {
+    "trest": "dist/cli.js",
+    "trestc": "dist/compiler.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "ts-node src/cli.ts",
+    "compile:web": "ts-node src/compiler/web.ts",
+    "compile:exe": "ts-node src/compiler/exe.ts",
+    "test": "ts-node src/tests/runner.ts",
+    "bundle": "tsc && pkg dist/cli.js --targets node18-win-x64,node18-win-x86,node18-linux-x64,node18-macos-x64 --out-path dist/bin"
+  },
+  "keywords": [
+    "language",
+    "compiler",
+    "programming",
+    "web",
+    "executable"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "minimist": "^1.2.8",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": [
+      "src/std/**/*"
+    ]
+  }
+}
