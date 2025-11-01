@@ -17,9 +17,59 @@
 
 ## 📦 Установка
 
+### Установка через npm (рекомендуется)
+
+**Глобальная установка:**
 ```bash
+npm install -g trest-language
+```
+
+После установки команды `trest` и `trestc` будут доступны глобально:
+```bash
+trest --version
+trestc --help
+```
+
+**Локальная установка в проект:**
+```bash
+npm install trest-language
+```
+
+Используйте через `npx`:
+```bash
+npx trest programa.trest
+npx trestc programa.trest --mode web
+```
+
+### Установка из исходников
+
+Если вы хотите установить из исходников или внести изменения:
+
+```bash
+# Клонировать репозиторий
+git clone https://github.com/trest-language/trest.git
+cd trest
+
+# Установить зависимости
 npm install
+
+# Собрать проект
 npm run build
+
+# (Опционально) Создать симлинки для глобального использования
+npm link
+```
+
+### Требования
+
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
+- **TypeScript**: 5.0+ (для разработки)
+
+Проверьте вашу версию:
+```bash
+node --version  # должно быть >= v18
+npm --version   # должно быть >= 9
 ```
 
 ## 🎯 Быстрый старт

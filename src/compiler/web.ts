@@ -15,7 +15,7 @@ export class WebCompiler {
     this.moduleSystem = new ModuleSystem(basePath);
   }
 
-  public compile(filePath: string, options: { minify?: boolean; bundle?: boolean } = {}): string {
+  public compile(filePath: string, options: { minify?: boolean; bundle?: boolean; expose?: boolean } = {}): string {
     const source = fs.readFileSync(filePath, 'utf-8');
     const lexer = new Lexer(source);
     const tokens = lexer.tokenize();
@@ -27,9 +27,9 @@ export class WebCompiler {
     this.indentLevel = 0;
 
     if (options.bundle) {
-      this.compileProgramBundled(program, filePath);
+      this.compileProgramBundled(program, filePath, options.expose);
     } else {
-      this.compileProgram(program);
+      this.compileProgram(program, options.expose);
     }
 
     let result = this.output.join('');
@@ -41,20 +41,45 @@ export class WebCompiler {
     return result;
   }
 
-  private compileProgram(program: Program): void {
-    this.addLine('(function() {');
-    this.indent();
+  private compileProgram(program: Program, expose: boolean = false): void {
+    if (expose) {
+      // Expor funções e variáveis globalmente
+      this.addLine('(function(window) {');
+      this.indent();
+      this.addLine('"use strict";');
+    } else {
+      this.addLine('(function() {');
+      this.indent();
+    }
     
     // Compilar declarações
     for (const node of program.body) {
-      this.compileNode(node);
+      this.compileNode(node, expose);
     }
 
-    this.dedent();
-    this.addLine('})();');
+    if (expose) {
+      // Expor funções e variáveis globais
+      this.addLine('');
+      this.addLine('// Expor funções e variáveis globais');
+      for (const node of program.body) {
+        if (node.type === 'FunctionDeclaration') {
+          const funcName = (node as any).name;
+          this.addLine(`window.${funcName} = ${funcName};`);
+        } else if (node.type === 'VariableDeclaration' && !(node as any).value) {
+          // Variáveis globais (sem valor inicial)
+          const varName = (node as any).name;
+          this.addLine(`window.${varName} = ${varName};`);
+        }
+      }
+      this.dedent();
+      this.addLine('})(typeof window !== "undefined" ? window : global);');
+    } else {
+      this.dedent();
+      this.addLine('})();');
+    }
   }
 
-  private compileProgramBundled(program: Program, mainPath: string): void {
+  private compileProgramBundled(program: Program, mainPath: string, expose: boolean = false): void {
     // Adicionar imports
     if (this.imports.size > 0) {
       for (const imp of this.imports) {
@@ -63,22 +88,45 @@ export class WebCompiler {
       this.addLine('');
     }
 
-    this.addLine('(function() {');
-    this.indent();
+    if (expose) {
+      this.addLine('(function(window) {');
+      this.indent();
+      this.addLine('"use strict";');
+    } else {
+      this.addLine('(function() {');
+      this.indent();
+    }
     
     // Compilar módulos dependentes primeiro
     // TODO: Implementar resolução de dependências
     
     // Compilar programa principal
     for (const node of program.body) {
-      this.compileNode(node);
+      this.compileNode(node, expose);
     }
 
-    this.dedent();
-    this.addLine('})();');
+    if (expose) {
+      // Expor funções e variáveis globais
+      this.addLine('');
+      this.addLine('// Expor funções e variáveis globais');
+      for (const node of program.body) {
+        if (node.type === 'FunctionDeclaration') {
+          const funcName = (node as any).name;
+          this.addLine(`window.${funcName} = ${funcName};`);
+        } else if (node.type === 'VariableDeclaration') {
+          const varName = (node as any).name;
+          this.addLine(`window.${varName} = ${varName};`);
+        }
+      }
+      this.dedent();
+      this.addLine('})(typeof window !== "undefined" ? window : global);');
+    } else {
+      this.dedent();
+      this.addLine('})();');
+    }
   }
 
-  private compileNode(node: ASTNode): void {
+  private compileNode(node: ASTNode, expose: boolean = false): void {
     switch (node.type) {
       case 'VariableDeclaration':
         this.compileVariableDeclaration(node);
@@ -87,7 +135,7 @@ export class WebCompiler {
         this.compileFunctionDeclaration(node);
         break;
       case 'BlockStatement':
-        this.compileBlockStatement(node);
+        this.compileBlockStatement(node, expose);
         break;
       case 'IfStatement':
         this.compileIfStatement(node);
@@ -145,11 +193,11 @@ export class WebCompiler {
     this.addLine('}');
   }
 
-  private compileBlockStatement(node: any): void {
+  private compileBlockStatement(node: any, expose: boolean = false): void {
     this.addLine('{');
     this.indent();
     for (const stmt of node.body) {
-      this.compileNode(stmt);
+      this.compileNode(stmt, expose);
     }
     this.dedent();
     this.addLine('}');

@@ -256,8 +256,16 @@ export class Interpreter {
         throw new Error('Indexação só é permitida em arrays');
       }
       
-      if (index < 0 || index >= array.length) {
+      if (index < 0) {
         throw new Error(`Índice fora dos limites: ${index}`);
+      }
+      
+      // Permite expansão automática do array se o índice estiver além do tamanho atual
+      if (index >= array.length) {
+        // Expande array até o índice necessário
+        while (array.length <= index) {
+          array.push(null);
+        }
       }
       
       array[index] = value;
@@ -373,8 +381,13 @@ export class Interpreter {
       return targetEnv.variables.get(name)!;
     }
     
-    if (env.functions.has(name)) {
-      return env.functions.get(name)!;
+    // Procura função no ambiente atual e nos pais
+    let current: Environment | undefined = env;
+    while (current) {
+      if (current.functions.has(name)) {
+        return current.functions.get(name)!;
+      }
+      current = current.parent;
     }
 
     throw new Error(`Variável ou função não definida: ${name}`);

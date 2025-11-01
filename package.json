@@ -1,33 +1,82 @@
 {
   "name": "trest-language",
   "version": "2.0.0",
-  "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop",
+  "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop com suporte a Cirílico",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "trest": "dist/cli.js",
-    "trestc": "dist/compiler.js"
+    "trest": "./dist/cli.js",
+    "trestc": "./dist/compiler.js"
   },
   "scripts": {
-    "build": "tsc",
+    "prebuild": "npm run clean",
+    "build": "tsc && npm run postbuild",
+    "postbuild": "node scripts/postbuild.js",
+    "clean": "rimraf dist",
     "build:watch": "tsc --watch",
     "dev": "ts-node src/cli.ts",
     "compile:web": "ts-node src/compiler/web.ts",
     "compile:exe": "ts-node src/compiler/exe.ts",
     "test": "ts-node src/tests/runner.ts",
-    "bundle": "tsc && pkg dist/cli.js --targets node18-win-x64,node18-win-x86,node18-linux-x64,node18-macos-x64 --out-path dist/bin"
+    "bundle": "tsc && pkg dist/cli.js --targets node18-win-x64,node18-win-x86,node18-linux-x64,node18-macos-x64 --out-path dist/bin",
+    "preinstall": "node scripts/preinstall.js",
+    "postinstall": "node scripts/postinstall.js",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build && npm test",
+    "version": "node scripts/version.js && git add -A",
+    "postversion": "git push && git push --tags"
   },
   "keywords": [
     "language",
     "compiler",
     "programming",
+    "programming-language",
     "web",
-    "executable"
+    "executable",
+    "typescript",
+    "interpreter",
+    "cyrillic",
+    "russian",
+    "trest"
   ],
-  "author": "",
+  "author": "Trest Language Team",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "files": [
+    "dist/",
+    "src/std/",
+    "scripts/",
+    "README.md",
+    "README_PT.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "INSTALL.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trest-language/trest"
+  },
+  "bugs": {
+    "url": "https://github.com/trest-language/trest/issues"
+  },
+  "homepage": "https://github.com/trest-language/trest#readme",
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "ia32",
+    "arm64"
+  ],
   "devDependencies": {
     "@types/minimist": "^1.2.5",
     "@types/node": "^20.0.0",
+    "rimraf": "^5.0.10",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   },
