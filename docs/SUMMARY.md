@@ -1,4 +1,4 @@
-# Резюме - Trest Language v2.3.3
+# Резюме - Trest Language v2.4.0
 
 ## ✅ Что было сделано
 
