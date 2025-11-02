@@ -24,7 +24,7 @@ Se você não tem o Node.js instalado, baixe em: https://nodejs.org/
 Instale o Trest globalmente para ter acesso aos comandos `trest` e `trestc` em qualquer lugar:
 
 ```bash
-npm install -g trest-language
+npm install -g treste
 ```
 
 **Verifique a instalação:**
@@ -44,7 +44,7 @@ trestc arquivo.trest --mode web
 Para usar o Trest apenas em um projeto específico:
 
 ```bash
-npm install trest-language
+npm install treste
 ```
 
 **Uso via npx:**

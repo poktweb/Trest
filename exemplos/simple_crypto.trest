@@ -1,0 +1,11 @@
+# Simple Crypto Test
+
+импорт * как Crypto измодуля "std/index"
+
+печать("Crypto object:", Crypto)
+
+пусть cryptoClass = Crypto.Crypto
+печать("Accessing Crypto.md5 via class...")
+пусть hash = cryptoClass.md5("test")
+печать("Hash:", hash)
+

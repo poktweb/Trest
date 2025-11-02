@@ -589,10 +589,86 @@ x %= 5   # x = x % 5 → 1
 
 ## Стандартная библиотека
 
-### Math
+### 📦 Módulos Disponíveis (v2.1)
+
+A Trest Language v2.1 inclui 8 novos módulos poderosos:
+
+#### 🌐 HTTP - Cliente e Servidor Web
+```trest
+импорт * как HTTP измодуля "std/http"
+
+# Criar servidor
+пусть server = HTTP.создатьСервер()
+server.получить("/", (req, res) => {
+    res.send("Olá!")
+})
+server.слушать(8080)
+```
+
+#### 🔐 Crypto - Criptografia e Hash
+```trest
+импорт * как Crypto измодуля "std/crypto"
+
+пусть hash = Crypto.md5("senha")
+пусть encrypted = Crypto.зашифровать("texto", "chave")
+пусть random = Crypto.случайныеБайты(32)
+```
+
+#### 📁 FileSystem - Operações de Arquivo
+```trest
+импорт * как FileSystem измодуля "std/filesystem"
+
+пусть existe = FileSystem.существует("arquivo.txt")
+пусть conteudo = FileSystem.читаяФайл("dados.txt")
+FileSystem.писатьФайл("saida.txt", conteudo)
+```
+
+#### 📄 JSON - Serialização
+```trest
+импорт * как JSON измодуля "std/json"
+
+пусть obj = JSON.parse('{"name": "test"}')
+пусть str = JSON.stringify(obj)
+```
+
+#### 📅 Date - Manipulação de Datas
+```trest
+импорт * как Date измодуля "std/date"
+
+пусть agora = Date.теперь()
+пусть formatted = Date.формат(agora)
+```
+
+#### 🗄️ Database - Banco de Dados
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть db = DB.открытьБД("app.db")
+пусть User = DB.Модель("users")
+```
+
+#### 🖥️ GUI - Interface Gráfica
+```trest
+импорт * как GUI измодуля "std/gui"
+
+пусть окно = GUI.создатьОкно({ title = "App" })
+пусть botao = GUI.создатьКнопку("OK")
+```
+
+#### ⚡ Async - Operações Assíncronas
+```trest
+импорт * как Async измодуля "std/async"
+
+Async.отложить(1000)
+пусть promise = Async.создатьОбещание((resolve, reject) => {})
+```
+
+### 📚 Módulos Clássicos
+
+#### Math
 
 ```trest
-импорт * как Math из "std/math"
+импорт * как Math измодуля "std/math"
 
 Math.abs(-5)       # 5
 Math.max(10, 20)   # 20
@@ -606,10 +682,10 @@ Math.PI            # 3.14159...
 Math.E             # 2.71828...
 ```
 
-### String
+#### String
 
 ```trest
-импорт * как String из "std/string"
+импорт * как String измодуля "std/string"
 
 String.размер("Привет")      # 6
 String.верхний("привет")     # "ПРИВЕТ"
@@ -618,10 +694,10 @@ String.заменить("abc", "a", "x")  # "xbc"
 String.разделить("a,b,c", ",")   # ["a", "b", "c"]
 ```
 
-### Array
+#### Array
 
 ```trest
-импорт * как Array из "std/array"
+импорт * как Array измодуля "std/array"
 
 пусть arr = [1, 2, 3]
 Array.добавить(arr, 4)        # [1, 2, 3, 4]
@@ -632,15 +708,17 @@ Array.срез(arr, 0, 2)          # [4, 3]
 Array.отсортировать([3, 1, 2]) # [1, 2, 3]
 ```
 
-### IO
+#### IO
 
 ```trest
-импорт * как IO из "std/io"
+импорт * как IO измодуля "std/io"
 
 пусть содержимое = IO.читатьФайл("файл.txt")
 IO.писатьФайл("выход.txt", "Содержимое")
 пусть существует = IO.существуетФайл("файл.txt")
 ```
+
+**📖 Para documentação completa dos módulos, veja [Modules](modules.md)**
 
 ---
 

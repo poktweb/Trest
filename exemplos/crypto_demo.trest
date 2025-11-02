@@ -1,0 +1,46 @@
+# Demonstração de Criptografia
+
+печать("╔═══════════════════════════════════════╗")
+печать("║   🔐 CRYPTO DEMO                      ║")
+печать("╚═══════════════════════════════════════╝")
+печать("")
+
+импорт * как Crypto измодуля "std/crypto"
+
+пусть texto = "Trest Language é incrível!"
+печать("Texto original:", texto)
+печать("")
+
+# MD5 Hash
+пусть md5 = Crypto.md5(texto)
+печать("MD5:", md5)
+
+# SHA256 Hash
+пусть sha256 = Crypto.sha256(texto)
+печать("SHA256:", sha256)
+
+# SHA512 Hash
+пусть sha512 = Crypto.sha512(texto)
+печать("SHA512:", sha512)
+
+печать("")
+
+# Random Bytes
+пусть random = Crypto.случайныеБайты(16)
+печать("16 Bytes aleatórios:", random)
+печать("")
+
+# Criptografia AES
+пусть chave = "minha_chave_secreta_12345"
+пусть criptografado = Crypto.зашифровать(texto, chave)
+печать("Texto criptografado:")
+печать(criptografado)
+
+печать("")
+
+пусть descriptografado = Crypto.расшифровать(criptografado, chave)
+печать("Texto descriptografado:", descriptografado)
+
+печать("")
+печать("✅ Demo de criptografia concluído!")
+

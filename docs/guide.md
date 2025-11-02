@@ -1,76 +1,76 @@
-# Руководство по Trest Language
+# Guia Trest Language
 
-Подробное руководство по использованию языка Trest.
+Guia detalhado de uso da linguagem Trest.
 
-## Оглавление
+## Índice
 
-1. [Начало работы](#начало-работы)
-2. [Основы синтаксиса](#основы-синтаксиса)
-3. [Работа с данными](#работа-с-данными)
-4. [Функции и модули](#функции-и-модули)
-5. [Объектно-ориентированное программирование](#объектно-ориентированное-программирование)
-6. [Работа с ошибками](#работа-с-ошибками)
-7. [Советы и практики](#советы-и-практики)
+1. [Começando](#começando)
+2. [Fundamentos de Sintaxe](#fundamentos-de-sintaxe)
+3. [Trabalhando com Dados](#trabalhando-com-dados)
+4. [Funções e Módulos](#funções-e-módulos)
+5. [Programação Orientada a Objetos](#programação-orientada-a-objetos)
+6. [Trabalhando com Erros](#trabalhando-com-erros)
+7. [Dicas e Práticas](#dicas-e-práticas)
 
 ---
 
-## Начало работы
+## Começando
 
-### Ваша первая программа
+### Seu Primeiro Programa
 
-Создайте файл `привет.trest`:
+Crie o arquivo `hello.trest`:
 
 ```trest
 печать("Привет, Мир!")
 ```
 
-Запустите:
+Execute:
 
 ```bash
-trest привет.trest
+trest hello.trest
 ```
 
-Вывод:
+Saída:
 ```
 Привет, Мир!
 ```
 
 ---
 
-## Основы синтаксиса
+## Fundamentos de Sintaxe
 
-### Переменные
+### Variáveis
 
 ```trest
-# Объявление переменной
+# Declarar variável
 пусть имя = "Иван"
 пусть возраст = 25
 
-# Изменение значения
+# Alterar valor
 возраст = 26
 
-# Константа
+# Constante
 конст PI = 3.14159
 ```
 
-### Типы данных
+### Tipos de Dados
 
 ```trest
-# Числа
+# Números
 пусть число = 42
 пусть дробное = 3.14
 
-# Строки
+# Strings
 пусть текст = "Привет"
 
-# Логические
+# Booleanos
 пусть правда = истина
 пусть ложное = ложь
 
-# Массивы
+# Arrays
 пусть список = [1, 2, 3]
 
-# Объекты
+# Objetos
 пусть человек = {
     имя: "Иван",
     возраст: 30
@@ -79,27 +79,27 @@ trest привет.trest
 
 ---
 
-## Работа с данными
+## Trabalhando com Dados
 
-### Массивы
+### Arrays
 
 ```trest
 пусть числа = [1, 2, 3, 4, 5]
 
-# Доступ к элементам
+# Acessar elementos
 печать(числа[0])  # 1
 
-# Изменение
+# Modificar
 числа[0] = 10
 печать(числа)  # [10, 2, 3, 4, 5]
 
-# Итерация
+# Iterar
 для (пусть число из числа) {
     печать(число)
 }
 ```
 
-### Объекты
+### Objetos
 
 ```trest
 пусть человек = {
@@ -108,22 +108,22 @@ trest привет.trest
     город: "Москва"
 }
 
-# Доступ к свойствам
+# Acessar propriedades
 печать(человек.имя)           # "Иван"
 печать(человек["возраст"])    # 30
 
-# Изменение
+# Modificar
 человек.возраст = 31
 
-# Добавление свойства
+# Adicionar propriedade
 человек.страна = "Россия"
 ```
 
 ---
 
-## Функции и модули
+## Funções e Módulos
 
-### Создание функций
+### Criar Funções
 
 ```trest
 функция приветствие(имя) {
@@ -133,7 +133,7 @@ trest привет.trest
 печать(приветствие("Иван"))  # "Привет, Иван"
 ```
 
-### Модули
+### Módulos
 
 **math.trest:**
 ```trest
@@ -156,9 +156,9 @@ trest привет.trest
 
 ---
 
-## Объектно-ориентированное программирование
+## Programação Orientada a Objetos
 
-### Классы
+### Classes
 
 ```trest
 класс Человек {
@@ -176,7 +176,7 @@ trest привет.trest
 иван.представиться()  # "Я Иван, мне 30 лет"
 ```
 
-### Наследование
+### Herança
 
 ```trest
 класс Студент расширяет Человек {
@@ -197,7 +197,7 @@ trest привет.trest
 
 ---
 
-## Работа с ошибками
+## Trabalhando com Erros
 
 ### try/catch
 
@@ -209,7 +209,7 @@ trest привет.trest
 }
 ```
 
-### Создание ошибок
+### Criar Erros
 
 ```trest
 функция делить(a, b) {
@@ -228,29 +228,28 @@ trest привет.trest
 
 ---
 
-## Советы и практики
+## Dicas e Práticas
 
-### Именование
+### Nomenclatura
 
-- Используйте понятные имена: `имя`, `возраст`, `счетчик`
-- Избегайте сокращений: `им` вместо `имя` - плохо
-- Используйте camelCase для переменных: `имяПользователя`
+- Use nomes claros: `имя`, `возраст`, `счетчик`
+- Evite abreviações: `им` ao invés de `имя` - ruim
+- Use camelCase para variáveis: `имяПользователя`
 
-### Организация кода
+### Organização de Código
 
-- Разделяйте логику на функции
-- Используйте модули для организации больших проектов
-- Комментируйте сложные участки кода
+- Divida a lógica em funções
+- Use módulos para organizar projetos grandes
+- Comente seções complexas de código
 
-### Обработка ошибок
+### Tratamento de Erros
 
-- Всегда обрабатывайте возможные ошибки
-- Используйте try/catch для критических операций
-- Предоставляйте понятные сообщения об ошибках
+- Sempre trate erros possíveis
+- Use try/catch para operações críticas
+- Forneça mensagens de erro claras
 
 ---
 
-## Примеры проектов
+## Exemplos de Projetos
 
-Смотрите папку `exemplos/` для примеров реальных проектов.
-
+Veja a pasta `exemplos/` para exemplos de projetos reais.

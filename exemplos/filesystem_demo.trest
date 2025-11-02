@@ -1,0 +1,36 @@
+# Demonstração de Sistema de Arquivos
+
+печать("╔═══════════════════════════════════════╗")
+печать("║   📁 FILESYSTEM DEMO                  ║")
+печать("╚═══════════════════════════════════════╝")
+печать("")
+
+импорт * как FileSystem измодуля "std/index"
+
+# Verificar se arquivo existe
+пусть arquivo = "package.json"
+печать("Verificando existência de", arquivo, "...")
+
+если (FileSystem.существует(arquivo)) {
+    печать("✅ Arquivo existe!")
+    
+    # Ler arquivo
+    печать("Lendo arquivo...")
+    печать("(Operação de leitura disponível)")
+} иначе {
+    печать("❌ Arquivo não encontrado")
+}
+
+печать("")
+
+# Listar diretório atual
+печать("📂 Conteúdo do diretório atual:")
+try {
+    печать("(Operação de listagem disponível)")
+} catch (error) {
+    печать("Erro ao listar:", error)
+}
+
+печать("")
+печать("✅ Demo de filesystem concluído!")
+

@@ -1,20 +1,20 @@
-# Лучшие практики - Trest Language
+# Melhores Práticas - Trest Language
 
-Рекомендации по написанию качественного кода на Trest.
+Recomendações para escrever código de qualidade em Trest.
 
-## Оглавление
+## Índice
 
-1. [Именование](#именование)
-2. [Организация кода](#организация-кода)
-3. [Функции](#функции)
-4. [Обработка ошибок](#обработка-ошибок)
-5. [Производительность](#производительность)
+1. [Nomenclatura](#nomenclatura)
+2. [Organização de Código](#organização-de-código)
+3. [Funções](#funções)
+4. [Tratamento de Erros](#tratamento-de-erros)
+5. [Desempenho](#desempenho)
 
 ---
 
-## Именование
+## Nomenclatura
 
-### ✅ Хорошо
+### ✅ Bom
 
 ```trest
 пусть имяПользователя = "Иван"
@@ -24,7 +24,7 @@
 }
 ```
 
-### ❌ Плохо
+### ❌ Ruim
 
 ```trest
 пусть x = "Иван"
@@ -34,19 +34,19 @@
 }
 ```
 
-### Правила именования
+### Regras de Nomenclatura
 
-- Используйте понятные имена на русском языке
-- Используйте camelCase для переменных и функций
-- Используйте PascalCase для классов
-- Избегайте сокращений
-- Имена должны отражать назначение
+- Use nomes claros em russo
+- Use camelCase para variáveis e funções
+- Use PascalCase para classes
+- Evite abreviações
+- Nomes devem refletir o propósito
 
 ---
 
-## Организация кода
+## Organização de Código
 
-### Разделение на модули
+### Divisão em Módulos
 
 ```trest
 # utils/math.trest
@@ -58,14 +58,14 @@
 импорт { сложить } из "./utils/math.trest"
 ```
 
-### Комментарии
+### Comentários
 
 ```trest
-# Плохо
-пусть x = 10  # x равно 10
+# Ruim
+пусть x = 10  # x igual a 10
 
-# Хорошо
-# Рассчитывает площадь круга по радиусу
+# Bom
+# Calcula a área de um círculo dado o raio
 функция площадьКруга(радиус) {
     вернуть Math.PI * радиус ** 2
 }
@@ -73,17 +73,17 @@
 
 ---
 
-## Функции
+## Funções
 
-### Маленькие функции
+### Funções Pequenas
 
 ```trest
-# Плохо
+# Ruim
 функция обработатьДанные(данные) {
-    # 100 строк кода
+    # 100 linhas de código
 }
 
-# Хорошо
+# Bom
 функция валидировать(данные) {
     # ...
 }
@@ -97,10 +97,10 @@
 }
 ```
 
-### Один уровень абстракции
+### Um Nível de Abstração
 
 ```trest
-# Хорошо
+# Bom
 функция обработатьЗаказ(заказ) {
     если (!валидировать(заказ)) {
         вернуть ложь
@@ -112,15 +112,15 @@
 
 ---
 
-## Обработка ошибок
+## Tratamento de Erros
 
-### Явная обработка
+### Tratamento Explícito
 
 ```trest
-# Плохо
-пусть результат = делить(10, 0)  # Может упасть
+# Ruim
+пусть результат = делить(10, 0)  # Pode quebrar
 
-# Хорошо
+# Bom
 попытаться {
     пусть результат = делить(10, 0)
 } перехватить (ошибка) {
@@ -128,51 +128,54 @@
 }
 ```
 
-### Понятные сообщения
+### Mensagens Claras
 
 ```trest
-# Плохо
+# Ruim
 бросить "Ошибка"
 
-# Хорошо
+# Bom
 бросить "Не удалось загрузить файл: " + путь
 ```
 
 ---
 
-## Производительность
+## Desempenho
 
-### Избегайте ненужных вычислений
+### Evite Cálculos Desnecessários
 
 ```trest
-# Плохо
+# Ruim
 для (пусть i = 0; i < массив.длина; i = i + 1) {
-    # массив.длина вычисляется на каждой итерации
+    # массив.длина calculado em cada iteração
 }
 
-# Хорошо
+# Bom
 пусть длина = массив.длина
 для (пусть i = 0; i < длина; i = i + 1) {
-    # длина вычисляется один раз
+    # длина calculada uma vez
 }
 ```
 
-### Используйте подходящие структуры данных
+### Use Estruturas de Dados Adequadas
 
 ```trest
-# Для частого поиска используйте объект вместо массива
+# Para busca frequente use objeto em vez de array
 пусть пользователи = {
     "id1": { имя: "Иван" },
     "id2": { имя: "Мария" }
 }
 
-# Быстрый поиск
+# Busca rápida
 печать(пользователи["id1"])
 ```
 
 ---
 
-## Заключение
+## Conclusão
 
-Следуйте этим практикам для написания качественного, поддерживаемого кода.
+Siga estas práticas para escrever código de qualidade e manutenível.
 
+**Versão:** 2.3.0  
+**Autor:** PoktWeb  
+**Ano:** 2025

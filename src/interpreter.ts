@@ -5,6 +5,8 @@ import {
   FunctionDeclaration,
   BlockStatement,
   IfStatement,
+  SwitchStatement,
+  CaseClause,
   WhileStatement,
   ForStatement,
   ReturnStatement,
@@ -14,12 +16,18 @@ import {
   AssignmentExpression,
   BinaryExpression,
   UnaryExpression,
+  TernaryExpression,
   CallExpression,
   Identifier,
   Literal,
   ArrayLiteral,
   IndexExpression,
 } from './ast';
+import { StdModules } from './std-native';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Lexer } from './lexer';
+import { Parser } from './parser';
 
 type RuntimeValue =
   | number
@@ -27,7 +35,9 @@ type RuntimeValue =
   | boolean
   | null
   | RuntimeValue[]
-  | FunctionValue;
+  | FunctionValue
+  | { [key: string]: RuntimeValue | ((...args: any[]) => any) }
+  | ((...args: any[]) => any);
 
 interface FunctionValue {
   type: 'function';
@@ -51,6 +61,119 @@ export class Interpreter {
       variables: new Map(),
       functions: new Map(),
     };
+    
+    // Registrar módulos nativos
+    this.registerNativeModules();
+  }
+
+  /**
+   * Registra módulos nativos na runtime
+   */
+  private registerNativeModules(): void {
+    // HTTP Module
+    this.globalEnv.variables.set('HTTP', {
+      GET: StdModules.HTTP.GET.bind(StdModules.HTTP),
+      POST: StdModules.HTTP.POST.bind(StdModules.HTTP),
+      PUT: StdModules.HTTP.PUT.bind(StdModules.HTTP),
+      DELETE: StdModules.HTTP.DELETE.bind(StdModules.HTTP),
+      создатьСервер: StdModules.HTTP.createServer.bind(StdModules.HTTP),
+      fetch: StdModules.HTTP.fetch.bind(StdModules.HTTP),
+    });
+
+    // Async Module
+    this.globalEnv.variables.set('Async', {
+      создатьОбещание: StdModules.Async.createPromise.bind(StdModules.Async),
+      всеОбещания: StdModules.Async.allPromises.bind(StdModules.Async),
+      любоеОбещание: StdModules.Async.anyPromise.bind(StdModules.Async),
+      отложить: StdModules.Async.delay.bind(StdModules.Async),
+      повторятьИнтервал: StdModules.Async.repeatInterval.bind(StdModules.Async),
+      очиститьПовторение: StdModules.Async.clearRepeat.bind(StdModules.Async),
+    });
+
+    // GUI Module
+    this.globalEnv.variables.set('GUI', {
+      создатьТерминал: StdModules.GUI.createTerminal.bind(StdModules.GUI),
+      создатьОкно: StdModules.GUI.createWindow.bind(StdModules.GUI),
+      создатьКнопку: StdModules.GUI.createButton.bind(StdModules.GUI),
+      создатьТекст: StdModules.GUI.createText.bind(StdModules.GUI),
+      создатьСписок: StdModules.GUI.createList.bind(StdModules.GUI),
+    });
+
+    // Database Module
+    this.globalEnv.variables.set('DB', {
+      открытьБД: StdModules.Database.openDB.bind(StdModules.Database),
+      создательЗапросов: StdModules.Database.createQueryBuilder.bind(StdModules.Database),
+      Модель: StdModules.Database.Model.bind(StdModules.Database),
+    });
+
+    // FileSystem Module
+    this.globalEnv.variables.set('FileSystem', {
+      читатьФайл: StdModules.FileSystem.readFile.bind(StdModules.FileSystem),
+      писатьФайл: StdModules.FileSystem.writeFile.bind(StdModules.FileSystem),
+      существует: StdModules.FileSystem.exists.bind(StdModules.FileSystem),
+      удалитьФайл: StdModules.FileSystem.deleteFile.bind(StdModules.FileSystem),
+      списокДиректорий: StdModules.FileSystem.listDir.bind(StdModules.FileSystem),
+    });
+
+    // JSON Module
+    this.globalEnv.variables.set('JSON', {
+      parse: StdModules.JSON.parse.bind(StdModules.JSON),
+      stringify: StdModules.JSON.stringify.bind(StdModules.JSON),
+    });
+
+    // Date Module
+    this.globalEnv.variables.set('Date', {
+      теперь: StdModules.Date.now.bind(StdModules.Date),
+      формат: StdModules.Date.format.bind(StdModules.Date),
+      timezone: StdModules.Date.timezone.bind(StdModules.Date),
+    });
+
+    // Crypto Module
+    this.globalEnv.variables.set('Crypto', {
+      md5: StdModules.Crypto.md5.bind(StdModules.Crypto),
+      sha256: StdModules.Crypto.sha256.bind(StdModules.Crypto),
+      sha512: StdModules.Crypto.sha512.bind(StdModules.Crypto),
+      случайныеБайты: StdModules.Crypto.randomBytes.bind(StdModules.Crypto),
+      зашифровать: StdModules.Crypto.encrypt.bind(StdModules.Crypto),
+      расшифровать: StdModules.Crypto.decrypt.bind(StdModules.Crypto),
+    });
+
+    // RegEx Module
+    this.globalEnv.variables.set('RegEx', {
+      создать: StdModules.RegEx.create.bind(StdModules.RegEx),
+      тест: StdModules.RegEx.test.bind(StdModules.RegEx),
+      соответствие: StdModules.RegEx.match.bind(StdModules.RegEx),
+      найтиВсе: StdModules.RegEx.findAll.bind(StdModules.RegEx),
+      заменить: StdModules.RegEx.replace.bind(StdModules.RegEx),
+      разделить: StdModules.RegEx.split.bind(StdModules.RegEx),
+    });
+
+    // Path Module
+    this.globalEnv.variables.set('Path', {
+      соединить: StdModules.Path.join.bind(StdModules.Path),
+      решить: StdModules.Path.resolve.bind(StdModules.Path),
+      директория: StdModules.Path.dirname.bind(StdModules.Path),
+      базовоеИмя: StdModules.Path.basename.bind(StdModules.Path),
+      расширение: StdModules.Path.extname.bind(StdModules.Path),
+      нормализовать: StdModules.Path.normalize.bind(StdModules.Path),
+      абсолютный: StdModules.Path.isAbsolute.bind(StdModules.Path),
+      относительный: StdModules.Path.relative.bind(StdModules.Path),
+      cwd: StdModules.Path.resolve.bind(StdModules.Path, '.'),
+    });
+
+    // Process Module
+    this.globalEnv.variables.set('Process', {
+      получитьEnv: StdModules.Process.getEnv.bind(StdModules.Process),
+      всеEnv: StdModules.Process.getAllEnv.bind(StdModules.Process),
+      установитьEnv: StdModules.Process.setEnv.bind(StdModules.Process),
+      платформа: StdModules.Process.platform,
+      архитектура: StdModules.Process.arch,
+      версия: StdModules.Process.version,
+      cwd: StdModules.Process.cwd,
+      изменитьDir: StdModules.Process.chdir.bind(StdModules.Process),
+      выход: StdModules.Process.exit.bind(StdModules.Process),
+      pid: StdModules.Process.pid,
+    });
   }
 
   public interpret(program: Program): void {
@@ -78,6 +201,8 @@ export class Interpreter {
         return this.evaluateBlockStatement(statement as BlockStatement, env);
       case 'IfStatement':
         return this.evaluateIfStatement(statement as IfStatement, env);
+      case 'SwitchStatement':
+        return this.evaluateSwitchStatement(statement as SwitchStatement, env);
       case 'WhileStatement':
         return this.evaluateWhileStatement(statement as WhileStatement, env);
       case 'ForStatement':
@@ -100,8 +225,14 @@ export class Interpreter {
       case 'ThrowStatement':
         return this.evaluateThrowStatement(statement as any, env);
       case 'ImportStatement':
+        return this.evaluateImportStatement(statement as any, env);
       case 'ExportStatement':
-        // Imports/exports são tratados pelo compilador
+        // Para o interpreter, avaliamos a declaração normalmente
+        // A declaração já é capturada pelo loadTrestModule
+        const exportDecl = (statement as any).declaration;
+        if (exportDecl) {
+          this.evaluateStatement(exportDecl, env);
+        }
         return null;
       default:
         throw new Error(`Tipo de declaração não suportado: ${(statement as any).type}`);
@@ -182,6 +313,52 @@ export class Interpreter {
     return null;
   }
 
+  private evaluateSwitchStatement(
+    stmt: SwitchStatement,
+    env: Environment
+  ): RuntimeValue | null {
+    const discriminant = this.evaluateExpression(stmt.discriminant, env);
+    let matched = false;
+
+    for (const caseClause of stmt.cases) {
+      // Se o test é __default__, sempre executa se ainda não matcheu
+      if (caseClause.test && (caseClause.test as any).value === '__default__') {
+        if (!matched) {
+          for (const consequent of caseClause.consequent) {
+            const result = this.evaluateStatement(consequent, env);
+            if (result !== null) {
+              if (this.isReturnValue(result)) {
+                return result;
+              }
+              if ((result as any).type === 'break') {
+                return null; // Break sai do switch
+              }
+            }
+          }
+        }
+      } else {
+        const testValue = this.evaluateExpression(caseClause.test, env);
+        
+        // Se matchou, executa todos os cases seguintes (fall-through)
+        if (testValue === discriminant || matched) {
+          matched = true;
+          for (const consequent of caseClause.consequent) {
+            const result = this.evaluateStatement(consequent, env);
+            if (result !== null) {
+              if (this.isReturnValue(result)) {
+                return result;
+              }
+              if ((result as any).type === 'break') {
+                return null; // Break sai do switch
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
 
   private evaluateReturnStatement(
     stmt: ReturnStatement,
@@ -218,6 +395,8 @@ export class Interpreter {
         return this.evaluateBinaryExpression(expr as BinaryExpression, env);
       case 'UnaryExpression':
         return this.evaluateUnaryExpression(expr as UnaryExpression, env);
+      case 'TernaryExpression':
+        return this.evaluateTernaryExpression(expr as TernaryExpression, env);
       case 'CallExpression':
         return this.evaluateCallExpression(expr as CallExpression, env);
       case 'Identifier':
@@ -228,6 +407,10 @@ export class Interpreter {
         return this.evaluateArrayLiteral(expr as ArrayLiteral, env);
       case 'IndexExpression':
         return this.evaluateIndexExpression(expr as IndexExpression, env);
+      case 'MemberExpression':
+        return this.evaluateMemberExpression(expr as any, env);
+      case 'ObjectLiteral':
+        return this.evaluateObjectLiteral(expr as any, env);
       default:
         throw new Error(`Tipo de expressão não suportado: ${(expr as any).type}`);
     }
@@ -332,42 +515,68 @@ export class Interpreter {
     }
   }
 
+  private evaluateTernaryExpression(
+    expr: TernaryExpression,
+    env: Environment
+  ): RuntimeValue {
+    const testValue = this.evaluateExpression(expr.test, env);
+    const testResult = this.isTruthy(testValue);
+    
+    if (testResult) {
+      return this.evaluateExpression(expr.consequent, env);
+    } else {
+      return this.evaluateExpression(expr.alternate, env);
+    }
+  }
+
   private evaluateCallExpression(
     expr: CallExpression,
     env: Environment
   ): RuntimeValue {
     const callee = this.evaluateExpression(expr.callee, env);
 
-    if (typeof callee !== 'object' || callee === null || !('type' in callee) || (callee as any).type !== 'function') {
-      throw new Error(`Não é uma função: ${(expr.callee as Identifier).name}`);
+    // Check if callee is a function (native or Trest function)
+    if (typeof callee === 'function') {
+      // Native function (from std-native.ts)
+      const args = expr.arguments.map((arg) => this.evaluateExpression(arg, env));
+      try {
+        return callee(...args);
+      } catch (error: any) {
+        throw new Error(`Erro ao chamar função nativa: ${error.message}`);
+      }
     }
 
-    const func = callee as FunctionValue;
-    const args = expr.arguments.map((arg) => this.evaluateExpression(arg, env));
+    // Check if it's a Trest function
+    if (typeof callee === 'object' && callee !== null && 'type' in callee && (callee as any).type === 'function') {
+      const func = callee as FunctionValue;
+      const args = expr.arguments.map((arg) => this.evaluateExpression(arg, env));
 
-    if (args.length !== func.params.length) {
-      throw new Error(
-        `Número incorreto de argumentos. Esperado ${func.params.length}, recebido ${args.length}`
-      );
+      if (args.length !== func.params.length) {
+        throw new Error(
+          `Número incorreto de argumentos. Esperado ${func.params.length}, recebido ${args.length}`
+        );
+      }
+
+      const newEnv: Environment = {
+        variables: new Map(),
+        functions: new Map(),
+        parent: func.closure,
+      };
+
+      for (let i = 0; i < func.params.length; i++) {
+        newEnv.variables.set(func.params[i], args[i]);
+      }
+
+      const result = this.evaluateBlockStatement(func.body, newEnv);
+      
+      if (result !== null && this.isReturnValue(result)) {
+        return (result as any).value;
+      }
+
+      return null;
     }
 
-    const newEnv: Environment = {
-      variables: new Map(),
-      functions: new Map(),
-      parent: func.closure,
-    };
-
-    for (let i = 0; i < func.params.length; i++) {
-      newEnv.variables.set(func.params[i], args[i]);
-    }
-
-    const result = this.evaluateBlockStatement(func.body, newEnv);
-    
-    if (result !== null && this.isReturnValue(result)) {
-      return (result as any).value;
-    }
-
-    return null;
+    throw new Error(`Não é uma função: ${(expr.callee as Identifier).name}`);
   }
 
   private evaluateIdentifier(
@@ -439,15 +648,18 @@ export class Interpreter {
   private evaluateMemberExpression(expr: any, env: Environment): RuntimeValue {
     const object = this.evaluateExpression(expr.object, env);
     
-    if (object === null || (typeof object !== 'object' && !Array.isArray(object))) {
-      throw new Error('Acesso a propriedade só é permitido em objetos');
-    }
-
     const property = expr.computed
       ? this.evaluateExpression(expr.property, env)
       : expr.property;
 
     const key = String(property);
+    
+    // Suportar acesso a propriedades de classes estáticas também
+    if (object === null || object === undefined) {
+      throw new Error('Acesso a propriedade só é permitido em objetos (null ou undefined)');
+    }
+    
+    // Permitir acesso em objetos, arrays, funções e classes
     return (object as any)[key];
   }
 
@@ -595,6 +807,191 @@ export class Interpreter {
     }
 
     return null;
+  }
+
+  /**
+   * Avalia import statement
+   */
+  private evaluateImportStatement(statement: any, env: Environment): null {
+    const specifiers = statement.specifiers;
+    const source = statement.source;
+    
+    // Para imports std/, primeiro tentar carregar .trest, senão usar nativos
+    if (source.startsWith('std/')) {
+      for (const spec of specifiers) {
+        if (spec.imported === '*') {
+          const localName = spec.local || '*';
+          
+          // Tentar carregar arquivo .trest primeiro
+          const stdPath = this.resolveStdPath(source);
+          if (stdPath && fs.existsSync(stdPath)) {
+            try {
+              const moduleValue = this.loadTrestModule(stdPath);
+              env.variables.set(localName, moduleValue);
+              continue;
+            } catch (e) {
+              // Se falhar, tentar nativos
+            }
+          }
+          
+          // Fallback para módulos nativos
+          let moduleName = source.replace('std/', '').replace('.trest', '');
+          if (moduleName === 'index') {
+            moduleName = '';
+          }
+          
+          const moduleMap: { [key: string]: any } = {
+            '': {  // std/index
+              HTTP: StdModules.HTTP,
+              Async: StdModules.Async,
+              GUI: StdModules.GUI,
+              DB: StdModules.Database,
+              FileSystem: StdModules.FileSystem,
+              JSON: StdModules.JSON,
+              Date: StdModules.Date,
+              Crypto: StdModules.Crypto,
+              RegEx: StdModules.RegEx,
+              Path: StdModules.Path,
+              Process: StdModules.Process,
+            },
+            'http': {
+              GET: StdModules.HTTP.GET.bind(StdModules.HTTP),
+              POST: StdModules.HTTP.POST.bind(StdModules.HTTP),
+              создатьСервер: StdModules.HTTP.createServer.bind(StdModules.HTTP),
+            },
+            'async': {
+              отложить: StdModules.Async.delay.bind(StdModules.Async),
+              создатьОбещание: StdModules.Async.createPromise.bind(StdModules.Async),
+            },
+            'gui': {
+              создатьОкно: StdModules.GUI.createWindow.bind(StdModules.GUI),
+              создатьКнопку: StdModules.GUI.createButton.bind(StdModules.GUI),
+            },
+            'database': {
+              открытьБД: StdModules.Database.openDB.bind(StdModules.Database),
+              Модель: StdModules.Database.Model.bind(StdModules.Database),
+            },
+            'crypto': {
+              md5: StdModules.Crypto.md5.bind(StdModules.Crypto),
+              sha256: StdModules.Crypto.sha256.bind(StdModules.Crypto),
+              sha512: StdModules.Crypto.sha512.bind(StdModules.Crypto),
+              случайныеБайты: StdModules.Crypto.randomBytes.bind(StdModules.Crypto),
+              зашифровать: StdModules.Crypto.encrypt.bind(StdModules.Crypto),
+              расшифровать: StdModules.Crypto.decrypt.bind(StdModules.Crypto),
+            },
+            'filesystem': {
+              читатьФайл: StdModules.FileSystem.readFile.bind(StdModules.FileSystem),
+              писатьФайл: StdModules.FileSystem.writeFile.bind(StdModules.FileSystem),
+              существует: StdModules.FileSystem.exists.bind(StdModules.FileSystem),
+              удалитьФайл: StdModules.FileSystem.deleteFile.bind(StdModules.FileSystem),
+              списокДиректорий: StdModules.FileSystem.listDir.bind(StdModules.FileSystem),
+            },
+            'json': {
+              parse: StdModules.JSON.parse.bind(StdModules.JSON),
+              stringify: StdModules.JSON.stringify.bind(StdModules.JSON),
+            },
+            'date': {
+              теперь: StdModules.Date.now.bind(StdModules.Date),
+              формат: StdModules.Date.format.bind(StdModules.Date),
+              timezone: StdModules.Date.timezone.bind(StdModules.Date),
+            },
+            'regex': {
+              создать: StdModules.RegEx.create.bind(StdModules.RegEx),
+              тест: StdModules.RegEx.test.bind(StdModules.RegEx),
+              соответствие: StdModules.RegEx.match.bind(StdModules.RegEx),
+              найтиВсе: StdModules.RegEx.findAll.bind(StdModules.RegEx),
+              заменить: StdModules.RegEx.replace.bind(StdModules.RegEx),
+              разделить: StdModules.RegEx.split.bind(StdModules.RegEx),
+            },
+            'path': {
+              соединить: StdModules.Path.join.bind(StdModules.Path),
+              решить: StdModules.Path.resolve.bind(StdModules.Path),
+              директория: StdModules.Path.dirname.bind(StdModules.Path),
+              базовоеИмя: StdModules.Path.basename.bind(StdModules.Path),
+              расширение: StdModules.Path.extname.bind(StdModules.Path),
+              нормализовать: StdModules.Path.normalize.bind(StdModules.Path),
+              абсолютный: StdModules.Path.isAbsolute.bind(StdModules.Path),
+              относительный: StdModules.Path.relative.bind(StdModules.Path),
+              cwd: StdModules.Path.resolve.bind(StdModules.Path, '.'),
+            },
+            'process': {
+              получитьEnv: StdModules.Process.getEnv.bind(StdModules.Process),
+              всеEnv: StdModules.Process.getAllEnv.bind(StdModules.Process),
+              установитьEnv: StdModules.Process.setEnv.bind(StdModules.Process),
+              платформа: StdModules.Process.platform,
+              архитектура: StdModules.Process.arch,
+              версия: StdModules.Process.version,
+              cwd: StdModules.Process.cwd,
+              изменитьDir: StdModules.Process.chdir.bind(StdModules.Process),
+              выход: StdModules.Process.exit.bind(StdModules.Process),
+              pid: StdModules.Process.pid,
+            },
+          };
+          
+          const moduleValue = moduleMap[moduleName] || {};
+          env.variables.set(localName, moduleValue);
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Resolve path for std modules
+   */
+  private resolveStdPath(modulePath: string): string | null {
+    // Try multiple possible locations
+    const possiblePaths = [
+      // Development paths
+      path.join(__dirname, '..', 'src', 'std', modulePath.replace('std/', '') + '.trest'),
+      path.join(process.cwd(), 'src', 'std', modulePath.replace('std/', '') + '.trest'),
+      // Production paths
+      path.join(__dirname, 'std', modulePath.replace('std/', '') + '.trest'),
+      // Relative to dist
+      path.join(__dirname, '..', 'std', modulePath.replace('std/', '') + '.trest'),
+    ];
+    
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        return p;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Load a .trest module file
+   */
+  private loadTrestModule(filePath: string): { [key: string]: any } {
+    const source = fs.readFileSync(filePath, 'utf-8');
+    const lexer = new Lexer(source);
+    const tokens = lexer.tokenize();
+    const parser = new Parser(tokens);
+    const ast = parser.parse();
+    
+    // Create isolated environment for module
+    const moduleEnv: Environment = {
+      variables: new Map(),
+      functions: new Map(),
+    };
+    
+    // Evaluate module statements
+    for (const statement of ast.body) {
+      this.evaluateStatement(statement, moduleEnv);
+    }
+    
+    // Collect exports
+    const exports: { [key: string]: any } = {};
+    for (const [key, value] of moduleEnv.variables) {
+      exports[key] = value;
+    }
+    for (const [key, value] of moduleEnv.functions) {
+      exports[key] = value;
+    }
+    
+    return exports;
   }
 }
 

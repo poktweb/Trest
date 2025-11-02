@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm'
 const docsPages = [
   { slug: 'index', title: 'Главная', path: '/' },
   { slug: 'readme', title: 'Полное руководство', path: '/docs/readme' },
+  { slug: 'modules', title: '📦 Модули v2.1', path: '/docs/modules' },
   { slug: 'api', title: 'API Reference', path: '/docs/api' },
   { slug: 'guide', title: 'Пошаговое руководство', path: '/docs/guide' },
   { slug: 'examples', title: 'Примеры кода', path: '/docs/examples' },
@@ -32,6 +33,12 @@ export default function DocPage({
           'readme': 'README',
           'summary': 'SUMMARY',
           'changelog': 'CHANGELOG',
+          'modules': 'modules',
+          'index': 'index',
+          'api': 'api',
+          'guide': 'guide',
+          'examples': 'examples',
+          'best-practices': 'best-practices',
         }
         
         const fileName = fileMap[slug] || slug
@@ -59,7 +66,7 @@ export default function DocPage({
         <header className="header">
           <div className="container header-content">
             <Link href="/" className="logo">
-              🚀 Trest Language
+              🚀 Trest Language <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v2.1</span>
             </Link>
             <nav>
               <Link href="/">Главная</Link>
@@ -116,7 +123,8 @@ export default function DocPage({
 
       <footer className="footer">
         <div className="container">
-          <p>© 2024 Trest Language - Документация</p>
+          <p>© 2024 Trest Language v2.1 - Desenvolvido por PoktWeb</p>
+          <p style={{ fontSize: '0.9em', opacity: 0.7 }}>Documentação: <a href="https://trest-site.vercel.app" style={{ color: 'var(--accent)' }}>trest-site.vercel.app</a></p>
         </div>
       </footer>
     </div>

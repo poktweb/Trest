@@ -135,6 +135,9 @@ body {
   color: var(--accent);
   border-bottom: 1px solid var(--border);
   padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .markdown h3 {
@@ -225,6 +228,27 @@ body {
 
 .markdown a:hover {
   text-decoration: underline;
+}
+
+/* Code blocks enhancements */
+.markdown pre {
+  position: relative;
+  background: linear-gradient(to bottom, var(--bg-tertiary), #1e2339);
+}
+
+.markdown pre code::before {
+  content: '';
+}
+
+/* Badge styling */
+.markdown h2::before,
+.markdown h3::before {
+  flex-shrink: 0;
+}
+
+/* Module sections */
+.markdown h1 + h2 {
+  margin-top: 0.5rem;
 }
 
 /* Footer */

@@ -1,0 +1,32 @@
+# Demonstração JSON
+
+печать("╔═══════════════════════════════════════╗")
+печать("║   📄 JSON DEMO                        ║")
+печать("╚═══════════════════════════════════════╝")
+печать("")
+
+импорт * как JSON измодуля "std/index"
+
+# Criar objeto
+пусть usuario = {
+    nome: "PoktWeb",
+    idade: 25,
+    email: "poktweb@example.com"
+}
+
+печать("Objeto original:")
+печать(usuario)
+печать("")
+
+# Stringify
+печать("📤 Convertendo para JSON...")
+печать("JSON.stringify() disponível")
+печать("")
+
+# Parse
+печать("📥 Convertendo de JSON...")
+печать("JSON.parse() disponível")
+
+печать("")
+печать("✅ Demo JSON concluído!")
+

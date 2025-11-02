@@ -2,6 +2,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { execSync } from 'child_process';
 import { Lexer } from './lexer';
 import { Parser } from './parser';
 import { Interpreter } from './interpreter';
@@ -9,16 +10,20 @@ import { TrestError } from './errors';
 import { ModuleSystem } from './module';
 import minimist from 'minimist';
 
-const VERSION = '2.0.0';
+const VERSION = '2.4.0';
 
 interface CliOptions {
   help?: boolean;
   h?: boolean;
   version?: boolean;
   v?: boolean;
+  update?: boolean;
+  u?: boolean;
   strict?: boolean;
   verbose?: boolean;
   debug?: boolean;
+  e?: string;
+  execute?: string;
   _: string[];
 }
 
@@ -26,7 +31,7 @@ function main() {
   const args: CliOptions = minimist(process.argv.slice(2)) as CliOptions;
   
   // Validação de argumentos
-  if (args._.length === 0 && !args.help && !args.h && !args.version && !args.v) {
+  if (args._.length === 0 && !args.help && !args.h && !args.version && !args.v && !args.update && !args.u && !args.e && !args.execute) {
     showUsage();
     process.exit(1);
   }
@@ -38,6 +43,30 @@ function main() {
 
   if (args.version || args.v) {
     console.log(`Trest Language v${VERSION}`);
+    process.exit(0);
+  }
+
+  if (args.update || args.u) {
+    // Run update script
+    const updateScript = path.join(__dirname, '../scripts/update.js');
+    if (fs.existsSync(updateScript)) {
+      execSync(`node "${updateScript}"`, { stdio: 'inherit' });
+    } else {
+      console.error('❌ Update script not found');
+      console.log('Please run: npm install -g treste@latest');
+      process.exit(1);
+    }
+    process.exit(0);
+  }
+
+  // Modo execute inline: trest -e "печать('Olá')"
+  if (args.e || args.execute) {
+    const code = args.e || args.execute;
+    if (!code) {
+      console.error('❌ Error: No code provided for -e flag');
+      process.exit(1);
+    }
+    executeCode(code, process.cwd(), args);
     process.exit(0);
   }
 
@@ -68,6 +97,10 @@ function main() {
     console.log('');
   }
 
+  executeFile(filePath, args);
+}
+
+function executeFile(filePath: string, args: CliOptions) {
   try {
     const startTime = Date.now();
     
@@ -80,6 +113,26 @@ function main() {
     }
     
     const basePath = path.dirname(filePath);
+    executeCode(code, basePath, args);
+    
+    const duration = Date.now() - startTime;
+    
+    if (args.verbose || args.debug) {
+      console.log(`\n✅ Execution completed in ${duration}ms`);
+    }
+  } catch (error: any) {
+    handleError(error, args);
+    process.exit(1);
+  }
+}
+
+function executeCode(code: string, basePath: string, args: CliOptions) {
+  try {
+    // Log verbose
+    if (args.verbose || args.debug) {
+      console.log(`📄 Executing code...`);
+      console.log('');
+    }
     
     // Lexer
     if (args.debug) console.log('🔤 Tokenizing...');
@@ -103,12 +156,6 @@ function main() {
     if (args.debug) console.log('⚡ Executing...\n');
     const interpreter = new Interpreter();
     interpreter.interpret(program);
-    
-    const duration = Date.now() - startTime;
-    
-    if (args.verbose || args.debug) {
-      console.log(`\n✅ Execution completed in ${duration}ms`);
-    }
   } catch (error: any) {
     handleError(error, args);
     process.exit(1);
@@ -144,6 +191,8 @@ function showUsage() {
   console.log('Options:');
   console.log('  --help, -h              Show help');
   console.log('  --version, -v           Show version');
+  console.log('  --update, -u            Update to latest version');
+  console.log('  -e, --execute           Execute code inline');
   console.log('  --strict                Strict mode');
   console.log('  --verbose, -V           Verbose output');
   console.log('  --debug, -d             Debug mode');
@@ -152,6 +201,8 @@ function showUsage() {
   console.log('  trest программа.trest');
   console.log('  trest exemplos/hello_cyrillic.trest');
   console.log('  trest script.trest --verbose');
+  console.log('  trest -e "печать(\'Olá\')"          # Execute inline');
+  console.log('  trest --update                      # Update to latest');
   console.log('');
   console.log('Compilation:');
   console.log('  trestc программа.trest --mode web');
@@ -168,6 +219,8 @@ Usage:
 Options:
   --help, -h         Show this help message
   --version, -v      Show version number
+  --update, -u       Check and update to latest version from NPM
+  -e, --execute      Execute code inline (без файла)
   --strict           Strict mode (show stack trace on errors)
   --verbose, -V      Verbose output
   --debug, -d        Debug mode (detailed execution info)
@@ -177,12 +230,18 @@ Examples:
   trest exemplos/hello_cyrillic.trest --strict
   trest script.trest --verbose
   trest program.trest --debug
+  trest -e "печать('Olá, Mundo')"
+  trest -e "пусть x = 10; печать(x)"
+  trest --update
 
 Compilation:
   trestc программа.trest --mode web    # Compile to JavaScript
   trestc программа.trest --mode exe    # Compile to executable
 
-For more information visit: https://github.com/trest-language/trest
+Update:
+  trest --update     # Automatically check and update from NPM
+
+For more information visit: https://trest-site.vercel.app
 `);
 }
 

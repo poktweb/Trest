@@ -91,6 +91,8 @@ export enum TokenType {
   REST = 'REST',
   
   // Operadores avançados
+  TERNARY = 'TERNARY',
+  Q_MARK = 'Q_MARK',
   POW = 'POW',
   NULLISH_COALESCING = 'NULLISH_COALESCING',
   OPTIONAL_CHAIN = 'OPTIONAL_CHAIN',
@@ -100,6 +102,7 @@ export enum TokenType {
   MINUS_ASSIGN = 'MINUS_ASSIGN',
   MULTIPLY_ASSIGN = 'MULTIPLY_ASSIGN',
   DIVIDE_ASSIGN = 'DIVIDE_ASSIGN',
+  COLON = 'COLON',
   
   // Especiais
   EOF = 'EOF',
@@ -320,6 +323,7 @@ export class Lexer {
         continue;
       }
 
+
       // Identificadores e palavras-chave (suporta latino, cirílico e português)
       if (/[a-zA-Z_áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇа-яА-ЯёЁ]/.test(this.currentChar)) {
         tokens.push(this.readIdentifier());
@@ -431,6 +435,14 @@ export class Lexer {
           break;
         case ';':
           tokens.push({ type: TokenType.SEMICOLON, value: ';', line: startLine, column: startColumn });
+          this.advance();
+          break;
+        case '?':
+          tokens.push({ type: TokenType.Q_MARK, value: '?', line: startLine, column: startColumn });
+          this.advance();
+          break;
+        case ':':
+          tokens.push({ type: TokenType.COLON, value: ':', line: startLine, column: startColumn });
           this.advance();
           break;
         case '.':

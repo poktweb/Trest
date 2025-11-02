@@ -1,10 +1,12 @@
-# Trest Language Documentation Site
+# Trest Language v2.1 Documentation Site
 
-Сайт документации языка программирования Trest, созданный с Next.js.
+Сайт документации языка программирования Trest v2.1, созданный с Next.js.
+
+**Новые модули:** HTTP, Crypto, FileSystem, JSON, Date, Database, GUI, Async
 
 ## 📁 Расположение
 
-Сайт находится в: `C:\Users\Lesenechal\Desktop\Projetos\treste\Site`
+Сайт находится в: `C:\Users\Lesenechal\Desktop\Projetos\Trest_Site`
 
 Документация находится в: `docs/` (встроена в проект сайта)
 
@@ -58,7 +60,7 @@ vercel
 - `docs/SUMMARY.md` → `/docs/summary` (Резюме)
 - `docs/CHANGELOG.md` → `/docs/changelog` (История изменений)
 
-## Структура
+## Структура сайта
 
 - `app/` - Страницы Next.js App Router
 - `app/page.tsx` - Главная страница
@@ -74,4 +76,3 @@ vercel
 - При изменениях в документации просто обновите файлы в `docs/`
 - Сайт использует клиентскую загрузку через API routes для гибкости
 - Вся документация встроена в проект для автономной работы
-

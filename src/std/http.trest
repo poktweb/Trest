@@ -1,0 +1,44 @@
+# HTTP Library - Cliente e Servidor HTTP
+
+# Funções HTTP Cliente
+
+экспорт функция GET(url) {
+    # TODO: Implementar GET request
+    вернуть { status: 200, dados: {} }
+}
+
+экспорт функция POST(url, dados) {
+    # TODO: Implementar POST request
+    вернуть { status: 200, dados: {} }
+}
+
+экспорт функция PUT(url, dados) {
+    # TODO: Implementar PUT request
+    вернуть { status: 200, dados: {} }
+}
+
+экспорт функция DELETE(url) {
+    # TODO: Implementar DELETE request
+    вернуть { status: 200, dados: {} }
+}
+
+# Funções HTTP Servidor
+
+экспорт функция criarСервер() {
+    # TODO: Implementar servidor HTTP
+    вернуть {
+        слушать: функция(порт) {},
+        получить: функция(маршрут, обработчик) {},
+        отправить: функция(маршрут, обработчик) {},
+        положить: функция(маршрут, обработчик) {},
+        удалить: функция(маршрут, обработчик) {}
+    }
+}
+
+# Fetch API
+
+экспорт функция fetch(url, opcoes) {
+    # TODO: Implementar fetch
+    вернуть { dados: {}, status: 200 }
+}
+

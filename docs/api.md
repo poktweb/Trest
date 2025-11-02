@@ -1,300 +1,346 @@
-# API Reference - Trest Language
+# Referência da API - Trest Language
 
-Полная справочная документация по API языка Trest.
-
-## Содержание
-
-1. [Встроенные функции](#встроенные-функции)
-2. [Стандартная библиотека](#стандартная-библиотека)
-3. [Типы данных](#типы-данных)
-4. [Операторы](#операторы)
-5. [Встроенные объекты](#встроенные-объекты)
+Referência completa da API da linguagem de programação Trest.
 
 ---
 
-## Встроенные функции
+## 📦 Módulos da Biblioteca Padrão
+
+### 🔢 Math - Funções Matemáticas
+
+**Importação:**
+```trest
+импорт * как Math измодуля "std/math"
+```
+
+**Funções:**
+- `Math.abs(x)` - Valor absoluto
+- `Math.max(a, b)` - Máximo
+- `Math.min(a, b)` - Mínimo
+- `Math.sqrt(x)` - Raiz quadrada
+- `Math.pow(base, exp)` - Potência
+- `Math.ceil(x)` - Arredondar para cima
+- `Math.floor(x)` - Arredondar para baixo
+- `Math.round(x)` - Arredondar
+
+**Constantes:**
+- `Math.PI` - 3.14159
+- `Math.E` - 2.71828
+
+---
+
+### 📝 String - Trabalhar com Strings
+
+**Importação:**
+```trest
+импорт * как String измодуля "std/string"
+```
+
+**Funções:**
+- `String.размер(str)` - Tamanho da string
+- `String.верхний(str)` - Maiúsculas
+- `String.нижний(str)` - Minúsculas
+- `String.заменить(str, old, new)` - Substituir
+- `String.разделить(str, delimiter)` - Dividir
+
+---
+
+### 📊 Array - Arrays
+
+**Importação:**
+```trest
+импорт * как Array измодуля "std/array"
+```
+
+**Funções:**
+- `Array.добавить(arr, item)` - Adicionar elemento
+- `Array.удалить(arr, index)` - Remover por índice
+- `Array.включает(arr, item)` - Verificar se contém
+- `Array.обратить(arr)` - Inverter ordem
+- `Array.срез(arr, start, end)` - Fatiar array
+- `Array.отсортировать(arr)` - Ordenar
+
+---
+
+### 🌐 HTTP - Cliente e Servidor HTTP
+
+**Importação:**
+```trest
+импорт * как HTTP измодуля "std/http"
+```
+
+**Métodos de requisição:**
+- `HTTP.GET(url, options)` - Requisição GET
+- `HTTP.POST(url, data, options)` - Requisição POST
+- `HTTP.PUT(url, data, options)` - Requisição PUT
+- `HTTP.DELETE(url, options)` - Requisição DELETE
+- `HTTP.fetch(url, options)` - Fetch API
+
+**Servidor:**
+- `HTTP.createServer()` - Criar servidor
+- `сервер.get(path, handler)` - Rota GET
+- `сервер.post(path, handler)` - Rota POST
+- `сервер.listen(port, callback)` - Iniciar servidor
+
+---
+
+### 🔐 Crypto - Criptografia
+
+**Importação:**
+```trest
+импорт * как Crypto измодуля "std/crypto"
+```
+
+**Hash:**
+- `Crypto.md5(text)` - Hash MD5
+- `Crypto.sha256(text)` - Hash SHA256
+- `Crypto.sha512(text)` - Hash SHA512
+
+**Criptografia:**
+- `Crypto.encrypt(text, key)` - Criptografia AES
+- `Crypto.decrypt(encrypted, key)` - Decriptografia AES
+- `Crypto.randomBytes(length)` - Bytes aleatórios
+
+---
+
+### 📁 FileSystem - Sistema de Arquivos
+
+**Importação:**
+```trest
+импорт * как FileSystem измодуля "std/filesystem"
+```
+
+**Operações:**
+- `FileSystem.readFile(path)` - Ler arquivo
+- `FileSystem.writeFile(path, content)` - Escrever arquivo
+- `FileSystem.exists(path)` - Verificar existência
+- `FileSystem.deleteFile(path)` - Deletar arquivo
+- `FileSystem.listDir(path)` - Listar arquivos
+- `FileSystem.createDir(path)` - Criar diretório
+- `FileSystem.deleteDir(path)` - Deletar diretório
+- `FileSystem.getStats(path)` - Estatísticas do arquivo
+
+---
+
+### 📄 JSON - Processamento JSON
+
+**Importação:**
+```trest
+импорт * как JSON измодуля "std/json"
+```
+
+**Funções:**
+- `JSON.parse(str)` - Parse de string JSON
+- `JSON.stringify(obj, indent)` - Converter para JSON
+
+---
+
+### 📅 Date - Data e Hora
+
+**Importação:**
+```trest
+импорт * как Date измодуля "std/date"
+```
+
+**Funções:**
+- `Date.now()` - Hora atual
+- `Date.format(date, format)` - Formatação
+- `Date.timezone()` - Fuso horário
+
+---
+
+### 🗄️ Database - Banco de Dados
+
+**Importação:**
+```trest
+импорт * как DB измодуля "std/database"
+```
+
+**Métodos:**
+- `DB.openDB(path)` - Abrir banco de dados
+- `DB.createQueryBuilder(table)` - Query Builder
+- `DB.Model(table)` - Modelo ORM
+
+**Query Builder:**
+- `.select(fields)` - Selecionar campos
+- `.where(condition)` - Condição WHERE
+- `.order(field)` - ORDER BY
+- `.limit(n)` - LIMIT
+- `.execute()` - Executar
+
+---
+
+### 🖥️ GUI - Interface Gráfica
+
+**Importação:**
+```trest
+импорт * как GUI измодуля "std/gui"
+```
+
+**Componentes:**
+- `GUI.createWindow(options)` - Criar janela
+- `GUI.createButton(text, onClick)` - Botão
+- `GUI.createText(placeholder, onChange)` - Campo de texto
+- `GUI.createList(data, onSelect)` - Lista
+- `GUI.createTerminal()` - Terminal
+
+---
+
+### ⚡ Async - Assíncrono
+
+**Importação:**
+```trest
+импорт * как Async измодуля "std/async"
+```
+
+**Funções:**
+- `Async.delay(ms)` - Atraso
+- `Async.createPromise(executor)` - Criar Promise
+- `Async.allPromises(promises)` - Promise.all
+- `Async.anyPromise(promises)` - Promise.race
+- `Async.setTimer(fn, ms)` - setTimeout
+- `Async.clearTimer(id)` - clearTimeout
+- `Async.repeatInterval(fn, ms)` - setInterval
+- `Async.clearRepeat(id)` - clearInterval
+
+---
+
+### 🔍 RegEx - Expressões Regulares
+
+**Importação:**
+```trest
+импорт * как RegEx измодуля "std/regex"
+```
+
+**Funções:**
+- `RegEx.создать(pattern, flags)` - Criar padrão regex
+- `RegEx.тест(pattern, text, flags)` - Testar padrão
+- `RegEx.соответствие(pattern, text, flags)` - Primeira correspondência
+- `RegEx.найтиВсе(pattern, text, flags)` - Todas as correspondências
+- `RegEx.заменить(pattern, text, replacement, flags)` - Substituir
+- `RegEx.разделить(pattern, text, limit)` - Dividir por padrão
+
+---
+
+### 📁 Path - Manipulação de Caminhos
+
+**Importação:**
+```trest
+импорт * как Path измодуля "std/path"
+```
+
+**Funções:**
+- `Path.соединить(...segments)` - Juntar segmentos
+- `Path.решить(...segments)` - Resolver caminho absoluto
+- `Path.директория(path)` - Nome do diretório
+- `Path.базовоеИмя(path, ext)` - Nome base do arquivo
+- `Path.расширение(path)` - Extensão do arquivo
+- `Path.нормализовать(path)` - Normalizar caminho
+- `Path.абсолютный(path)` - Verificar se é absoluto
+- `Path.относительный(from, to)` - Caminho relativo
+
+---
+
+### ⚙️ Process - Processo e Ambiente
+
+**Importação:**
+```trest
+импорт * как Process измодуля "std/process"
+```
+
+**Funções:**
+- `Process.получитьEnv(key)` - Obter variável de ambiente
+- `Process.всеEnv()` - Obter todas as variáveis
+- `Process.установитьEnv(key, value)` - Definir variável (runtime)
+- `Process.изменитьDir(directory)` - Mudar diretório
+- `Process.выход(code)` - Encerrar processo
+
+**Propriedades:**
+- `Process.платформа` - Plataforma (win32, linux, darwin)
+- `Process.архитектура` - Arquitetura (x64, arm64, etc)
+- `Process.версия` - Versão do Node.js
+- `Process.cwd` - Diretório atual
+- `Process.pid` - ID do processo
+
+---
+
+## 🔧 Funções Integradas
 
 ### печать(...args)
 
-Выводит значения в консоль.
+Exibir valores no console:
 
 ```trest
-печать("Привет")           # Привет
-печать(1, 2, 3)            # 1 2 3
-печать("x =", x)           # x = 10
+печать("Привет", 42, истина)
 ```
 
 ---
 
-## Стандартная библиотека
+## 📝 Palavras-chave
 
-### Math
+### Declarações
+- `пусть` - variável com escopo de bloco
+- `конст` - constante
+- `перем` - variável com escopo funcional
 
-#### Math.abs(x)
-Возвращает абсолютное значение числа.
+### Controle de fluxo
+- `если` / `иначе` / `иначе если` - condicionais
+- `для` - loop for
+- `пока` - loop while
+- `прервать` - break
+- `продолжить` - continue
 
-```trest
-Math.abs(-5)   # 5
-Math.abs(5)    # 5
-```
+### Funções
+- `функция` - declaração de função
+- `вернуть` - retornar valor
 
-#### Math.max(a, b, ...)
-Возвращает максимальное значение.
+### Tratamento de erros
+- `попытаться` - try
+- `перехватить` - catch
+- `наконец` - finally
+- `бросить` - throw
 
-```trest
-Math.max(10, 20)        # 20
-Math.max(1, 2, 3, 4, 5) # 5
-```
+### Módulos
+- `импорт` - importar
+- `экспорт` - exportar
 
-#### Math.min(a, b, ...)
-Возвращает минимальное значение.
-
-```trest
-Math.min(10, 20)        # 10
-Math.min(1, 2, 3, 4, 5) # 1
-```
-
-#### Math.pow(base, exponent)
-Возведение в степень.
-
-```trest
-Math.pow(2, 3)   # 8
-Math.pow(10, 2)  # 100
-```
-
-#### Math.sqrt(x)
-Квадратный корень.
-
-```trest
-Math.sqrt(16)  # 4
-Math.sqrt(25)  # 5
-```
-
-#### Math.ceil(x)
-Округление вверх.
-
-```trest
-Math.ceil(3.2)  # 4
-Math.ceil(3.8)  # 4
-```
-
-#### Math.floor(x)
-Округление вниз.
-
-```trest
-Math.floor(3.2)  # 3
-Math.floor(3.8)  # 3
-```
-
-#### Math.round(x)
-Округление до ближайшего целого.
-
-```trest
-Math.round(3.2)  # 3
-Math.round(3.5)  # 4
-Math.round(3.8)  # 4
-```
-
-#### Math.PI
-Число π.
-
-```trest
-Math.PI  # 3.141592653589793
-```
-
-#### Math.E
-Число e (основание натурального логарифма).
-
-```trest
-Math.E  # 2.718281828459045
-```
-
-### String
-
-#### String.размер(str)
-Длина строки.
-
-```trest
-String.размер("Привет")  # 6
-```
-
-#### String.верхний(str)
-Преобразование в верхний регистр.
-
-```trest
-String.верхний("привет")  # "ПРИВЕТ"
-```
-
-#### String.нижний(str)
-Преобразование в нижний регистр.
-
-```trest
-String.нижний("ПРИВЕТ")  # "привет"
-```
-
-#### String.заменить(str, old, new)
-Замена подстроки.
-
-```trest
-String.заменить("abc", "a", "x")  # "xbc"
-```
-
-#### String.разделить(str, separator)
-Разделение строки.
-
-```trest
-String.разделить("a,b,c", ",")  # ["a", "b", "c"]
-```
-
-### Array
-
-#### Array.добавить(arr, element)
-Добавление элемента в конец массива.
-
-```trest
-пусть arr = [1, 2, 3]
-Array.добавить(arr, 4)  # arr теперь [1, 2, 3, 4]
-```
-
-#### Array.удалить(arr, index)
-Удаление элемента по индексу.
-
-```trest
-пусть arr = [1, 2, 3, 4]
-Array.удалить(arr, 0)  # [2, 3, 4]
-```
-
-#### Array.включает(arr, element)
-Проверка наличия элемента.
-
-```trest
-Array.включает([1, 2, 3], 2)  # true
-Array.включает([1, 2, 3], 5)  # false
-```
-
-#### Array.обратить(arr)
-Обращение массива.
-
-```trest
-Array.обратить([1, 2, 3])  # [3, 2, 1]
-```
-
-#### Array.срез(arr, start, end)
-Извлечение части массива.
-
-```trest
-Array.срез([1, 2, 3, 4, 5], 1, 3)  # [2, 3]
-```
-
-#### Array.отсортировать(arr)
-Сортировка массива.
-
-```trest
-Array.отсортировать([3, 1, 2])  # [1, 2, 3]
-```
-
-### IO
-
-#### IO.читатьФайл(path)
-Чтение файла.
-
-```trest
-пусть содержимое = IO.читатьФайл("файл.txt")
-```
-
-#### IO.писатьФайл(path, content)
-Запись в файл.
-
-```trest
-IO.писатьФайл("выход.txt", "Содержимое")
-```
-
-#### IO.существуетФайл(path)
-Проверка существования файла.
-
-```trest
-если (IO.существуетФайл("файл.txt")) {
-    печать("Файл существует")
-}
-```
+### Classes
+- `класс` - classe
+- `расширяет` - extends
+- `это` - this
+- `супер` - super
+- `новый` - new
+- `статический` - static
 
 ---
 
-## Типы данных
+## 🔤 Operadores
 
-### Number
-Числа (целые и с плавающей точкой).
+### Aritméticos
+- `+` - adição
+- `-` - subtração
+- `*` - multiplicação
+- `/` - divisão
+- `%` - resto
 
-### String
-Строки символов.
+### Comparação
+- `==` - igual
+- `!=` - diferente
+- `<` - menor
+- `>` - maior
+- `<=` - menor ou igual
+- `>=` - maior ou igual
 
-### Boolean
-Логические значения: `истина`, `ложь`.
+### Lógicos
+- `&&` - E (AND)
+- `||` - OU (OR)
+- `!` - NÃO (NOT)
 
-### Null
-Значение `нуль`.
-
-### Undefined
-Значение `неопределен`.
-
-### Array
-Массивы элементов.
-
-### Object
-Объекты (хеш-таблицы).
-
----
-
-## Операторы
-
-### Арифметические
-- `+` - Сложение
-- `-` - Вычитание
-- `*` - Умножение
-- `/` - Деление
-- `%` - Остаток от деления
-- `**` - Возведение в степень
-
-### Сравнения
-- `==` - Равно
-- `!=` - Не равно
-- `<` - Меньше
-- `>` - Больше
-- `<=` - Меньше или равно
-- `>=` - Больше или равно
-
-### Логические
-- `&&` - И
-- `||` - ИЛИ
-- `!` - НЕ
-
-### Присваивания
-- `=` - Присваивание
-- `+=` - Сложение с присваиванием
-- `-=` - Вычитание с присваиванием
-- `*=` - Умножение с присваиванием
-- `/=` - Деление с присваиванием
-- `%=` - Остаток с присваиванием
-
-### Специальные
-- `??` - Nullish coalescing
-- `?.` - Optional chaining
-- `...` - Spread/Rest
+### Atribuição
+- `=` - atribuição
+- `+=`, `-=`, `*=`, `/=` - compostos
 
 ---
 
-## Встроенные объекты
-
-### Консоль
-
-```trest
-печать(...args)  # Вывод в консоль
-```
-
-### Глобальные объекты
-
-- `Math` - Математические функции
-- `String` - Функции для строк
-- `Array` - Функции для массивов
-- `IO` - Функции ввода/вывода
-
+**Versão:** 2.3.0  
+**Autor:** PoktWeb

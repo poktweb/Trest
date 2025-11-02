@@ -1,0 +1,4 @@
+# Test simple math  
+импорт * как Math измодуля "std/math"
+печать("Math.abs(-5):", Math.abs(-5))
+

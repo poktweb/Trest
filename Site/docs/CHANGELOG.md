@@ -1,6 +1,39 @@
 # История изменений - Trest Language
 
-## Версия 2.0.0 (Текущая)
+## Версия 2.1.0 (Текущая)
+
+**Desenvolvido por:** PoktWeb  
+**Documentação:** https://trest-site.vercel.app
+
+### 🎉 Novidades Principais
+
+- 🌐 **HTTP Module** - Cliente e Servidor HTTP completo
+- 🔐 **Crypto Module** - Criptografia MD5, SHA256, SHA512, AES
+- 📁 **FileSystem Module** - Operações completas de I/O
+- 📄 **JSON Module** - Parse e Stringify
+- 📅 **Date Module** - Manipulação de datas
+- 🗄️ **Database Module** - ORM e Query Builder
+- 🖥️ **GUI Module** - Interface gráfica
+- ⚡ **Async Module** - Promises, delays, timers
+
+### Технические улучшения
+
+- Parser com suporte a `import * as X from "module"`
+- Interpreter com acesso a propriedades de classes estáticas
+- Bibliotecas nativas em TypeScript (std-native.ts)
+- Integração completa entre módulos Trest e TypeScript
+- Performance otimizada para chamadas nativas
+
+### Документация
+
+- Новый guia [Modules](modules.md)
+- Exemplos funcionais atualizados
+- API Reference expandido
+- Best practices atualizadas
+
+---
+
+## Версия 2.0.0
 
 ### Основные изменения
 

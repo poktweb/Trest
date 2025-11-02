@@ -6,6 +6,9 @@ import {
   FunctionDeclaration,
   BlockStatement,
   IfStatement,
+  SwitchStatement,
+  CaseClause,
+  DefaultClause,
   WhileStatement,
   ForStatement,
   ReturnStatement,
@@ -15,6 +18,7 @@ import {
   AssignmentExpression,
   BinaryExpression,
   UnaryExpression,
+  TernaryExpression,
   CallExpression,
   Identifier,
   Literal,
@@ -98,6 +102,8 @@ export class Parser {
         return this.parseFunctionDeclaration();
       case TokenType.IF:
         return this.parseIfStatement();
+      case TokenType.SWITCH:
+        return this.parseSwitchStatement();
       case TokenType.WHILE:
         return this.parseWhileStatement();
       case TokenType.FOR:
@@ -216,6 +222,61 @@ export class Parser {
       condition,
       consequent,
       alternate,
+    };
+  }
+
+  private parseSwitchStatement(): SwitchStatement {
+    this.expect(TokenType.SWITCH);
+    this.expect(TokenType.LPAREN);
+    const discriminant = this.parseExpression();
+    this.expect(TokenType.RPAREN);
+    this.expect(TokenType.LBRACE);
+
+    const cases: CaseClause[] = [];
+    let defaultAdded = false;
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      if (this.currentToken().type === TokenType.CASE) {
+        this.advance();
+        const test = this.parseExpression();
+        this.expect(TokenType.COLON);
+        
+        const consequent: ASTNode[] = [];
+        while (this.currentToken().type !== TokenType.CASE && 
+               this.currentToken().type !== TokenType.DEFAULT && 
+               this.currentToken().type !== TokenType.RBRACE) {
+          const stmt = this.parseStatement();
+          if (stmt !== null) {
+            consequent.push(stmt);
+          }
+        }
+        
+        cases.push({ type: 'CaseClause', test, consequent });
+      } else if (this.currentToken().type === TokenType.DEFAULT && !defaultAdded) {
+        this.advance();
+        this.expect(TokenType.COLON);
+        
+        const consequent: ASTNode[] = [];
+        while (this.currentToken().type !== TokenType.RBRACE) {
+          const stmt = this.parseStatement();
+          if (stmt !== null) {
+            consequent.push(stmt);
+          }
+        }
+        
+        cases.push({ type: 'CaseClause', test: { type: 'Literal', value: '__default__' as any }, consequent });
+        defaultAdded = true;
+      } else {
+        break;
+      }
+    }
+
+    this.expect(TokenType.RBRACE);
+
+    return {
+      type: 'SwitchStatement',
+      discriminant,
+      cases,
     };
   }
 
@@ -354,7 +415,7 @@ export class Parser {
   }
 
   private parseLogicalOr(): Expression {
-    let expr = this.parseLogicalAnd();
+    let expr = this.parseTernary();
 
     while (this.currentToken().type === TokenType.OR) {
       const operator = this.currentToken().value as string;
@@ -363,7 +424,7 @@ export class Parser {
         type: 'BinaryExpression',
         operator,
         left: expr,
-        right: this.parseLogicalAnd(),
+        right: this.parseTernary(),
       };
     }
 
@@ -381,6 +442,26 @@ export class Parser {
         operator,
         left: expr,
         right: this.parseEquality(),
+      };
+    }
+
+    return expr;
+  }
+
+  private parseTernary(): Expression {
+    let expr = this.parseLogicalAnd();
+
+    if (this.currentToken().type === TokenType.Q_MARK) {
+      this.advance();
+      const consequent = this.parseTernary();
+      this.expect(TokenType.COLON);
+      const alternate = this.parseTernary();
+      
+      return {
+        type: 'TernaryExpression',
+        test: expr,
+        consequent,
+        alternate,
       };
     }
 
@@ -613,8 +694,20 @@ export class Parser {
     
     const specifiers: any[] = [];
     
-    // Parse import specifiers
-    if (this.currentToken().type === TokenType.IDENTIFIER) {
+    // Parse import specifiers - check for * or identifier
+    if (this.currentToken().type === TokenType.MULTIPLY) {
+      // import * as name from "module"
+      this.advance(); // consume *
+      
+      if (this.currentToken().type === TokenType.AS) {
+        this.advance(); // consume as
+        const local = this.expect(TokenType.IDENTIFIER).value as string;
+        specifiers.push({ imported: '*', local });
+      } else {
+        specifiers.push({ imported: '*', local: '*' });
+      }
+    } else if (this.currentToken().type === TokenType.IDENTIFIER) {
+      // import name from "module" or import { name } from "module"
       const imported = this.currentToken().value as string;
       this.advance();
       let local = imported;
@@ -653,9 +746,16 @@ export class Parser {
 
   private parseExportStatement(): any {
     this.expect(TokenType.EXPORT);
-    const declaration = this.parseStatement();
     
-    if (!declaration || (declaration.type !== 'FunctionDeclaration' && declaration.type !== 'VariableDeclaration')) {
+    const token = this.currentToken();
+    let declaration;
+    
+    // Parse function or variable based on current token
+    if (token.type === TokenType.FUNC) {
+      declaration = this.parseFunctionDeclaration();
+    } else if (token.type === TokenType.VAR || token.type === TokenType.LET || token.type === TokenType.CONST) {
+      declaration = this.parseVariableDeclaration();
+    } else {
       throw new Error('exporte só pode ser usado com funções ou variáveis');
     }
     

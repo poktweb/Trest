@@ -241,11 +241,19 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull re
 
 MIT - veja [LICENSE](LICENSE) para mais detalhes.
 
+## 👤 Autor
+
+**PoktWeb**
+
+- 📖 Site da Documentação: [https://trest-site.vercel.app](https://trest-site.vercel.app)
+- 💻 GitHub: [@poktweb](https://github.com/poktweb)
+
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/trest-language/trest)
-- [Issues](https://github.com/trest-language/trest/issues)
-- [Documentação Completa](docs/README.md)
+- 📦 Site da Documentação: [https://trest-site.vercel.app](https://trest-site.vercel.app)
+- 🔧 GitHub Repository: [https://github.com/trest-language/trest](https://github.com/trest-language/trest)
+- 🐛 Issues: [https://github.com/trest-language/trest/issues](https://github.com/trest-language/trest/issues)
+- 📚 Documentação Completa: [docs/README.md](docs/README.md)
 
 ## 🙏 Agradecimentos
 

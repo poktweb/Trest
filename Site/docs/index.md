@@ -22,6 +22,16 @@
   - Операторы
   - Встроенные объекты
 
+- **[Modules](modules.md)** - Модули Standard Library v2.1
+  - HTTP - Клиент и сервер
+  - Crypto - Криптография
+  - FileSystem - Файловая система
+  - JSON - Сериализация
+  - Date - Даты
+  - Database - База данных
+  - GUI - Графический интерфейс
+  - Async - Асинхронность
+
 ### Руководства
 
 - **[Guide](guide.md)** - Пошаговое руководство
@@ -79,6 +89,15 @@ docs/
 - [Обработка ошибок](README.md#обработка-ошибок)
 - [Стандартная библиотека](README.md#стандартная-библиотека)
 
+### Продвинутый уровень
+
+- [HTTP Module](modules.md#-http-module) - Веб-серверы
+- [Crypto Module](modules.md#-crypto-module) - Безопасность
+- [FileSystem Module](modules.md#-filesystem-module) - I/O
+- [Database Module](modules.md#-database-module) - БД
+- [GUI Module](modules.md#-gui-module) - Интерфейсы
+- [Async Module](modules.md#-async-module) - Асинхронность
+
 ### Продвинутым
 
 - [Расширенные возможности](README.md#расширенные-возможности)
@@ -103,4 +122,5 @@ trest --version
 ---
 
 **Приятного программирования на Trest!** 🎉
+
 

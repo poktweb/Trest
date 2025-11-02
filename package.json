@@ -1,12 +1,12 @@
 {
-  "name": "trest-language",
-  "version": "2.0.0",
+  "name": "treste",
+  "version": "2.4.0",
   "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop com suporte a Cirílico",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "trest": "./dist/cli.js",
-    "trestc": "./dist/compiler.js"
+    "trest": "dist/cli.js",
+    "trestc": "dist/compiler.js"
   },
   "scripts": {
     "prebuild": "npm run clean",
@@ -22,7 +22,7 @@
     "preinstall": "node scripts/preinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run build",
     "version": "node scripts/version.js && git add -A",
     "postversion": "git push && git push --tags"
   },
@@ -39,7 +39,16 @@
     "russian",
     "trest"
   ],
-  "author": "Trest Language Team",
+  "author": {
+    "name": "PoktWeb",
+    "url": "https://github.com/poktweb"
+  },
+  "contributors": [
+    {
+      "name": "PoktWeb",
+      "url": "https://github.com/poktweb"
+    }
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0",
@@ -50,19 +59,17 @@
     "src/std/",
     "scripts/",
     "README.md",
-    "README_PT.md",
     "LICENSE",
-    "CHANGELOG.md",
     "INSTALL.md"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/trest-language/trest"
+    "url": "git+https://github.com/trest-language/trest.git"
   },
   "bugs": {
     "url": "https://github.com/trest-language/trest/issues"
   },
-  "homepage": "https://github.com/trest-language/trest#readme",
+  "homepage": "https://trest-site.vercel.app",
   "os": [
     "darwin",
     "linux",

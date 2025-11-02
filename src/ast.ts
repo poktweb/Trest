@@ -4,6 +4,9 @@ export type ASTNode =
   | FunctionDeclaration
   | BlockStatement
   | IfStatement
+  | SwitchStatement
+  | CaseClause
+  | DefaultClause
   | WhileStatement
   | ForStatement
   | ReturnStatement
@@ -18,6 +21,7 @@ export type ASTNode =
   | AssignmentExpression
   | BinaryExpression
   | UnaryExpression
+  | TernaryExpression
   | CallExpression
   | Identifier
   | Literal
@@ -61,6 +65,23 @@ export interface WhileStatement {
   type: 'WhileStatement';
   condition: Expression;
   body: BlockStatement;
+}
+
+export interface SwitchStatement {
+  type: 'SwitchStatement';
+  discriminant: Expression;
+  cases: CaseClause[];
+}
+
+export interface CaseClause {
+  type: 'CaseClause';
+  test: Expression;
+  consequent: ASTNode[];
+}
+
+export interface DefaultClause {
+  type: 'DefaultClause';
+  consequent: ASTNode[];
 }
 
 export interface ForStatement {
@@ -131,6 +152,7 @@ export type Expression =
   | AssignmentExpression
   | BinaryExpression
   | UnaryExpression
+  | TernaryExpression
   | CallExpression
   | Identifier
   | Literal
@@ -159,9 +181,16 @@ export interface UnaryExpression {
   argument: Expression;
 }
 
+export interface TernaryExpression {
+  type: 'TernaryExpression';
+  test: Expression;
+  consequent: Expression;
+  alternate: Expression;
+}
+
 export interface CallExpression {
   type: 'CallExpression';
-  callee: Identifier;
+  callee: Identifier | MemberExpression;
   arguments: Expression[];
 }
 

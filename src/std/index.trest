@@ -1,13 +1,21 @@
 # Стандартная библиотека Trest - Главный модуль
 
 # Реэкспортировать все модули std
-импорт * как math из "std/math"
-импорт * как string из "std/string"
-импорт * как array из "std/array"
-импорт * как io из "std/io"
+импорт * как math измодуля "std/math"
+импорт * как string измодуля "std/string"
+импорт * как array измодуля "std/array"
+импорт * как io измодуля "std/io"
+импорт * как http измодуля "std/http"
+импорт * как async измодуля "std/async"
+импорт * как gui измодуля "std/gui"
+импорт * как database измодуля "std/database"
 
 # Экспортировать объекты со всеми функциями
 экспорт конст Math = math
 экспорт конст String = string
 экспорт конст Array = array
 экспорт конст IO = io
+экспорт конст HTTP = http
+экспорт конст Async = async
+экспорт конст GUI = gui
+экспорт конст DB = database

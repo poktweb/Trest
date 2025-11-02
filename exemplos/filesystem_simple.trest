@@ -1,0 +1,19 @@
+# Demonstração de Sistema de Arquivos
+
+печать("╔═══════════════════════════════════════╗")
+печать("║   📁 FILESYSTEM DEMO                  ║")
+печать("╚═══════════════════════════════════════╝")
+печать("")
+
+импорт * как FileSystem измодуля "std/filesystem"
+
+# Verificar se arquivo existe
+пусть arquivo = "package.json"
+печать("Verificando existência de", arquivo, "...")
+
+пусть existe = FileSystem.существует(arquivo)
+печать("Existe:", existe)
+
+печать("")
+печать("✅ FileSystem funcionando!")
+

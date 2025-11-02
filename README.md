@@ -1,103 +1,110 @@
-# Trest - Язык программирования с поддержкой кириллицы
+# Trest - Linguagem de Programação com Suporte a Cirílico
 
-Современный язык программирования, профессионально структурированный и компилируемый для **Web** и **Desktop (.exe)** с полной поддержкой кириллицы (русский алфавит).
+Linguagem de programação moderna e profissional, estruturalmente organizada e compilável para **Web** e **Desktop (.exe)** com suporte completo a cirílico (alfabeto russo).
 
-> **📖 Версия на португальском:** Для документации на португальском используйте ключевые слова на португальском (se, enquanto, funcao, и т.д.) или смотрите примеры в папке `exemplos/`.
+> **🎯 Característica Única:** Trest permite programar usando palavras-chave em cirílico ou latino, mantendo a mesma sintaxe e funcionalidades.
 
-## 🚀 Основные возможности
+## 🚀 Principais Funcionalidades
 
-- ✅ **Компиляция для Web** - Генерирует оптимизированный JavaScript
-- ✅ **Компиляция для Desktop** - Создает нативные исполняемые файлы .exe
-- ✅ **Система модулей** - Импорт/Экспорт модулей
-- ✅ **Стандартная библиотека** - std с математическими функциями, строками, массивами и I/O
-- ✅ **Обработка ошибок** - Расширенный Try/Catch/Throw
-- ✅ **Синтаксис на кириллице** - Ключевые слова на русском языке
-- ✅ **Динамическая типизация** - Типы выводятся автоматически
-- ✅ **Система сборки** - Профессиональные инструменты компиляции
+- ✅ **Execução Inline** - Execute código direto na linha de comando com `-e`
+- ✅ **Compilação para Web** - Gera JavaScript otimizado
+- ✅ **Compilação para Desktop** - Cria executáveis .exe nativos
+- ✅ **Sistema de Módulos** - Import/Export de módulos
+- ✅ **Biblioteca Padrão** - std com funções matemáticas, strings, arrays e I/O
+- ✅ **Tratamento de Erros** - Try/Catch/Throw estendido
+- ✅ **Sintaxe em Cirílico** - Palavras-chave em russo
+- ✅ **Tipagem Dinâmica** - Tipos inferidos automaticamente
+- ✅ **Sistema de Build** - Ferramentas de compilação profissionais
 
-## 📦 Установка
+## 📦 Instalação
 
-### Установка через npm (рекомендуется)
+### Instalação via npm (recomendado)
 
-**Глобальная установка:**
+**Instalação global:**
 ```bash
-npm install -g trest-language
+npm install -g treste
 ```
 
-После установки команды `trest` и `trestc` будут доступны глобально:
+Após a instalação, os comandos `trest` e `trestc` estarão disponíveis globalmente:
 ```bash
 trest --version
 trestc --help
 ```
 
-**Локальная установка в проект:**
+**Instalação local em projeto:**
 ```bash
-npm install trest-language
+npm install treste
 ```
 
-Используйте через `npx`:
+Use via `npx`:
 ```bash
 npx trest programa.trest
 npx trestc programa.trest --mode web
 ```
 
-### Установка из исходников
+### Instalação a partir do código-fonte
 
-Если вы хотите установить из исходников или внести изменения:
+Se você quiser instalar a partir do código-fonte ou fazer modificações:
 
 ```bash
-# Клонировать репозиторий
+# Clonar o repositório
 git clone https://github.com/trest-language/trest.git
 cd trest
 
-# Установить зависимости
+# Instalar dependências
 npm install
 
-# Собрать проект
+# Compilar o projeto
 npm run build
 
-# (Опционально) Создать симлинки для глобального использования
+# (Opcional) Criar links globais para testes
 npm link
 ```
 
-### Требования
+### Requisitos
 
 - **Node.js**: >= 18.0.0
 - **npm**: >= 9.0.0
-- **TypeScript**: 5.0+ (для разработки)
+- **TypeScript**: 5.0+ (para desenvolvimento)
 
-Проверьте вашу версию:
+Verifique sua versão:
 ```bash
-node --version  # должно быть >= v18
-npm --version   # должно быть >= 9
+node --version  # deve ser >= v18
+npm --version   # deve ser >= 9
 ```
 
-## 🎯 Быстрый старт
+## 🎯 Guia Rápido
 
-### Запуск напрямую (интерпретатор)
+### Executar código inline (sem arquivo)
 ```bash
-npm start exemplos/hello_cyrillic.trest
-# или
+trest -e "печать('Olá, Mundo!')"
+trest -e "пусть x = 10; печать(x)"
+```
+
+### Executar arquivo (interpretador)
+```bash
 trest exemplos/hello_cyrillic.trest
 ```
 
-### Компиляция для Web (JavaScript)
+### Compilar para Web (JavaScript)
 ```bash
 npm run compile:web -- exemplos/hello_cyrillic.trest
-# или
+# ou
 trestc exemplos/hello_cyrillic.trest --mode web --output app.js
 ```
 
-### Компиляция для исполняемого файла (.exe)
+### Compilar para executável (.exe)
 ```bash
 npm run compile:exe -- exemplos/hello_cyrillic.trest
-# или
+# ou
 trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 ```
 
-## 📚 Синтаксис языка
+## 📚 Sintaxe da Linguagem
 
-### Переменные
+Todos os exemplos abaixo usam a sintaxe em **cirílico** (palavras-chave em russo), que é a forma nativa do Trest:
+
+### Variáveis
 
 ```trest
 перем имя = "Trest"
@@ -105,7 +112,7 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 конст pi = 3.14159
 ```
 
-### Функции
+### Funções
 
 ```trest
 функция сложить(a, b) {
@@ -116,7 +123,7 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 печать(результат)
 ```
 
-### Условия
+### Condicionais
 
 ```trest
 если (возраст >= 18) {
@@ -126,9 +133,31 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 }
 ```
 
-### Циклы
+### Operadores Ternários
 
-**Пока:**
+```trest
+пусть result = возраст >= 18 ? "Adulto" : "Menor"
+печать(result)
+```
+
+### Switch/Case
+
+```trest
+переключатель (день) {
+    случай 1:
+        печать("Понедельник")
+        прервать
+    случай 2:
+        печать("Вторник")
+        прервать
+    поумолчанию:
+        печать("Другой день")
+}
+```
+
+### Loops
+
+**While (Enquanto):**
 ```trest
 пусть i = 0
 пока (i < 10) {
@@ -137,14 +166,14 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 }
 ```
 
-**Для:**
+**For (Para):**
 ```trest
 для (пусть i = 0; i < 10; i = i + 1) {
     печать(i)
 }
 ```
 
-### Обработка ошибок
+### Tratamento de Erros
 
 ```trest
 попытаться {
@@ -156,15 +185,15 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 }
 ```
 
-### Модули
+### Módulos
 
-**Импорт:**
+**Import (Importar):**
 ```trest
-импорт { max, min } из "std/math"
-импорт * как Math из "std/math"
+импорт { max, min } измодуля "std/math"
+импорт * как Math измодуля "std/math"
 ```
 
-**Экспорт:**
+**Export (Exportar):**
 ```trest
 экспорт функция мояФункция() {
     вернуть "Привет"
@@ -173,7 +202,7 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 экспорт конст константа = 42
 ```
 
-### Объекты
+### Objetos
 
 ```trest
 пусть человек = {
@@ -185,7 +214,7 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 печать(человек.имя)  # "Иван"
 ```
 
-### Массивы
+### Arrays
 
 ```trest
 пусть числа = [1, 2, 3, 4, 5]
@@ -195,12 +224,14 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 печать(числа)  # [10, 2, 3, 4, 5]
 ```
 
-## 📖 Стандартная библиотека (std)
+## 📖 Biblioteca Padrão (std)
 
-### Math
+Trest inclui uma biblioteca padrão rica com 11 módulos:
+
+### Math (Matemática)
 
 ```trest
-импорт * как Math из "std/math"
+импорт * как Math измодуля "std/math"
 
 пусть x = Math.abs(-5)      # 5
 пусть y = Math.max(10, 20)  # 20
@@ -208,20 +239,20 @@ trestc exemplos/hello_cyrillic.trest --mode exe --output app.exe
 пусть pi = Math.PI          # 3.14159...
 ```
 
-### String
+### String (Cadeias de Texto)
 
 ```trest
-импорт * как String из "std/string"
+импорт * как String измодуля "std/string"
 
 пусть текст = "Привет Мир"
 пусть размер = String.размер(текст)      # 11
 пусть верхний = String.верхний(текст)  # "ПРИВЕТ МИР"
 ```
 
-### Array
+### Array (Arrays)
 
 ```trest
-импорт * как Array из "std/array"
+импорт * как Array измодуля "std/array"
 
 пусть arr = [1, 2, 3]
 Array.добавить(arr, 4)      # [1, 2, 3, 4]
@@ -229,58 +260,143 @@ Array.добавить(arr, 4)      # [1, 2, 3, 4]
 пусть отсортированный = Array.отсортировать([3, 1, 2])  # [1, 2, 3]
 ```
 
-### IO
+### HTTP (Client e Server)
 
 ```trest
-импорт * как IO из "std/io"
+импорт * как HTTP измодуля "std/http"
 
-пусть содержимое = IO.читатьФайл("файл.txt")
-IO.писатьФайл("выход.txt", "Содержимое")
-пусть существует = IO.существуетФайл("файл.txt")
+пусть resposta = HTTP.GET("https://api.example.com")
+HTTP.POST("https://api.example.com", данные)
+HTTP.создатьСервер(3000, обработчик)
 ```
 
-## 🏗️ Структура проекта
+### Crypto (Criptografia)
+
+```trest
+импорт * как Crypto измодуля "std/crypto"
+
+пусть hash = Crypto.md5("текст")
+пусть sha = Crypto.sha256("данные")
+пусть encrypted = Crypto.зашифровать("секрет", "ключ")
+```
+
+### FileSystem (Sistema de Arquivos)
+
+```trest
+импорт * как FS измодуля "std/filesystem"
+
+пусть содержимое = FS.читатьФайл("файл.txt")
+FS.писатьФайл("выход.txt", "Содержимое")
+пусть существует = FS.существуетФайл("файл.txt")
+```
+
+### JSON (Manipulação de JSON)
+
+```trest
+импорт * как JSON измодуля "std/json"
+
+пусть obj = JSON.парсить('{"имя": "Иван"}')
+пусть str = JSON.строка({имя: "Иван"})
+```
+
+### Date (Datas)
+
+```trest
+импорт * как Date измодуля "std/date"
+
+пусть agora = Date.сейчас()
+пусть formatado = Date.форматировать(agora, "YYYY-MM-DD")
+```
+
+### Database (Base de Dados)
+
+```trest
+импорт * как DB измодуля "std/database"
+
+DB.подключить("sqlite", "dados.db")
+DB.выполнить("SELECT * FROM usuarios")
+```
+
+### RegEx (Expressões Regulares)
+
+```trest
+импорт * как RegEx измодуля "std/regex"
+
+пусть matches = RegEx.найти("olá mundo", /olá/)
+пусть replaced = RegEx.заменить("olá", /olá/, "привет")
+```
+
+### Path (Caminhos de Arquivo)
+
+```trest
+импорт * как Path измодуля "std/path"
+
+пусть dir = Path.директория("/caminho/arquivo.txt")  # "/caminho"
+пусть name = Path.имя("arquivo.txt")  # "arquivo.txt"
+```
+
+### Process (Variáveis de Ambiente)
+
+```trest
+импорт * как Process измодуля "std/process"
+
+пусть user = Process.получитьEnv("USER")
+пусть envs = Process.получитьEnvVars()
+```
+
+## 🏗️ Estrutura do Projeto
 
 ```
 treste/
 ├── src/
-│   ├── lexer.ts          # Лексический анализатор
-│   ├── parser.ts         # Синтаксический анализатор
-│   ├── ast.ts            # Определения AST
-│   ├── interpreter.ts   # Интерпретатор
-│   ├── compiler.ts      # CLI компилятора
+│   ├── lexer.ts          # Analisador léxico
+│   ├── parser.ts         # Analisador sintático
+│   ├── ast.ts            # Definições AST
+│   ├── interpreter.ts   # Interpretador
+│   ├── compiler.ts      # CLI do compilador
 │   ├── compiler/
-│   │   ├── web.ts        # Компилятор для Web
-│   │   └── exe.ts        # Компилятор для исполняемого файла
-│   ├── std/              # Стандартная библиотека
+│   │   ├── web.ts        # Compilador para Web
+│   │   └── exe.ts        # Compilador para executável
+│   ├── std/              # Biblioteca padrão
 │   │   ├── math.trest
 │   │   ├── string.trest
 │   │   ├── array.trest
+│   │   ├── http.trest
+│   │   ├── crypto.trest
+│   │   ├── filesystem.trest
+│   │   ├── json.trest
+│   │   ├── date.trest
+│   │   ├── database.trest
+│   │   ├── regex.trest
+│   │   ├── path.trest
+│   │   ├── process.trest
 │   │   └── io.trest
-│   ├── types.ts          # Система типов
-│   ├── errors.ts         # Обработка ошибок
-│   └── module.ts         # Система модулей
-├── exemplos/             # Примеры программ
-├── dist/                 # Скомпилированный код
+│   ├── types.ts          # Sistema de tipos
+│   ├── errors.ts         # Tratamento de erros
+│   └── module.ts         # Sistema de módulos
+├── exemplos/             # Exemplos de programas
+├── docs/                 # Documentação completa
+├── dist/                 # Código compilado
 └── package.json
 ```
 
-## 🔧 Доступные скрипты
+## 🔧 Scripts Disponíveis
 
 ```bash
-npm run build          # Компилировать TypeScript
-npm run build:watch     # Компилировать в режиме наблюдения
-npm start <файл>       # Запустить файл Trest
-npm run compile:web    # Компилировать в JavaScript
-npm run compile:exe     # Компилировать в исполняемый файл
-npm run bundle         # Создать исполняемый bundle
+npm run build          # Compilar TypeScript
+npm run build:watch     # Compilar em modo watch
+npm start <arquivo>    # Executar arquivo Trest
+npm run compile:web    # Compilar para JavaScript
+npm run compile:exe     # Compilar para executável
+npm run bundle         # Criar bundle executável
 ```
 
-## 📝 Ключевые слова
+## 📝 Palavras-Chave
 
-### Кириллица (Русский) - Основной синтаксис
-| Trest | Эквивалент |
-|-------|------------|
+### Cirílico (Russo) - Sintaxe Principal
+
+| Trest | Equivalente |
+|-------|-------------|
 | `если` | if |
 | `иначе` | else |
 | `пока` | while |
@@ -291,7 +407,7 @@ npm run bundle         # Создать исполняемый bundle
 | `печать` | print/console.log |
 | `импорт` | import |
 | `экспорт` | export |
-| `из` | from |
+| `измодуля` | from |
 | `попытаться` | try |
 | `перехватить` | catch |
 | `бросить` | throw |
@@ -301,81 +417,73 @@ npm run bundle         # Создать исполняемый bundle
 | `истина` | true |
 | `ложь` | false |
 
-### Português (Latino) - Alternativa
-| Trest | Equivalente |
-|-------|-------------|
-| `se` | if |
-| `senao` | else |
-| `enquanto` | while |
-| `para` | for |
-| `funcao` | function |
-| `retorne` | return |
-| `var`, `let`, `const` | var, let, const |
-| `imprima` | print/console.log |
-| `importe` | import |
-| `exporte` | export |
-| `de` | from |
-| `tente` | try |
-| `capture` | catch |
-| `lance` | throw |
-| `finalmente` | finally |
-| `quebre` | break |
-| `continue` | continue |
-| `verdadeiro` | true |
-| `falso` | false |
+> **Nota:** Embora Trest suporte palavras-chave em latino, o uso de cirílico é a forma recomendada e nativa da linguagem.
 
-## 🌐 Компиляция для Web
+## 🌐 Compilação para Web
 
-Компилятор для web генерирует современный JavaScript, который может использоваться в:
-- Браузерах (через `<script>` или bundler)
+O compilador para web gera JavaScript moderno que pode ser usado em:
+- Navegadores (via `<script>` ou bundler)
 - Node.js
 - React/Vue/Angular
-- Любой JavaScript-среде
+- Qualquer ambiente JavaScript
 
-**Пример:**
+**Exemplo:**
 ```bash
 trestc программа.trest --mode web --output app.js
 ```
 
-## 💻 Компиляция для исполняемого файла
+## 💻 Compilação para Executável
 
-Компилятор для исполняемого файла создает `.exe` файл, который:
-- Не требует установленного Node.js
-- Автономен (включает все зависимости)
-- Запускается напрямую в Windows
+O compilador para executável cria arquivo `.exe` que:
+- Não requer Node.js instalado
+- É autossuficiente (inclui todas as dependências)
+- Executa diretamente no Windows
 
-**Пример:**
+**Exemplo:**
 ```bash
 trestc программа.trest --mode exe --output app.exe
 ```
 
-## 🎓 Примеры
+## 🎓 Exemplos
 
-Смотрите папку `exemplos/` для полных программ, демонстрирующих:
-- Базовые операции
-- Функции и замыкания
-- Структуры управления
-- Массивы и объекты
-- Модули и импорты
-- Обработку ошибок
+Veja a pasta `exemplos/` para programas completos demonstrando:
+- Operações básicas
+- Funções e closures
+- Estruturas de controle
+- Arrays e objetos
+- Módulos e imports
+- Tratamento de erros
 
-**Примеры на кириллице:**
-- `exemplos/hello_cyrillic.trest` - Привет Мир
-- `exemplos/variaveis_cyrillic.trest` - Переменные
-- `exemplos/condicional_cyrillic.trest` - Условные операторы
-- `exemplos/loop_cyrillic.trest` - Циклы
-- `exemplos/funcao_cyrillic.trest` - Функции
-- `exemplos/completo_cyrillic.trest` - Полный пример
+**Exemplos em cirílico:**
+- `exemplos/crypto_demo.trest` - Demonstração de criptografia
+- `exemplos/http_demo.trest` - Cliente HTTP e servidor
+- `exemplos/database_demo.trest` - Operações de banco de dados
+- `exemplos/filesystem_demo.trest` - Operações de arquivo
+- `exemplos/todas_funcionalidades.trest` - Exemplo completo
 
-**Примеры на португальском:**
-- `exemplos/hello.trest` - Olá Mundo
-- `exemplos/variaveis.trest` - Variáveis
-- И другие...
+## 📚 Documentação Completa
 
-## 📄 Лицензия
+Para mais informações, consulte a documentação completa em `docs/`:
+
+- **[README.md](docs/README.md)** - Guia completo
+- **[FEATURES.md](docs/FEATURES.md)** - Todas as funcionalidades
+- **[API.md](docs/api.md)** - Referência da API
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitetura técnica
+- **[WHY_TREST.md](docs/WHY_TREST.md)** - Por que usar Trest
+
+Ou visite o site oficial: [https://trest-site.vercel.app](https://trest-site.vercel.app)
+
+## 📄 Licença
 
 MIT
 
-## 🤝 Вклад
+## 👤 Autor
 
-Вклады приветствуются! Не стесняйтесь открывать issues и pull requests.
+**PoktWeb**
+
+- Site de documentação: [https://trest-site.vercel.app](https://trest-site.vercel.app)
+- GitHub: [@poktweb](https://github.com/poktweb)
+
+## 🤝 Contribuições
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.

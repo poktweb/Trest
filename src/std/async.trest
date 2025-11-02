@@ -1,0 +1,40 @@
+# Biblioteca Assíncrona - Promises, Async/Await
+
+# Promise básica
+экспорт функция criarОбещание(исполнитель) {
+    # TODO: Implementar Promise
+    вернуть {
+        тогда: функция(callback) {},
+        поймать: функция(callback) {},
+        наконец: функция(callback) {}
+    }
+}
+
+# Async utilities
+экспорт функция всеОбещания(обещания) {
+    # Promise.all
+    вернуть создатьОбещание((resolve, reject) => {})
+}
+
+экспорт функция любоеОбещание(обещания) {
+    # Promise.race
+    вернуть создатьОбещание((resolve, reject) => {})
+}
+
+экспорт функция отложить(время) {
+    # Delay/sleep
+    вернуть создатьОбещание((resolve) => {
+        # setTimeout
+    })
+}
+
+экспорт функция повторятьИнтервал(функция, время) {
+    # setInterval
+    # TODO: Implementar
+}
+
+экспорт функция очиститьПовторение(id) {
+    # clearInterval
+    # TODO: Implementar
+}
+

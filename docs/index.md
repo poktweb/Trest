@@ -1,100 +1,138 @@
-# Документация Trest Language - Навигация
+# Documentação Trest Language - Navegação
 
-Добро пожаловать в документацию языка программирования Trest!
+Bem-vindo à documentação da linguagem de programação Trest!
 
-## 📚 Документация
+## 📚 Documentação
 
-### Основные документы
+### Documentos Principais
 
-- **[README.md](README.md)** - Полное руководство по языку
-  - Введение и установка
-  - Основы синтаксиса
-  - Типы данных и переменные
-  - Операторы и структуры управления
-  - Функции и классы
-  - Модули и обработка ошибок
-  - Стандартная библиотека
+- **[README.md](README.md)** - Guia completo da linguagem
+  - Introdução e instalação
+  - Fundamentos de sintaxe
+  - Tipos de dados e variáveis
+  - Operadores e estruturas de controle
+  - Funções e classes
+  - Módulos e tratamento de erros
+  - Biblioteca padrão
 
-- **[API Reference](api.md)** - Справочник API
-  - Встроенные функции
-  - Стандартная библиотека (Math, String, Array, IO)
-  - Типы данных
-  - Операторы
-  - Встроенные объекты
+- **[FEATURES.md](FEATURES.md)** - Funcionalidades Completas
+  - Todas as características da linguagem
+  - Biblioteca padrão detalhada (11 módulos)
+  - Exemplos práticos de cada módulo
+  - Comparação de versões
 
-### Руководства
+- **[API Reference](api.md)** - Referência da API
+  - Funções integradas
+  - Biblioteca padrão (Math, String, Array, IO, HTTP, Crypto, etc.)
+  - Tipos de dados
+  - Operadores
+  - Objetos integrados
 
-- **[Guide](guide.md)** - Пошаговое руководство
-  - Начало работы
-  - Основы синтаксиса
-  - Работа с данными
-  - Функции и модули
-  - ООП
-  - Обработка ошибок
-  - Советы и практики
+### Guias
 
-- **[Examples](examples.md)** - Примеры кода
-  - Базовые примеры
-  - Алгоритмы (факториал, Фибоначчи, сортировка)
-  - Структуры данных (стек, очередь)
-  - Практические задачи
+- **[Guide](guide.md)** - Guia passo a passo
+  - Começando
+  - Fundamentos de sintaxe
+  - Trabalhando com dados
+  - Funções e módulos
+  - OOP
+  - Tratamento de erros
+  - Dicas e práticas
 
-- **[Best Practices](best-practices.md)** - Лучшие практики
-  - Именование переменных и функций
-  - Организация кода
-  - Обработка ошибок
-  - Производительность
+- **[Examples](examples.md)** - Exemplos de código
+  - Exemplos básicos
+  - Algoritmos (fatorial, Fibonacci, ordenação)
+  - Estruturas de dados (pilha, fila)
+  - Tarefas práticas
 
-## 🚀 Быстрый старт
+- **[Best Practices](best-practices.md)** - Melhores práticas
+  - Nomenclatura de variáveis e funções
+  - Organização de código
+  - Tratamento de erros
+  - Desempenho
 
-1. **[Установка](README.md#установка-и-настройка)**
-2. **[Первая программа](guide.md#начало-работы)**
-3. **[Основы синтаксиса](README.md#основы-языка)**
+### Documentação Técnica
 
-## 📖 Структура документации
+- **[Architecture](ARCHITECTURE.md)** - Arquitetura da linguagem
+  - Fluxo de execução
+  - Lexer, Parser, Interpreter, Compiler
+  - Como tudo funciona internamente
+
+- **[Build](BUILD.md)** - Guia de compilação
+  - Compilação para Web (JavaScript)
+  - Compilação para Desktop (.exe)
+  - Opções de build
+
+- **[WHY_TREST](WHY_TREST.md)** - Por que escolher Trest
+  - 10 vantagens principais
+  - Casos de uso
+  - Comparação com outras linguagens
+
+### Documentação Adicional
+
+- **[README Cyrillic](README_CYRILLIC.md)** - Documentação em russo
+- **[README PT](README_PT.md)** - Documentação em português
+- **[CHANGELOG](CHANGELOG.md)** - Histórico de mudanças
+- **[Summary](SUMMARY.md)** - Sumário da documentação
+
+## 🚀 Guia Rápido
+
+1. **[Instalação](README.md#guia-rápido)**
+2. **[Primeiro programa](guide.md#começando)**
+3. **[Fundamentos de sintaxe](README.md#fundamentos-da-linguagem)**
+
+## 📖 Estrutura da Documentação
 
 ```
 docs/
-├── README.md          # Полное руководство
-├── api.md             # API Reference
-├── guide.md           # Пошаговое руководство
-├── examples.md        # Примеры кода
-├── best-practices.md  # Лучшие практики
-└── index.md           # Этот файл (навигация)
+├── README.md          # Guia completo
+├── FEATURES.md        # Funcionalidades completas
+├── api.md             # Referência da API
+├── guide.md           # Guia passo a passo
+├── examples.md        # Exemplos de código
+├── best-practices.md  # Melhores práticas
+├── ARCHITECTURE.md    # Arquitetura técnica
+├── BUILD.md           # Guia de compilação
+├── WHY_TREST.md       # Por que usar Trest
+├── CHANGELOG.md       # Histórico de mudanças
+├── SUMMARY.md         # Sumário
+├── README_CYRILLIC.md # Docs em russo
+├── README_PT.md       # Docs em português
+└── index.md           # Este arquivo (navegação)
 ```
 
-## 🔍 Поиск по темам
+## 🔍 Busca por Tópicos
 
-### Начинающим
+### Para Iniciantes
 
-- [Установка](README.md#установка-и-настройка)
-- [Основы](README.md#основы-языка)
-- [Переменные](README.md#переменные)
-- [Функции](README.md#функции)
+- [Instalação](README.md#guia-rápido)
+- [Fundamentos](README.md#fundamentos-da-linguagem)
+- [Variáveis](README.md#fundamentos-da-linguagem)
+- [Funções](README.md#fundamentos-da-linguagem)
 
-### Средний уровень
+### Nível Intermediário
 
-- [Классы](README.md#классы-и-объекты)
-- [Модули](README.md#модули)
-- [Обработка ошибок](README.md#обработка-ошибок)
-- [Стандартная библиотека](README.md#стандартная-библиотека)
+- [Classes](guide.md#classes)
+- [Módulos](guide.md#modules)
+- [Tratamento de erros](guide.md#errors)
+- [Biblioteca padrão](README.md#biblioteca-padrão)
 
-### Продвинутым
+### Avançado
 
-- [Расширенные возможности](README.md#расширенные-возможности)
-- [Компиляция](README.md#компиляция)
-- [Лучшие практики](best-practices.md)
-- [Примеры проектов](examples.md)
+- [Recursos avançados](guide.md#advanced)
+- [Compilação](README.md#compilação)
+- [Melhores práticas](best-practices.md)
+- [Exemplos de projetos](examples.md)
 
-## 💡 Полезные ссылки
+## 💡 Links Úteis
 
-- [Архитектура языка](../ARCHITECTURE.md)
-- [Руководство по сборке](../BUILD.md)
-- [Примеры кода](../exemplos/)
+- [Arquitetura da linguagem](../ARCHITECTURE.md)
+- [Guia de build](../BUILD.md)
+- [Exemplos de código](../exemplos/)
 
-## 📝 Обновления
+## 📝 Atualizações
 
-Документация обновляется вместе с языком. Проверяйте версию языка:
+A documentação é atualizada junto com a linguagem. Verifique a versão:
 
 ```bash
 trest --version
@@ -102,5 +140,4 @@ trest --version
 
 ---
 
-**Приятного программирования на Trest!** 🎉
-
+**Feliz programação em Trest!** 🎉
