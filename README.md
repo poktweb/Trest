@@ -1,8 +1,15 @@
 # Trest - Linguagem de Programação com Suporte a Cirílico
 
+[![npm version](https://img.shields.io/npm/v/treste.svg)](https://www.npmjs.com/package/treste)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![Active Maintenance](https://img.shields.io/badge/maintenance-active-green.svg)](https://github.com/trest-language/trest)
+
 Linguagem de programação moderna e profissional, estruturalmente organizada e compilável para **Web** e **Desktop (.exe)** com suporte completo a cirílico (alfabeto russo).
 
 > **🎯 Característica Única:** Trest permite programar usando palavras-chave em cirílico ou latino, mantendo a mesma sintaxe e funcionalidades.
+
+> **🔒 Segurança:** Versão 2.4.4 inclui correções de segurança da cadeia de suprimentos. Veja [SECURITY.md](./SECURITY.md) para detalhes.
 
 ## 🚀 Principais Funcionalidades
 
@@ -461,6 +468,18 @@ Veja a pasta `exemplos/` para programas completos demonstrando:
 - `exemplos/filesystem_demo.trest` - Operações de arquivo
 - `exemplos/todas_funcionalidades.trest` - Exemplo completo
 
+## 🔒 Segurança
+
+**Versão 2.4.4** inclui correções de segurança da cadeia de suprimentos:
+- ✅ Scripts de instalação removidos
+- ✅ Sem acesso ao shell durante instalação
+- ✅ Acesso à rede controlado e documentado
+
+**Documentação de Segurança:**
+- **[SECURITY.md](./SECURITY.md)** - Política de segurança completa
+- **[SOCKET_ALERTS.md](./SOCKET_ALERTS.md)** - Resposta aos alertas do Socket
+- **[CHANGELOG_SECURITY.md](./CHANGELOG_SECURITY.md)** - Changelog de segurança
+
 ## 📚 Documentação Completa
 
 Para mais informações, consulte a documentação completa em `docs/`:
@@ -470,6 +489,7 @@ Para mais informações, consulte a documentação completa em `docs/`:
 - **[API.md](docs/api.md)** - Referência da API
 - **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitetura técnica
 - **[WHY_TREST.md](docs/WHY_TREST.md)** - Por que usar Trest
+- **[DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md)** - Documentação completa unificada
 
 Ou visite o site oficial: [https://trest-site.vercel.app](https://trest-site.vercel.app)
 

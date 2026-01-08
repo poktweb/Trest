@@ -1,0 +1,18 @@
+{
+  "networkAccess": {
+    "required": false,
+    "purpose": "O módulo HTTP (std/http) fornece funcionalidades de rede apenas quando explicitamente usado pelo código Trest. Não há acesso automático à rede durante instalação ou execução.",
+    "modules": {
+      "http": "Usado apenas no módulo std/http para requisições HTTP quando solicitado pelo código do usuário",
+      "https": "Usado apenas no módulo std/http para requisições HTTPS quando solicitado pelo código do usuário"
+    },
+    "userControl": true,
+    "documentation": "https://github.com/trest-language/trest/blob/main/SECURITY.md"
+  },
+  "maintenance": {
+    "status": "active",
+    "lastUpdate": "2025-01-08",
+    "version": "2.4.4",
+    "securityFixes": "2.4.4"
+  }
+}
