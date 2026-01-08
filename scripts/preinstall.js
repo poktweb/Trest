@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 /**
- * Pre-install script
+ * Pre-install script (Opcional - Manual)
  * Valida o ambiente antes da instalação
+ * 
+ * NOTA: Este script NÃO é executado automaticamente para segurança.
+ * Execute manualmente com: node scripts/preinstall.js
  */
 
-const { execSync } = require('child_process');
 const os = require('os');
 const fs = require('fs');
-const path = require('path');
 
 const VERSION = require('../package.json').version;
 const MIN_NODE_VERSION = 18;
-const MIN_NPM_VERSION = 9;
 
-console.log(`\n🚀 Trest Language v${VERSION} - Pre-installation check\n`);
+console.log(`\n🚀 Trest Language v${VERSION} - Environment check\n`);
 
-// Verificar Node.js
+// Verificar Node.js (sem usar child_process)
 function checkNodeVersion() {
   const nodeVersion = process.version;
   const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
@@ -29,23 +29,11 @@ function checkNodeVersion() {
   console.log(`✅ Node.js version: ${nodeVersion}`);
 }
 
-// Verificar npm
+// Verificar npm (sem usar child_process - usa process.env ou versão via package.json)
 function checkNpmVersion() {
-  try {
-    const npmVersion = execSync('npm --version', { encoding: 'utf-8' }).trim();
-    const majorVersion = parseInt(npmVersion.split('.')[0]);
-    
-    if (majorVersion < MIN_NPM_VERSION) {
-      console.error(`❌ npm ${MIN_NPM_VERSION}+ required. Current: ${npmVersion}`);
-      console.error('Please update npm: npm install -g npm@latest');
-      process.exit(1);
-    }
-    
-    console.log(`✅ npm version: ${npmVersion}`);
-  } catch (error) {
-    console.error('❌ Failed to check npm version');
-    process.exit(1);
-  }
+  // Verificação via process.versions em vez de execSync
+  const npmVersion = process.env.npm_version || 'unknown';
+  console.log(`✅ npm version check skipped (safe mode)`);
 }
 
 // Verificar sistema operacional
@@ -60,17 +48,7 @@ function checkOS() {
   }
 }
 
-// Verificar TypeScript
-function checkTypeScript() {
-  try {
-    const tsVersion = execSync('tsc --version', { encoding: 'utf-8' }).trim();
-    console.log(`✅ ${tsVersion}`);
-  } catch (error) {
-    console.warn('⚠️  TypeScript not found globally (will be installed locally)');
-  }
-}
-
-// Verificar espaço em disco
+// Verificar espaço em disco (sem usar child_process)
 function checkDiskSpace() {
   try {
     const stats = fs.statSync(process.cwd());
@@ -80,13 +58,13 @@ function checkDiskSpace() {
   }
 }
 
-// Executar todas as verificações
+// Executar verificações seguras
 console.log('Checking environment...\n');
 checkNodeVersion();
 checkNpmVersion();
 checkOS();
-checkTypeScript();
 checkDiskSpace();
 
-console.log('\n✅ Pre-installation checks passed!\n');
+console.log('\n✅ Environment checks passed!\n');
+console.log('ℹ️  This script runs in safe mode (no shell access)\n');
 

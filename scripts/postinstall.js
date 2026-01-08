@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 /**
- * Post-install script
+ * Post-install script (Opcional - Manual)
  * Configura o ambiente após a instalação
+ * 
+ * NOTA: Este script NÃO é executado automaticamente para segurança.
+ * Execute manualmente com: node scripts/postinstall.js
  */
 
 const fs = require('fs');

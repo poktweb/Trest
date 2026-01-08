@@ -1,88 +1,36 @@
-# Source files
+# Arquivos e diretórios que NÃO devem ser incluídos no pacote npm
+
+# Scripts de instalação (não executados automaticamente por segurança)
+scripts/preinstall.js
+scripts/postinstall.js
+
+# Arquivos de desenvolvimento
+tsconfig.json
 src/
+exemplos/
+Site/
+docs/
 *.ts
-!*.d.ts
-!src/std-native.ts
+!dist/**/*.d.ts
 
-# Development files
-.exemplos/
-test/
-tests/
-__tests__/
-*.test.ts
-*.spec.ts
+# Arquivos temporários
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
 
-# Config files
-.git/
-.gitignore
-.github/
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# Documentation (keep only essential)
-docs/
-Site/
-ARCHITECTURE.md
-BUILD.md
-README_CYRILLIC.md
-RESUMO_MELHORIAS.md
-INSTALL.md
-IMPLEMENTACAO_COMPLETA.md
-RESUMO_FINAL.md
-PLANO_EXPANSAO_COMPLETO.md
-ESTADO_IMPLEMENTACAO.md
-OPCOES_PUBLICACAO.md
-PUBLICAR_NPM.md
-PUBLICADO_PRONTO.md
-PRONTO_PUBLICAR_TRE STE.md
-COMO_INSTALAR.md
-CONTROLE_LOCALIZACAO.md
-CORRETO_USAR_TREST.md
-ENTENDENDO_NPM_INSTALL.md
-INSTALACAO_LOCAL_PROJETO.md
-PRONTO_NPM_POKTWEB.md
-LEIA_PRIMEIRO.txt
-INSTRUCOES_PUBLICACAO.txt
+# Testes
+test/
+tests/
+*.test.*
+*.spec.*
 
-# Examples
-exemplos/
-.exemplos/
-
-# Development dependencies
-node_modules/
-package-lock.json
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-.vscode/
-*.code-workspace
-
-# Temporary files
-*.tmp
-*.log
-.cache/
-
-# Test coverage
-coverage/
-.nyc_output/
-
-# Build configs
-tsconfig.json
-tsconfig.*.json
-
-# CI/CD
-.github/
-.gitlab-ci.yml
-.travis.yml
-circle.yml
-
+# Documentação local
+DOCUMENTACAO_COMPLETA.md
