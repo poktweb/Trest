@@ -306,15 +306,23 @@ export class Parser {
         this.currentToken().type === TokenType.CONST
       ) {
         init = this.parseVariableDeclaration();
+        // Consumir SEMICOLON se presente (para for loops)
+        if (this.currentToken().type === TokenType.SEMICOLON) {
+          this.advance();
+        }
       } else {
         init = {
           type: 'ExpressionStatement',
           expression: this.parseExpression(),
         };
+        // Consumir SEMICOLON se presente
+        if (this.currentToken().type === TokenType.SEMICOLON) {
+          this.advance();
+        }
       }
+    } else {
+      this.advance(); // Consumir SEMICOLON vazio
     }
-
-    this.expect(TokenType.SEMICOLON);
 
     let condition: Expression | undefined;
     if (this.currentToken().type !== TokenType.SEMICOLON) {
@@ -531,13 +539,30 @@ export class Parser {
   }
 
   private parseMultiplication(): Expression {
-    let expr = this.parseUnary();
+    let expr = this.parseExponentiation();
 
     while (
       this.currentToken().type === TokenType.MULTIPLY ||
       this.currentToken().type === TokenType.DIVIDE ||
       this.currentToken().type === TokenType.MODULO
     ) {
+      const operator = this.currentToken().value as string;
+      this.advance();
+      expr = {
+        type: 'BinaryExpression',
+        operator,
+        left: expr,
+        right: this.parseExponentiation(),
+      };
+    }
+
+    return expr;
+  }
+
+  private parseExponentiation(): Expression {
+    let expr = this.parseUnary();
+
+    while (this.currentToken().type === TokenType.POW) {
       const operator = this.currentToken().value as string;
       this.advance();
       expr = {
@@ -643,6 +668,14 @@ export class Parser {
               : token.type === TokenType.FALSE
               ? false
               : token.value,
+        };
+
+      case TokenType.NULL:
+      case TokenType.UNDEFINED:
+        this.advance();
+        return {
+          type: 'Literal',
+          value: token.type === TokenType.NULL ? null : undefined,
         };
 
       case TokenType.IDENTIFIER:

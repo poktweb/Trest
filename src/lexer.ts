@@ -341,8 +341,13 @@ export class Lexer {
           this.advance();
           break;
         case '*':
-          tokens.push({ type: TokenType.MULTIPLY, value: '*', line: startLine, column: startColumn });
           this.advance();
+          if (this.currentChar === '*') {
+            tokens.push({ type: TokenType.POW, value: '**', line: startLine, column: startColumn });
+            this.advance();
+          } else {
+            tokens.push({ type: TokenType.MULTIPLY, value: '*', line: startLine, column: startColumn });
+          }
           break;
         case '/':
           tokens.push({ type: TokenType.DIVIDE, value: '/', line: startLine, column: startColumn });

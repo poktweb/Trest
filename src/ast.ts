@@ -201,7 +201,7 @@ export interface Identifier {
 
 export interface Literal {
   type: 'Literal';
-  value: string | number | boolean | null;
+  value: string | number | boolean | null | undefined;
 }
 
 export interface ArrayLiteral {

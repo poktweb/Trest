@@ -10,7 +10,8 @@ import { TrestError } from './errors';
 import { ModuleSystem } from './module';
 import minimist from 'minimist';
 
-const VERSION = '2.4.0';
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8'));
+const VERSION = packageJson.version;
 
 interface CliOptions {
   help?: boolean;

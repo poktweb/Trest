@@ -478,6 +478,8 @@ export class Interpreter {
         return (left as number) / (right as number);
       case '%':
         return (left as number) % (right as number);
+      case '**':
+        return Math.pow(left as number, right as number);
       case '==':
         return left === right;
       case '!=':
