@@ -9,7 +9,7 @@ Linguagem de programação moderna e profissional, estruturalmente organizada e 
 
 > **🎯 Característica Única:** Trest permite programar usando palavras-chave em cirílico ou latino, mantendo a mesma sintaxe e funcionalidades.
 
-> **🔒 Segurança:** Versão 2.4.4 inclui correções de segurança da cadeia de suprimentos. Veja [SECURITY.md](./SECURITY.md) para detalhes.
+> **🔒 Segurança:** Versão 2.4.7 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
 
 ## 🚀 Principais Funcionalidades
 
@@ -381,7 +381,7 @@ treste/
 │   ├── errors.ts         # Tratamento de erros
 │   └── module.ts         # Sistema de módulos
 ├── exemplos/             # Exemplos de programas
-├── docs/                 # Documentação completa
+├── DOCUMENTACAO_COMPLETA.md  # Documentação completa unificada
 ├── dist/                 # Código compilado
 └── package.json
 ```
@@ -469,26 +469,19 @@ Veja a pasta `exemplos/` para programas completos demonstrando:
 
 ## 🔒 Segurança
 
-**Versão 2.4.4** inclui correções de segurança da cadeia de suprimentos:
+**Versão 2.4.7** mantém todas as correções de segurança da cadeia de suprimentos:
 - ✅ Scripts de instalação removidos
 - ✅ Sem acesso ao shell durante instalação
 - ✅ Acesso à rede controlado e documentado
 
 **Documentação de Segurança:**
-- **[SECURITY.md](./SECURITY.md)** - Política de segurança completa
-- **[SOCKET_ALERTS.md](./SOCKET_ALERTS.md)** - Resposta aos alertas do Socket
-- **[CHANGELOG_SECURITY.md](./CHANGELOG_SECURITY.md)** - Changelog de segurança
+Consulte a seção de [Segurança](./DOCUMENTACAO_COMPLETA.md#segurança) na documentação completa.
 
 ## 📚 Documentação Completa
 
-Para mais informações, consulte a documentação completa em `docs/`:
+Para mais informações, consulte a documentação completa:
 
-- **[README.md](docs/README.md)** - Guia completo
-- **[FEATURES.md](docs/FEATURES.md)** - Todas as funcionalidades
-- **[API.md](docs/api.md)** - Referência da API
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Arquitetura técnica
-- **[WHY_TREST.md](docs/WHY_TREST.md)** - Por que usar Trest
-- **[DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md)** - Documentação completa unificada
+- **[DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md)** - Documentação completa unificada (inclui guia, referência da API, exemplos e arquitetura)
 
 Ou visite o site oficial: [https://trest-site.vercel.app](https://trest-site.vercel.app)
 

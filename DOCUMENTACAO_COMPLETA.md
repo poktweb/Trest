@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.4.6
+# 📚 Documentação Completa - Trest Language v2.4.7
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,7 +20,7 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.4.6](#novidades-da-versão-246)
+15. [Novidades da Versão 2.4.7](#novidades-da-versão-247)
 
 ---
 
@@ -198,10 +198,11 @@ Linha 2"
 пусть смешанный = [1, "текст", истина]
 
 # Objetos (dicionários)
+# ⚠️ Nota: Em Trest, objetos usam = em vez de :
 пусть человек = {
-    имя: "Иван",
-    возраст: 30,
-    город: "Москва"
+    имя = "Иван",
+    возраст = 30,
+    город = "Москва"
 }
 ```
 
@@ -398,7 +399,8 @@ contador += 1
 **For...in - Iterar sobre Objetos (Novo em 2.4.6):**
 ```trest
 # Iterar sobre chaves de um objeto
-пусть человек = { имя: "Иван", возраст: 30, город: "Москва" }
+# ⚠️ Nota: Objetos em Trest usam = em vez de :
+пусть человек = { имя = "Иван", возраст = 30, город = "Москва" }
 для (пусть ключ в человек) {
     печать(ключ + ": " + человек[ключ])
 }
@@ -778,18 +780,65 @@ Array.добавить(числа, 9)             # [3, 1, 4, 1, 5, 9]
 печать(resposta.dados)
 
 # POST request
-пусть data = { nome: "Иван", idade: 30 }
+# ⚠️ Nota: Objetos em Trest usam = em vez de :
+пусть data = { nome = "Иван", idade = 30 }
 пусть result = HTTP.POST("https://api.example.com/users", data)
 печать(result.status)  # 200
 ```
 
-**Exemplo Servidor:**
+**Exemplo Servidor Básico (Atualizado em 2.4.7):**
 ```trest
 импорт * как HTTP измодуля "std/http"
 
-HTTP.создатьСервер(3000, функция(запрос, ответ) {
-    ответ.json({ message: "Olá do Trest!" })
+пусть servidor = HTTP.создатьСервер()
+
+servidor.get("/", функция(запрос, ответ) {
+    ответ.status(200)
+    ответ.send("<h1>Olá do Trest!</h1>")
 })
+
+servidor.listen(3000, функция() {
+    печать("✅ Servidor iniciado na porta 3000")
+})
+```
+
+**Exemplo Servidor Completo com Múltiplas Rotas:**
+```trest
+импорт * как HTTP измодуля "std/http"
+
+пусть servidor = HTTP.создатьСервер()
+
+# Rota principal
+servidor.get("/", функция(запрос, ответ) {
+    ответ.send("<h1>Bem-vindo ao Trest!</h1>")
+})
+
+# API JSON
+servidor.get("/api/status", функция(запрос, ответ) {
+    пусть status = { servidor = "Trest", versao = "2.4.7", online = истина }
+    ответ.json(status)
+})
+
+# Rota POST
+servidor.post("/api/users", функция(запрос, ответ) {
+    печать("Novo usuário: " + запрос.body)
+    ответ.json({ sucesso = истина })
+})
+
+# Iniciar servidor
+servidor.listen(3000, функция() {
+    печать("🌐 Servidor iniciado em http://localhost:3000")
+})
+```
+
+**⚠️ Nota Importante sobre Objetos:**
+Em Trest, objetos literais usam `=` (atribuição) em vez de `:` (dois pontos):
+```trest
+# ✅ Correto (sintaxe Trest)
+пусть obj = { nome = "João", idade = 30 }
+
+# ❌ Incorreto (sintaxe JavaScript)
+пусть obj = { nome: "João", idade: 30 }
 ```
 
 ---
@@ -1138,7 +1187,7 @@ Process.exit(0)  # código 0 = sucesso
 
 ---
 
-### 📖 IO - Entrada e Saída
+### 📖 IO - Entrada e Saída (✅ Implementado em 2.4.7)
 
 **Importação:**
 ```trest
@@ -1146,10 +1195,11 @@ Process.exit(0)  # código 0 = sucesso
 ```
 
 **Funções Disponíveis:**
-- `IO.читать()` - Ler entrada do usuário
+- `IO.читать()` - Ler entrada do usuário (bloqueia até Enter) - **✅ Implementado em 2.4.7**
 - `IO.печать(...)` - Exibir valores (equivalente a `печать`)
+- `IO.печатьВстроенный(...)` - Imprimir sem quebra de linha
 
-**Exemplo:**
+**Exemplo Básico:**
 ```trest
 импорт * как IO измодуля "std/io"
 
@@ -1157,6 +1207,43 @@ IO.печать("Digite seu nome: ")
 пусть nome = IO.читать()
 IO.печать("Olá, " + nome + "!")
 ```
+
+**Exemplo Completo - Formulário Interativo:**
+```trest
+импорт * как IO измодуля "std/io"
+
+печать("=== Sistema de Cadastro ===")
+печать("")
+
+IO.печать("Digite seu nome: ")
+пусть nome = IO.читать()
+
+IO.печать("Digite sua idade: ")
+пусть idadeStr = IO.читать()
+пусть idade = Number(idadeStr)
+
+IO.печать("Digite sua cidade: ")
+пусть cidade = IO.читать()
+
+печать("")
+печать("=== Dados Cadastrados ===")
+печать("Nome: " + nome)
+печать("Idade: " + idade)
+печать("Cidade: " + cidade)
+печать("")
+
+если (idade >= 18) {
+    печать("✅ Cadastro realizado com sucesso!")
+} иначе {
+    печать("⚠️ Menor de idade - cadastro supervisionado")
+}
+```
+
+**Nota Técnica:**
+- `IO.читать()` é uma função **síncrona** que bloqueia a execução até o usuário pressionar Enter
+- Utiliza `readline-sync` para leitura síncrona de entrada
+- Funciona em terminais interativos (TTY) e em modo pipe (stdin)
+- Suporta leitura de múltiplas linhas sequencialmente
 
 ---
 
@@ -1508,23 +1595,78 @@ trest -e "печать('Olá Mundo')"
 ```trest
 импорт * как HTTP измодуля "std/http"
 
-HTTP.создатьСервер(3000, функция(запрос, ответ) {
-    печать("Новый запрос: " + запрос.метод + " " + запрос.путь)
-    
-    если (запрос.путь == "/") {
-        ответ.json({ message: "Добро пожаловать в Trest API!" })
-    } иначе если (запрос.путь == "/users") {
-        ответ.json([
-            { id: 1, имя: "Иван" },
-            { id: 2, имя: "Мария" }
-        ])
-    } иначе {
-        ответ.json({ error: "Не найдено" }, 404)
-    }
+пусть servidor = HTTP.создатьСервер()
+
+# Rota principal
+servidor.get("/", функция(запрос, ответ) {
+    печать("📄 Requisição: GET /")
+    ответ.status(200)
+    ответ.json({ message = "Добро пожаловать в Trest API!" })
 })
 
-печать("Сервер запущен на порту 3000")
+# Rota de usuários
+servidor.get("/users", функция(запрос, ответ) {
+    печать("📄 Requisição: GET /users")
+    пусть usuarios = [
+        { id = 1, имя = "Иван", idade = 30 },
+        { id = 2, имя = "Мария", idade = 25 }
+    ]
+    ответ.json(usuarios)
+})
+
+# Rota 404
+servidor.get("/404", функция(запрос, ответ) {
+    ответ.status(404)
+    ответ.send("<h1>404 - Página não encontrada</h1>")
+})
+
+# Iniciar servidor
+servidor.listen(3000, функция() {
+    печать("✅ Сервер запущен на порту 3000")
+    печать("🌐 Acesse: http://localhost:3000")
+})
 ```
+
+### Exemplo 7: Site Web Completo (Novo em 2.4.7)
+
+Exemplo completo de site web com múltiplas páginas HTML:
+
+```trest
+импорт * как HTTP измодуля "std/http"
+
+# Função para gerar HTML da página inicial
+функция obterHTMLInicial() {
+    вернуть "<!DOCTYPE html>\n" +
+"<html><head><title>Trest Site</title></head>\n" +
+"<body><h1>Bem-vindo ao Trest!</h1>\n" +
+"<p>Linguagem de programação moderna.</p>\n" +
+"<a href=\"/sobre\">Sobre</a></body></html>"
+}
+
+# Criar servidor
+пусть servidor = HTTP.создатьСервер()
+
+# Rotas
+servidor.get("/", функция(запрос, ответ) {
+    ответ.send(obterHTMLInicial())
+})
+
+servidor.get("/sobre", функция(запрос, ответ) {
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.4.7</p>")
+})
+
+servidor.get("/api/status", функция(запрос, ответ) {
+    пусть status = { servidor = "Trest", versao = "2.4.7", online = истина }
+    ответ.json(status)
+})
+
+# Iniciar
+servidor.listen(3000, функция() {
+    печать("🚀 Site web iniciado em http://localhost:3000")
+})
+```
+
+**Veja o exemplo completo em:** `exemplos/site_web.trest`
 
 ---
 
@@ -2163,6 +2305,8 @@ Veja a pasta `exemplos/` para mais exemplos:
 - `http_demo.trest` - Cliente HTTP e servidor
 - `database_demo.trest` - Operações de banco de dados
 - `filesystem_demo.trest` - Operações de arquivo
+- `site_web.trest` - **Site web completo (Novo em 2.4.7)** - Exemplo de site com múltiplas rotas HTML e API JSON
+- `site_web.trest` - **Site web completo (Novo em 2.4.7)** - Exemplo de site com múltiplas rotas HTML e API JSON
 - `todas_funcionalidades.trest` - Exemplo completo
 
 ### Scripts Úteis
@@ -2200,16 +2344,30 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.4.6  
+**Versão:** 2.4.7  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
 
-### 🆕 Novidades da Versão 2.4.6
+### 🆕 Novidades da Versão 2.4.7
 
-A versão 2.4.6 traz funcionalidades poderosas que tornam Trest ainda mais expressivo e moderno:
+A versão 2.4.7 implementa funcionalidades críticas que tornam Trest ainda mais funcional e prático:
 
 **Principais adições:**
+- ✅ **IO.читать() Totalmente Funcional** - Leitura síncrona de entrada do usuário implementada com `readline-sync`
+- ✅ **Correções de Sintaxe** - Objetos literais usam `=` em vez de `:` (conforme sintaxe Trest)
+- ✅ **Servidor HTTP Completo** - Suporte total a rotas GET, POST, PUT, DELETE com handlers
+- ✅ **Conversão Automática de Funções** - Funções Trest convertidas automaticamente para JavaScript quando passadas para métodos nativos
+- ✅ **Exemplo de Site Web** - Exemplo completo de site web em `exemplos/site_web.trest`
+
+**Melhorias:**
+- ✅ Melhor integração entre funções Trest e código nativo JavaScript
+- ✅ Suporte completo a callbacks Trest em métodos nativos
+- ✅ Documentação expandida com exemplos práticos
+
+### 📋 Versão Anterior (2.4.6)
+
+A versão 2.4.6 trouxe funcionalidades poderosas:
 - ✅ **Classes e OOP Completo** - Suporte total a classes, herança e instanciação
 - ✅ **For...of e For...in** - Loops modernos para iterar arrays e objetos
 - ✅ **Operadores Compostos** - Atribuição com operação em uma única expressão
@@ -2218,7 +2376,7 @@ A versão 2.4.6 traz funcionalidades poderosas que tornam Trest ainda mais expre
 
 ### 🔒 Nota de Segurança
 
-A versão 2.4.4 incluiu correções importantes de segurança na cadeia de suprimentos. A versão 2.4.6 mantém todas essas melhorias:
+A versão 2.4.4 incluiu correções importantes de segurança na cadeia de suprimentos. A versão 2.4.7 mantém todas essas melhorias:
 
 **Correções de segurança:**
 - ✅ Scripts de instalação automáticos removidos

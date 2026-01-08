@@ -191,6 +191,13 @@ export class Interpreter {
       выход: StdModules.Process.exit.bind(StdModules.Process),
       pid: StdModules.Process.pid,
     });
+
+    // IO Module
+    this.globalEnv.variables.set('IO', {
+      читать: StdModules.IO.read.bind(StdModules.IO),
+      печать: StdModules.IO.print.bind(StdModules.IO),
+      печатьВстроенный: StdModules.IO.printInline.bind(StdModules.IO),
+    });
   }
 
   public interpret(program: Program): void {
@@ -634,7 +641,15 @@ export class Interpreter {
     // Check if callee is a function (native or Trest function)
     if (typeof callee === 'function') {
       // Native function (from std-native.ts)
-      const args = expr.arguments.map((arg) => this.evaluateExpression(arg, env));
+      // Convert Trest FunctionValues to JS functions when passed as arguments
+      const args = expr.arguments.map((arg) => {
+        const value = this.evaluateExpression(arg, env);
+        // If argument is a Trest function, convert it to a JS function
+        if (value && typeof value === 'object' && 'type' in value && (value as any).type === 'function') {
+          return this.convertTrestFunctionToJS(value as FunctionValue, env);
+        }
+        return value;
+      });
       try {
         return callee(...args);
       } catch (error: any) {
@@ -675,6 +690,38 @@ export class Interpreter {
     }
 
     throw new Error(`Não é uma função: ${(expr.callee as Identifier).name}`);
+  }
+
+  /**
+   * Converte uma função Trest (FunctionValue) em uma função JavaScript
+   * Isso permite que funções Trest sejam passadas como callbacks para métodos nativos
+   */
+  private convertTrestFunctionToJS(trestFunc: FunctionValue, env: Environment): Function {
+    return (...args: any[]) => {
+      // Criar ambiente para executar a função Trest
+      const newEnv: Environment = {
+        variables: new Map(),
+        functions: new Map(),
+        classes: new Map(),
+        constants: new Set(),
+        parent: trestFunc.closure || env,
+      };
+
+      // Mapear argumentos para parâmetros
+      for (let i = 0; i < trestFunc.params.length && i < args.length; i++) {
+        newEnv.variables.set(trestFunc.params[i], args[i]);
+      }
+
+      // Executar corpo da função
+      const result = this.evaluateBlockStatement(trestFunc.body, newEnv);
+      
+      // Retornar valor se houver
+      if (result !== null && this.isReturnValue(result)) {
+        return (result as any).value;
+      }
+
+      return null;
+    };
   }
 
   private evaluateIdentifier(
@@ -1201,6 +1248,7 @@ export class Interpreter {
               RegEx: StdModules.RegEx,
               Path: StdModules.Path,
               Process: StdModules.Process,
+              IO: StdModules.IO,
             },
             'http': {
               GET: StdModules.HTTP.GET.bind(StdModules.HTTP),
@@ -1273,6 +1321,11 @@ export class Interpreter {
               изменитьDir: StdModules.Process.chdir.bind(StdModules.Process),
               выход: StdModules.Process.exit.bind(StdModules.Process),
               pid: StdModules.Process.pid,
+            },
+            'io': {
+              читать: StdModules.IO.read.bind(StdModules.IO),
+              печать: StdModules.IO.print.bind(StdModules.IO),
+              печатьВстроенный: StdModules.IO.printInline.bind(StdModules.IO),
             },
           };
           

@@ -95,7 +95,7 @@ O Trest cria automaticamente um arquivo `.trestrc` na primeira execução:
 
 ```json
 {
-  "version": "2.0.0",
+  "version": "2.4.7",
   "compiler": {
     "web": {
       "minify": false,
@@ -134,7 +134,7 @@ export TREST_STD_PATH=/caminho/para/std
 **Solução:**
 ```bash
 # Reinstalar globalmente
-npm install -g trest-language
+npm install -g treste
 
 # Verificar local de instalação global
 npm config get prefix
@@ -166,7 +166,7 @@ nvm use 18
 **Linux/Mac:**
 ```bash
 # Usar sudo (não recomendado)
-sudo npm install -g trest-language
+sudo npm install -g treste
 
 # Ou configurar npm para não usar sudo
 mkdir ~/.npm-global
@@ -194,10 +194,10 @@ Para atualizar para a versão mais recente:
 
 ```bash
 # Global
-npm update -g trest-language
+npm update -g treste
 
 # Local
-npm update trest-language
+npm update treste
 
 # Verificar versão
 trest --version
@@ -209,10 +209,10 @@ Para remover o Trest:
 
 ```bash
 # Desinstalar globalmente
-npm uninstall -g trest-language
+npm uninstall -g treste
 
 # Desinstalar localmente
-npm uninstall trest-language
+npm uninstall treste
 ```
 
 ## 📚 Próximos Passos
@@ -220,9 +220,7 @@ npm uninstall trest-language
 Depois de instalar, consulte:
 
 - [README.md](README.md) - Visão geral do projeto
-- [docs/README.md](docs/README.md) - Documentação completa
-- [docs/guide.md](docs/guide.md) - Guia de início rápido
-- [docs/examples.md](docs/examples.md) - Exemplos de código
+- [DOCUMENTACAO_COMPLETA.md](DOCUMENTACAO_COMPLETA.md) - Documentação completa unificada
 
 ## 💡 Dicas
 

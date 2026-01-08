@@ -173,12 +173,23 @@ export class StdHTTP {
     });
 
     return {
-      listen: (port: number, callback?: Function) => {
+      listen: (port: number, callback?: any) => {
         server.listen(port, () => {
-          if (callback) callback();
+          if (callback) {
+            // Check if callback is a Trest function (FunctionValue) or native function
+            // If it's already a JS function, call it directly
+            if (typeof callback === 'function') {
+              callback();
+            } else {
+              // Should not happen - interpreter should convert Trest functions to JS functions
+              console.error('Callback is not a function:', typeof callback, callback);
+            }
+          }
         });
       },
-      get: (path: string, handler: Function) => addRoute('GET', path, handler),
+      get: (path: string, handler: Function) => {
+        addRoute('GET', path, handler);
+      },
       post: (path: string, handler: Function) => addRoute('POST', path, handler),
       put: (path: string, handler: Function) => addRoute('PUT', path, handler),
       delete: (path: string, handler: Function) => addRoute('DELETE', path, handler),
@@ -914,6 +925,145 @@ export class StdProcess {
 }
 
 /**
+ * ========================================
+ * IO Module - Entrada e Saída
+ * ========================================
+ */
+import * as readline from 'readline';
+
+export class StdIO {
+  private static rl: readline.Interface | null = null;
+
+  /**
+   * Initialize readline interface if needed
+   */
+  private static getReadlineInterface(): readline.Interface {
+    if (!this.rl) {
+      this.rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+    }
+    return this.rl;
+  }
+
+  /**
+   * Read user input from stdin (synchronous blocking read)
+   * Uses readline-sync if available, otherwise uses async readline
+   */
+  static read(): string {
+    // Try using readline-sync if available (better for sync reading)
+    try {
+      const readlineSync = require('readline-sync');
+      return readlineSync.question('');
+    } catch (e) {
+      // Fallback: Use readline with a synchronous wrapper
+      // Note: This is not truly synchronous, but works for most cases
+      const rl = this.getReadlineInterface();
+      
+      // Clean up on exit
+      if (typeof process !== 'undefined') {
+        process.once('exit', () => {
+          this.close();
+        });
+      }
+
+      // For true synchronous reading, we use stdin directly
+      // This is a simpler approach that works cross-platform
+      if (process.stdin.isTTY) {
+        // TTY mode - use readline
+        return this.readSyncTTY();
+      } else {
+        // Non-TTY (pipe) mode - read from stdin buffer
+        return this.readSyncPipe();
+      }
+    }
+  }
+
+  /**
+   * Read synchronously from TTY
+   */
+  private static readSyncTTY(): string {
+    const rl = this.getReadlineInterface();
+    let result = '';
+    let finished = false;
+
+    rl.question('', (answer) => {
+      result = answer;
+      finished = true;
+    });
+
+    // Wait for input (blocking)
+    const startTime = Date.now();
+    const timeout = 300000; // 5 minutes
+    
+    while (!finished && (Date.now() - startTime) < timeout) {
+      // Small delay
+      const { performance } = require('perf_hooks');
+      const waitStart = performance.now();
+      while (performance.now() - waitStart < 1) {
+        // Busy wait 1ms
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Read synchronously from pipe (stdin)
+   */
+  private static readSyncPipe(): string {
+    const fs = require('fs');
+    try {
+      // Read first line from stdin
+      const chunk = fs.readFileSync(0, { encoding: 'utf8', flag: 'r' });
+      const lines = chunk.toString().split('\n');
+      return (lines[0] || '').trim();
+    } catch (e) {
+      // If reading fails, return empty string
+      return '';
+    }
+  }
+
+  /**
+   * Read user input (async version using Promise)
+   * Use this when you have async/await support
+   */
+  static readAsync(): Promise<string> {
+    return new Promise((resolve) => {
+      const rl = this.getReadlineInterface();
+      rl.question('', (answer) => {
+        resolve(answer);
+      });
+    });
+  }
+
+  /**
+   * Print to stdout (alias for console.log)
+   */
+  static print(...args: any[]): void {
+    console.log(...args);
+  }
+
+  /**
+   * Print without newline (to stdout)
+   */
+  static printInline(...args: any[]): void {
+    process.stdout.write(args.map(String).join(' '));
+  }
+
+  /**
+   * Close readline interface
+   */
+  static close(): void {
+    if (this.rl) {
+      this.rl.close();
+      this.rl = null;
+    }
+  }
+}
+
+/**
  * Export all modules
  */
 export const StdModules = {
@@ -928,5 +1078,6 @@ export const StdModules = {
   RegEx: StdRegEx,
   Path: StdPath,
   Process: StdProcess,
+  IO: StdIO,
 };
 
