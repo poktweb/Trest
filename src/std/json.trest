@@ -1,0 +1,16 @@
+# JSON Library - Parse e Stringify
+
+# Parse JSON string para objeto
+экспорт функция parse(jsonStr) {
+    # TODO: Implementar parse JSON
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть {}
+}
+
+# Converter objeto para JSON string
+экспорт функция stringify(obj, indent) {
+    # TODO: Implementar stringify JSON
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+

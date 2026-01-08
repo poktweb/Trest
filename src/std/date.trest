@@ -1,0 +1,23 @@
+# Date Library - Data e Hora
+
+# Obter timestamp atual
+экспорт функция now() {
+    # TODO: Implementar now()
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть 0
+}
+
+# Formatar data
+экспорт функция format(date, formatStr) {
+    # TODO: Implementar format
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Obter timezone
+экспорт функция timezone() {
+    # TODO: Implementar timezone()
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+

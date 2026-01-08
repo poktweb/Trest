@@ -1,0 +1,60 @@
+# FileSystem Library - Sistema de Arquivos
+
+# Ler arquivo
+экспорт функция readFile(path) {
+    # TODO: Implementar readFile
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Escrever arquivo
+экспорт функция writeFile(path, content) {
+    # TODO: Implementar writeFile
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Verificar se arquivo existe
+экспорт функция exists(path) {
+    # TODO: Implementar exists
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ложь
+}
+
+# Deletar arquivo
+экспорт функция deleteFile(path) {
+    # TODO: Implementar deleteFile
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Listar diretório
+экспорт функция listDir(path) {
+    # TODO: Implementar listDir
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть []
+}
+
+# Criar diretório
+экспорт функция createDir(path) {
+    # TODO: Implementar createDir
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Deletar diretório
+экспорт функция deleteDir(path) {
+    # TODO: Implementar deleteDir
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Obter estatísticas do arquivo
+экспорт функция getStats(path) {
+    # TODO: Implementar getStats
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть {
+        size: 0,
+        isFile: ложь,
+        isDirectory: ложь,
+        createdAt: null,
+        modifiedAt: null
+    }
+}
+

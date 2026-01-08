@@ -1,0 +1,1655 @@
+# 📚 Documentação Completa - Trest Language v2.4.3
+
+**Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
+
+---
+
+## 📋 Índice
+
+1. [Introdução](#introdução)
+2. [Instalação](#instalação)
+3. [Começando](#começando)
+4. [Sintaxe da Linguagem](#sintaxe-da-linguagem)
+5. [Palavras-chave](#palavras-chave)
+6. [Biblioteca Padrão (std)](#biblioteca-padrão-std)
+7. [Sistema de Módulos](#sistema-de-módulos)
+8. [Tratamento de Erros](#tratamento-de-erros)
+9. [Compilação](#compilação)
+10. [Exemplos](#exemplos)
+11. [Melhores Práticas](#melhores-práticas)
+12. [Referência Completa](#referência-completa)
+
+---
+
+## 🎯 Introdução
+
+Trest é uma linguagem de programação moderna que permite programar usando palavras-chave em **cirílico** (alfabeto russo) ou latino, mantendo a mesma sintaxe e funcionalidades.
+
+### 🆎 Características Principais
+
+- ✅ **Suporte Total ao Cirílico** - Palavras-chave em russo nativas
+- ✅ **Tipagem Dinâmica** - Tipos inferidos automaticamente
+- ✅ **Compilação Universal** - Para Web (JavaScript) e Desktop (.exe)
+- ✅ **Biblioteca Padrão Rica** - 15+ módulos prontos para usar
+- ✅ **Sistema de Módulos** - Import/Export completo
+- ✅ **Execução Inline** - Execute código direto na linha de comando
+
+### 🎯 Por que Trest?
+
+- **Zero barreira linguística** para falantes de russo
+- **Mesmo código** compila para Web e Desktop
+- **Sintaxe intuitiva** baseada em JavaScript/TypeScript
+- **Produtividade** com biblioteca padrão completa
+
+---
+
+## 📦 Instalação
+
+### Instalação Global via npm (Recomendado)
+
+```bash
+npm install -g treste
+```
+
+Após a instalação, os comandos `trest` e `trestc` estarão disponíveis globalmente:
+
+```bash
+trest --version
+trestc --help
+```
+
+### Instalação Local em Projeto
+
+```bash
+npm install treste
+```
+
+Use via `npx`:
+
+```bash
+npx trest programa.trest
+npx trestc programa.trest --mode web
+```
+
+### Instalação a partir do Código-fonte
+
+```bash
+# Clonar o repositório
+git clone https://github.com/trest-language/trest.git
+cd trest
+
+# Instalar dependências
+npm install
+
+# Compilar o projeto
+npm run build
+
+# (Opcional) Criar links globais para testes
+npm link
+```
+
+### Requisitos
+
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
+- **TypeScript**: 5.0+ (apenas para desenvolvimento)
+
+Verifique sua versão:
+```bash
+node --version  # deve ser >= v18
+npm --version   # deve ser >= 9
+```
+
+---
+
+## 🚀 Começando
+
+### Seu Primeiro Programa
+
+Crie o arquivo `hello.trest`:
+
+```trest
+печать("Привет, Мир!")
+```
+
+Execute:
+
+```bash
+trest hello.trest
+```
+
+**Saída:**
+```
+Привет, Мир!
+```
+
+### Executar Código Inline (sem arquivo)
+
+```bash
+trest -e "печать('Olá, Mundo!')"
+trest -e "пусть x = 10; печать(x)"
+```
+
+### Compilar para Web (JavaScript)
+
+```bash
+trestc programa.trest --mode web --output app.js
+```
+
+### Compilar para Desktop (.exe)
+
+```bash
+trestc programa.trest --mode exe --output app.exe
+```
+
+---
+
+## 📝 Sintaxe da Linguagem
+
+### Variáveis e Constantes
+
+```trest
+# Variável com escopo de bloco (let)
+пусть имя = "Иван"
+пусть возраст = 25
+
+# Constante
+конст PI = 3.14159
+
+# Variável com escopo funcional (var)
+перем globalVar = "global"
+```
+
+### Tipos de Dados
+
+```trest
+# Números (inteiros e decimais)
+пусть число = 42
+пусть дробное = 3.14
+
+# Strings (cadeias de texto)
+пусть текст = "Привет"
+пусть многострочный = "Linha 1
+Linha 2"
+
+# Booleanos
+пусть правда = истина
+пусть ложное = ложь
+
+# Null e Undefined
+пусть vazio = нуль
+пусть неопределено = неопределен
+
+# Arrays (listas)
+пусть список = [1, 2, 3, 4, 5]
+пусть смешанный = [1, "текст", истина]
+
+# Objetos (dicionários)
+пусть человек = {
+    имя: "Иван",
+    возраст: 30,
+    город: "Москва"
+}
+```
+
+### Operadores
+
+#### Aritméticos
+```trest
+пусть a = 10 + 5    # 15 (adição)
+пусть b = 10 - 5    # 5 (subtração)
+пусть c = 10 * 5    # 50 (multiplicação)
+пусть d = 10 / 5    # 2 (divisão)
+пусть e = 10 % 3    # 1 (resto/módulo)
+пусть f = 2 ** 3    # 8 (potência)
+```
+
+#### Comparação
+```trest
+10 == 10   # истина (igual)
+10 != 5    # истина (diferente)
+10 < 20    # истина (menor)
+10 > 5     # истина (maior)
+10 <= 10   # истина (menor ou igual)
+10 >= 10   # истина (maior ou igual)
+```
+
+#### Lógicos
+```trest
+истина && истина   # истина (E/AND)
+истина || ложь     # истина (OU/OR)
+!истина            # ложь (NÃO/NOT)
+```
+
+#### Atribuição
+```trest
+пусть x = 10
+x += 5   # x = x + 5 → 15
+x -= 3   # x = x - 3 → 12
+x *= 2   # x = x * 2 → 24
+x /= 4   # x = x / 4 → 6
+x %= 4   # x = x % 4 → 2
+```
+
+### Funções
+
+```trest
+# Declaração de função
+функция приветствие(имя) {
+    вернуть "Привет, " + имя
+}
+
+# Chamada de função
+печать(приветствие("Иван"))  # "Привет, Иван"
+
+# Função com múltiplos parâmetros
+функция сложить(a, b, c) {
+    вернуть a + b + c
+}
+
+# Função sem retorno (procedimento)
+функция показатьИнформацию(имя, возраст) {
+    печать("Имя: " + имя)
+    печать("Возраст: " + возраст)
+}
+```
+
+### Condicionais
+
+#### If/Else
+
+```trest
+если (возраст >= 18) {
+    печать("Совершеннолетний")
+} иначе если (возраст >= 13) {
+    печать("Подросток")
+} иначе {
+    печать("Ребенок")
+}
+```
+
+#### Operador Ternário
+
+```trest
+пусть result = возраст >= 18 ? "Взрослый" : "Ребенок"
+печать(result)
+```
+
+#### Switch/Case
+
+```trest
+переключатель (день) {
+    случай 1:
+        печать("Понедельник")
+        прервать
+    случай 2:
+        печать("Вторник")
+        прервать
+    случай 3:
+    случай 4:
+    случай 5:
+        печать("Рабочий день")
+        прервать
+    поумолчанию:
+        печать("Выходной")
+}
+```
+
+### Loops
+
+#### While (Enquanto)
+
+```trest
+пусть i = 0
+пока (i < 10) {
+    печать(i)
+    i = i + 1
+}
+```
+
+#### For (Para)
+
+```trest
+# For clássico
+для (пусть i = 0; i < 10; i = i + 1) {
+    печать(i)
+}
+
+# For...of (iterar sobre arrays)
+пусть числа = [1, 2, 3, 4, 5]
+для (пусть число из числа) {
+    печать(число)
+}
+
+# For...in (iterar sobre objetos)
+пусть человек = { имя: "Иван", возраст: 30 }
+для (пусть ключ в человек) {
+    печать(ключ + ": " + человек[ключ])
+}
+```
+
+#### Break e Continue
+
+```trest
+# Break - sair do loop
+для (пусть i = 0; i < 10; i = i + 1) {
+    если (i == 5) {
+        прервать  # sai do loop
+    }
+    печать(i)
+}
+
+# Continue - pular para próxima iteração
+для (пусть i = 0; i < 10; i = i + 1) {
+    если (i % 2 == 0) {
+        продолжить  # pula números pares
+    }
+    печать(i)  # imprime apenas ímpares
+}
+```
+
+### Arrays
+
+```trest
+пусть числа = [1, 2, 3, 4, 5]
+
+# Acessar elementos
+печать(числа[0])  # 1 (primeiro elemento)
+печать(числа[4])  # 5 (último elemento)
+
+# Modificar elementos
+числа[0] = 10
+печать(числа)  # [10, 2, 3, 4, 5]
+
+# Adicionar elementos
+числа[5] = 6
+# ou usando biblioteca padrão (ver seção Array)
+
+# Iterar sobre array
+для (пусть число из числа) {
+    печать(число)
+}
+```
+
+### Objetos
+
+```trest
+пусть человек = {
+    имя: "Иван",
+    возраст: 30,
+    город: "Москва"
+}
+
+# Acessar propriedades
+печать(человек.имя)           # "Иван"
+печать(человек["возраст"])    # 30
+
+# Modificar propriedades
+человек.возраст = 31
+
+# Adicionar propriedades
+человек.страна = "Россия"
+
+# Remover propriedades
+человек.город = нуль
+
+# Iterar sobre propriedades
+для (пусть ключ в человек) {
+    печать(ключ + ": " + человек[ключ])
+}
+```
+
+### Classes e Orientação a Objetos
+
+```trest
+# Declaração de classe
+класс Человек {
+    функция конструктор(имя, возраст) {
+        это.имя = имя
+        это.возраст = возраст
+    }
+    
+    функция представиться() {
+        печать("Я " + это.имя + ", мне " + это.возраст + " лет")
+    }
+    
+    функция праздноватьДеньРождения() {
+        это.возраст = это.возраст + 1
+        печать("С Днем Рождения! Теперь мне " + это.возраст + " лет")
+    }
+}
+
+# Criar instância
+пусть иван = новый Человек("Иван", 30)
+иван.представиться()  # "Я Иван, мне 30 лет"
+иван.праздноватьДеньРождения()  # "С Днем Рождения! Теперь мне 31 лет"
+
+# Herança
+класс Студент расширяет Человек {
+    функция конструктор(имя, возраст, группа) {
+        супер(имя, возраст)  # chama construtor da classe pai
+        это.группа = группа
+    }
+    
+    функция учиться() {
+        печать(это.имя + " учится в группе " + это.группа)
+    }
+}
+
+пусть студент = новый Студент("Мария", 20, "ИТ-101")
+студент.представиться()  # "Я Мария, мне 20 лет"
+студент.учиться()        # "Мария учится в группе ИТ-101"
+```
+
+---
+
+## 🔤 Palavras-chave
+
+### Declarações de Variáveis
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `пусть` | let | Variável com escopo de bloco |
+| `конст` | const | Constante (não pode ser reatribuída) |
+| `перем` | var | Variável com escopo funcional |
+
+### Controle de Fluxo
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `если` | if | Condicional |
+| `иначе` | else | Caso contrário |
+| `иначе если` | else if | Condicional adicional |
+| `для` | for | Loop for |
+| `пока` | while | Loop while |
+| `прервать` | break | Sair do loop |
+| `продолжить` | continue | Pular iteração |
+| `переключатель` | switch | Switch case |
+| `случай` | case | Caso no switch |
+| `поумолчанию` | default | Caso padrão |
+
+### Funções
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `функция` | function | Declarar função |
+| `вернуть` | return | Retornar valor |
+
+### Módulos
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `импорт` | import | Importar módulo |
+| `экспорт` | export | Exportar função/variável |
+| `измодуля` | from | Especificar origem do import |
+
+### Tratamento de Erros
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `попытаться` | try | Tentar executar código |
+| `перехватить` | catch | Capturar erro |
+| `наконец` | finally | Executar sempre |
+| `бросить` | throw | Lançar erro |
+
+### Classes
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `класс` | class | Declarar classe |
+| `расширяет` | extends | Herança |
+| `это` | this | Referência ao objeto atual |
+| `супер` | super | Referência à classe pai |
+| `новый` | new | Criar instância |
+
+### Valores e Operadores
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `истина` | true | Valor booleano verdadeiro |
+| `ложь` | false | Valor booleano falso |
+| `нуль` | null | Valor nulo |
+| `неопределен` | undefined | Valor indefinido |
+
+### Funções Integradas
+
+| Trest (Cirílico) | Latim | Descrição |
+|-----------------|-------|-----------|
+| `печать(...)` | print/console.log | Exibir valores no console |
+
+---
+
+## 📚 Biblioteca Padrão (std)
+
+Trest inclui uma biblioteca padrão rica com **15 módulos** prontos para usar. Todos os módulos estão em `std/` e podem ser importados usando `импорт`.
+
+### 🔢 Math - Funções Matemáticas
+
+**Importação:**
+```trest
+импорт * как Math измодуля "std/math"
+```
+
+**Funções Disponíveis:**
+- `Math.abs(x)` - Valor absoluto
+- `Math.max(a, b)` - Máximo entre dois valores
+- `Math.min(a, b)` - Mínimo entre dois valores
+- `Math.sqrt(x)` - Raiz quadrada
+- `Math.pow(base, exp)` - Potência (base^exp)
+- `Math.ceil(x)` - Arredondar para cima
+- `Math.floor(x)` - Arredondar para baixo
+- `Math.round(x)` - Arredondar (mais próximo)
+
+**Constantes:**
+- `Math.PI` - 3.141592653589793
+- `Math.E` - 2.718281828459045
+
+**Exemplo:**
+```trest
+импорт * как Math измодуля "std/math"
+
+печать(Math.sqrt(25))      # 5
+печать(Math.max(10, 20))   # 20
+печать(Math.abs(-42))      # 42
+печать(Math.PI)            # 3.14159...
+печать(Math.pow(2, 3))     # 8
+```
+
+---
+
+### 📝 String - Manipulação de Strings
+
+**Importação:**
+```trest
+импорт * как String измодуля "std/string"
+```
+
+**Funções Disponíveis:**
+- `String.размер(str)` - Tamanho da string
+- `String.верхний(str)` - Converter para maiúsculas
+- `String.нижний(str)` - Converter para minúsculas
+- `String.заменить(str, old, new)` - Substituir substring
+- `String.разделить(str, delimiter)` - Dividir string em array
+
+**Exemplo:**
+```trest
+импорт * как String измодуля "std/string"
+
+пусть текст = "Привет Мир"
+печать(String.размер(текст))          # 11
+печать(String.верхний(текст))        # "ПРИВЕТ МИР"
+печать(String.нижний(текст))         # "привет мир"
+печать(String.заменить(текст, "Мир", "Trest"))  # "Привет Trest"
+печать(String.разделить(текст, " "))  # ["Привет", "Мир"]
+```
+
+---
+
+### 📊 Array - Manipulação de Arrays
+
+**Importação:**
+```trest
+импорт * как Array измодуля "std/array"
+```
+
+**Funções Disponíveis:**
+- `Array.длина(arr)` - Tamanho do array
+- `Array.добавить(arr, item)` - Adicionar elemento ao final
+- `Array.удалить(arr, index)` - Remover elemento por índice
+- `Array.включает(arr, item)` - Verificar se contém elemento
+- `Array.обратить(arr)` - Inverter ordem do array
+- `Array.срез(arr, start, end)` - Fatiar array (slice)
+- `Array.отсортировать(arr)` - Ordenar array
+
+**Exemplo:**
+```trest
+импорт * как Array измодуля "std/array"
+
+пусть числа = [3, 1, 4, 1, 5]
+печать(Array.длина(числа))           # 5
+
+Array.добавить(числа, 9)             # [3, 1, 4, 1, 5, 9]
+печать(Array.включает(числа, 4))     # истина
+
+пусть удаленный = Array.удалить(числа, 0)  # remove primeiro
+печать(Array.обратить(числа))        # [9, 5, 1, 4, 1]
+
+пусть срез = Array.срез(числа, 1, 3)  # [5, 1]
+печать(Array.отсортировать(числа))    # [1, 1, 4, 5, 9]
+```
+
+---
+
+### 🌐 HTTP - Cliente e Servidor HTTP
+
+**Importação:**
+```trest
+импорт * как HTTP измодуля "std/http"
+```
+
+**Cliente HTTP (Requisições):**
+- `HTTP.GET(url, options)` - Requisição GET
+- `HTTP.POST(url, data, options)` - Requisição POST
+- `HTTP.PUT(url, data, options)` - Requisição PUT
+- `HTTP.DELETE(url, options)` - Requisição DELETE
+- `HTTP.fetch(url, options)` - Fetch API completa
+
+**Servidor HTTP:**
+- `HTTP.создатьСервер(port, handler)` - Criar servidor HTTP
+
+**Exemplo Cliente:**
+```trest
+импорт * как HTTP измодуля "std/http"
+
+# GET request
+пусть resposta = HTTP.GET("https://api.example.com/data")
+печать(resposta.dados)
+
+# POST request
+пусть data = { nome: "Иван", idade: 30 }
+пусть result = HTTP.POST("https://api.example.com/users", data)
+печать(result.status)  # 200
+```
+
+**Exemplo Servidor:**
+```trest
+импорт * как HTTP измодуля "std/http"
+
+HTTP.создатьСервер(3000, функция(запрос, ответ) {
+    ответ.json({ message: "Olá do Trest!" })
+})
+```
+
+---
+
+### 🔐 Crypto - Criptografia e Segurança
+
+**Importação:**
+```trest
+импорт * как Crypto измодуля "std/crypto"
+```
+
+**Funções de Hash:**
+- `Crypto.md5(text)` - Hash MD5 (128-bit)
+- `Crypto.sha256(text)` - Hash SHA256 (256-bit)
+- `Crypto.sha512(text)` - Hash SHA512 (512-bit)
+
+**Criptografia:**
+- `Crypto.encrypt(text, key)` - Criptografar AES-256
+- `Crypto.decrypt(encrypted, key)` - Descriptografar AES-256
+- `Crypto.randomBytes(size)` - Gerar bytes aleatórios
+
+**Exemplo:**
+```trest
+импорт * как Crypto измодуля "std/crypto"
+
+# Hash de senha
+пусть senhaHash = Crypto.sha256("minhaSenha")
+печать(senhaHash)
+
+# Criptografia
+пусть chave = "minhaChave123"
+пусть textoCripto = Crypto.encrypt("dados sensíveis", chave)
+печать(textoCripto)
+
+пусть textoOriginal = Crypto.decrypt(textoCripto, chave)
+печать(textoOriginal)  # "dados sensíveis"
+```
+
+---
+
+### 💾 FileSystem - Sistema de Arquivos
+
+**Importação:**
+```trest
+импорт * как FileSystem измодуля "std/filesystem"
+```
+
+**Funções Disponíveis:**
+- `FileSystem.readFile(path)` - Ler arquivo
+- `FileSystem.writeFile(path, content)` - Escrever arquivo
+- `FileSystem.exists(path)` - Verificar se arquivo existe
+- `FileSystem.deleteFile(path)` - Deletar arquivo
+- `FileSystem.listDir(path)` - Listar diretório
+- `FileSystem.createDir(path)` - Criar diretório
+- `FileSystem.deleteDir(path)` - Deletar diretório
+- `FileSystem.getStats(path)` - Obter estatísticas do arquivo
+
+**Exemplo:**
+```trest
+импорт * как FileSystem измодуля "std/filesystem"
+
+# Verificar e ler arquivo
+если (FileSystem.exists("dados.txt")) {
+    пусть conteudo = FileSystem.readFile("dados.txt")
+    печать(conteudo)
+}
+
+# Escrever arquivo
+FileSystem.writeFile("saida.txt", "Conteúdo do arquivo")
+
+# Listar diretório
+пусть arquivos = FileSystem.listDir("src/")
+для (пусть arquivo из arquivos) {
+    печать(arquivo)
+}
+
+# Criar diretório
+FileSystem.createDir("novoDiretorio")
+
+# Estatísticas
+пусть stats = FileSystem.getStats("arquivo.txt")
+печать("Tamanho: " + stats.size + " bytes")
+```
+
+---
+
+### 📄 JSON - Manipulação de JSON
+
+**Importação:**
+```trest
+импорт * как JSON измодуля "std/json"
+```
+
+**Funções Disponíveis:**
+- `JSON.parse(str)` - Parse JSON string para objeto
+- `JSON.stringify(obj, indent)` - Converter objeto para JSON string
+
+**Exemplo:**
+```trest
+импорт * как JSON измодуля "std/json"
+
+# Parse JSON
+пусть jsonStr = '{"nome": "Иван", "idade": 30}'
+пусть obj = JSON.parse(jsonStr)
+печать(obj.nome)   # "Иван"
+печать(obj.idade)  # 30
+
+# Stringify
+пусть meuObj = { nome: "Мария", lang: "Trest" }
+пусть json = JSON.stringify(meuObj)
+печать(json)  # '{"nome":"Мария","lang":"Trest"}'
+```
+
+---
+
+### 📅 Date - Datas e Tempo
+
+**Importação:**
+```trest
+импорт * как Date измодуля "std/date"
+```
+
+**Funções Disponíveis:**
+- `Date.now()` - Timestamp atual (milissegundos)
+- `Date.format(timestamp, format)` - Formatar data
+- `Date.timezone(tz)` - Obter/configurar timezone
+
+**Exemplo:**
+```trest
+импорт * как Date измодуля "std/date"
+
+пусть agora = Date.now()
+печать(agora)  # 1234567890123 (timestamp)
+
+пусть formatado = Date.format(agora, "yyyy-MM-dd HH:mm:ss")
+печать(formatado)  # "2025-01-08 15:30:45"
+
+пусть tz = Date.timezone("America/Sao_Paulo")
+```
+
+---
+
+### 🗄️ Database - Banco de Dados
+
+**Importação:**
+```trest
+импорт * как DB измодуля "std/database"
+```
+
+**Funções Disponíveis:**
+- `DB.openDB(name)` - Abrir conexão com banco de dados
+- `DB.Model(name, schema)` - Criar modelo ORM
+
+**Exemplo:**
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть db = DB.openDB("meu_banco")
+
+пусть Usuario = DB.Model("usuarios", {
+    nome: "string",
+    email: "string",
+    idade: "number"
+})
+
+# Usar modelo
+пусть novoUsuario = новый Usuario({
+    nome: "Иван",
+    email: "ivan@example.com",
+    idade: 30
+})
+```
+
+---
+
+### ⚡ Async - Programação Assíncrona
+
+**Importação:**
+```trest
+импорт * как Async измодуля "std/async"
+```
+
+**Funções Disponíveis:**
+- `Async.delay(ms)` - Delay/Sleep (milissegundos)
+- `Async.createPromise(fn)` - Criar Promise
+- `Async.allPromises(promises)` - Promise.all
+- `Async.anyPromise(promises)` - Promise.race
+- `Async.setTimer(fn, ms)` - setTimeout
+- `Async.clearTimer(id)` - clearTimeout
+- `Async.repeatInterval(fn, ms)` - setInterval
+- `Async.clearRepeat(id)` - clearInterval
+
+**Exemplo:**
+```trest
+импорт * как Async измодуля "std/async"
+
+# Aguardar 1 segundo
+Async.delay(1000)
+печать("Passou 1 segundo")
+
+# Promise
+пусть promessa = Async.createPromise(функция(resolve, reject) {
+    если (успех) {
+        resolve(данные)
+    } иначе {
+        reject(ошибка)
+    }
+})
+
+# Timer
+пусть timerId = Async.setTimer(функция() {
+    печать("Executado após 2 segundos")
+}, 2000)
+
+# Interval
+пусть intervalId = Async.repeatInterval(функция() {
+    печать("Executado a cada 1 segundo")
+}, 1000)
+```
+
+---
+
+### 🔍 RegEx - Expressões Regulares
+
+**Importação:**
+```trest
+импорт * как RegEx измодуля "std/regex"
+```
+
+**Funções Disponíveis:**
+- `RegEx.create(pattern, flags)` - Criar padrão regex
+- `RegEx.test(pattern, text, flags)` - Testar padrão
+- `RegEx.match(pattern, text, flags)` - Encontrar primeira correspondência
+- `RegEx.findAll(pattern, text, flags)` - Encontrar todas as correspondências
+- `RegEx.replace(pattern, text, replacement, flags)` - Substituir
+- `RegEx.split(pattern, text, limit)` - Dividir por padrão
+
+**Exemplo:**
+```trest
+импорт * как RegEx измодуля "std/regex"
+
+# Validar email
+если (RegEx.test("[a-z]+@[a-z]+\\.com", "user@example.com")) {
+    печать("Email válido")
+}
+
+# Extrair números
+пусть texto = "Preço: R$ 100,50"
+пусть numeros = RegEx.findAll("\\d+", texto)
+печать(numeros)  # ["100", "50"]
+
+# Substituir
+пусть novoTexto = RegEx.replace("\\d+", "3 gatos", "4")
+печать(novoTexto)  # "4 gatos"
+
+# Dividir
+пусть partes = RegEx.split("\\s+", "a   b    c")
+печать(части)  # ["a", "b", "c"]
+```
+
+---
+
+### 📁 Path - Manipulação de Caminhos
+
+**Importação:**
+```trest
+импорт * как Path измодуля "std/path"
+```
+
+**Funções Disponíveis:**
+- `Path.join(...segments)` - Juntar segmentos de caminho
+- `Path.resolve(...segments)` - Resolver caminho absoluto
+- `Path.dirname(path)` - Obter diretório pai
+- `Path.basename(path, ext)` - Obter nome base do arquivo
+- `Path.extname(path)` - Obter extensão do arquivo
+- `Path.normalize(path)` - Normalizar caminho
+- `Path.isAbsolute(path)` - Verificar se é caminho absoluto
+- `Path.relative(from, to)` - Obter caminho relativo
+
+**Propriedades:**
+- `Path.cwd` - Diretório atual de trabalho
+
+**Exemplo:**
+```trest
+импорт * как Path измодуля "std/path"
+
+пусть caminho = Path.join("src", "utils", "helper.js")
+печать(caminho)  # "src/utils/helper.js"
+
+пусть nome = Path.basename("/usr/bin/file.js")    # "file.js"
+пусть ext = Path.extname("file.js")                # ".js"
+пусть dir = Path.dirname("/usr/bin/file.js")       # "/usr/bin"
+
+пусть absoluto = Path.resolve("src", "app.trest")
+печать(Path.isAbsolute(абсолютный))  # истина
+
+пусть relativo = Path.relative("/a", "/a/b/c.js")  # "b/c.js"
+печать(Path.cwd)  # "/current/directory"
+```
+
+---
+
+### ⚙️ Process - Variáveis de Ambiente e Sistema
+
+**Importação:**
+```trest
+импорт * как Process измодуля "std/process"
+```
+
+**Funções Disponíveis:**
+- `Process.getEnv(name)` - Obter variável de ambiente
+- `Process.getAllEnv()` - Obter todas as variáveis de ambiente
+- `Process.setEnv(name, value)` - Definir variável de ambiente
+- `Process.chdir(path)` - Mudar diretório de trabalho
+- `Process.exit(code)` - Sair do processo
+
+**Propriedades:**
+- `Process.platform` - Plataforma (win32, linux, darwin)
+- `Process.arch` - Arquitetura (x64, arm64, etc)
+- `Process.version` - Versão do Node.js
+- `Process.cwd` - Diretório de trabalho atual
+- `Process.pid` - ID do processo
+
+**Exemplo:**
+```trest
+импорт * как Process измодуля "std/process"
+
+# Variáveis de ambiente
+пусть home = Process.getEnv("HOME")
+пусть todas = Process.getAllEnv()
+печать(todas.USER)
+
+# Informações do sistema
+печать("Plataforma: " + Process.platform)    # win32
+печать("Arquitetura: " + Process.arch)       # x64
+печать("Versão Node: " + Process.version)
+печать("Diretório atual: " + Process.cwd)
+печать("Process ID: " + Process.pid)
+
+# Mudar diretório
+Process.chdir("/outro/diretorio")
+
+# Sair do programa
+Process.exit(0)  # código 0 = sucesso
+```
+
+---
+
+### 📖 IO - Entrada e Saída
+
+**Importação:**
+```trest
+импорт * как IO измодуля "std/io"
+```
+
+**Funções Disponíveis:**
+- `IO.читать()` - Ler entrada do usuário
+- `IO.печать(...)` - Exibir valores (equivalente a `печать`)
+
+**Exemplo:**
+```trest
+импорт * как IO измодуля "std/io"
+
+IO.печать("Digite seu nome: ")
+пусть nome = IO.читать()
+IO.печать("Olá, " + nome + "!")
+```
+
+---
+
+### 🎨 GUI - Interface Gráfica
+
+**Importação:**
+```trest
+импорт * как GUI измодуля "std/gui"
+```
+
+**Funções Disponíveis:**
+- `GUI.createWindow(title, width, height)` - Criar janela
+- `GUI.createButton(label, onClick)` - Criar botão
+- `GUI.createText(placeholder, onChange)` - Criar campo de texto
+- `GUI.createList(data, onSelect)` - Criar lista
+
+> **Nota:** GUI está em desenvolvimento ativo.
+
+---
+
+### 📚 Módulo Principal (std/index)
+
+Importar todos os módulos de uma vez:
+
+```trest
+импорт * измодуля "std/index"
+
+# Todos os módulos disponíveis:
+# Math, String, Array, IO, HTTP, Async, GUI, DB, JSON, Date, Crypto, RegEx, Path, Process, FileSystem
+```
+
+---
+
+## 🔧 Sistema de Módulos
+
+### Importar Módulos
+
+```trest
+# Importar módulo inteiro
+импорт * как Math измодуля "std/math"
+
+# Importar funções específicas
+импорт { abs, max, min } измодуля "std/math"
+
+# Importar de arquivo local
+импорт * как Utils измодуля "./utils.trest"
+импорт { minhaFuncao } измодуля "../helpers.trest"
+
+# Importar tudo de uma vez (namespace)
+импорт * как StdLib измодуля "std/index"
+StdLib.Math.sqrt(25)
+```
+
+### Exportar de Módulos
+
+```trest
+# Exportar função
+экспорт функция minhaFuncao() {
+    вернуть "Olá"
+}
+
+# Exportar constante
+экспорт конст PI = 3.14159
+
+# Exportar variável
+экспорт пусть contador = 0
+
+# Exportar múltiplos itens
+экспорт {
+    функция1,
+    функция2,
+    константа
+}
+```
+
+**Exemplo Completo:**
+
+**math_utils.trest:**
+```trest
+экспорт функция сложить(a, b) {
+    вернуть a + b
+}
+
+экспорт функция умножить(a, b) {
+    вернуть a * b
+}
+
+экспорт конст PI = 3.14159
+```
+
+**main.trest:**
+```trest
+импорт { сложить, умножить, PI } измодуля "./math_utils.trest"
+
+печать(сложить(5, 3))      # 8
+печать(умножить(2, 4))     # 8
+печать(PI)                 # 3.14159
+```
+
+---
+
+## 🛡️ Tratamento de Erros
+
+### Try/Catch/Finally
+
+```trest
+попытаться {
+    # Código que pode gerar erro
+    пусть resultado = dividir(10, 0)
+} перехватить (ошибка) {
+    # Capturar e tratar o erro
+    печать("Ошибка: " + ошибка)
+} наконец {
+    # Código sempre executado
+    печать("Операция завершена")
+}
+```
+
+### Throw (Lançar Erro)
+
+```trest
+функция делить(a, b) {
+    если (b == 0) {
+        бросить "Деление на ноль невозможно!"
+    }
+    вернуть a / b
+}
+
+попытаться {
+    делить(10, 0)
+} перехватить (ошибка) {
+    печать("Ошибка: " + ошибка)  # "Ошибка: Деление на ноль невозможно!"
+}
+```
+
+### Múltiplos Catches
+
+```trest
+попытаться {
+    # código
+} перехватить (ошибка) {
+    если (ошибка == "Тип 1") {
+        # tratar tipo 1
+    } иначе если (ошибка == "Тип 2") {
+        # tratar tipo 2
+    } иначе {
+        # tratar erro genérico
+    }
+}
+```
+
+---
+
+## 🏗️ Compilação
+
+Trest pode compilar código para diferentes plataformas:
+
+### Compilar para Web (JavaScript)
+
+```bash
+trestc programa.trest --mode web --output app.js
+```
+
+**Opções:**
+- `--mode web` - Modo de compilação web
+- `--output` ou `-o` - Arquivo de saída
+- `--minify` - Minificar código JavaScript
+- `--bundle` - Incluir dependências no bundle
+
+**Exemplo:**
+```bash
+trestc src/app.trest --mode web --output dist/app.js --minify
+```
+
+### Compilar para Desktop (.exe)
+
+```bash
+trestc programa.trest --mode exe --output app.exe
+```
+
+**Opções:**
+- `--mode exe` - Modo de compilação executável
+- `--output` ou `-o` - Arquivo de saída
+- `--target` - Plataforma alvo (win32, linux, darwin)
+
+**Exemplo:**
+```bash
+trestc src/app.trest --mode exe --output dist/app.exe --target win32
+```
+
+### Executar Direto (Interpretador)
+
+```bash
+trest programa.trest
+```
+
+**Opções:**
+- `-e` ou `--eval` - Executar código inline
+- `--version` - Mostrar versão
+- `--help` - Mostrar ajuda
+
+**Exemplo:**
+```bash
+trest -e "печать('Olá Mundo')"
+```
+
+---
+
+## 💡 Exemplos
+
+### Exemplo 1: Calculadora
+
+```trest
+функция калькулятор(a, операция, b) {
+    переключатель (операция) {
+        случай "+":
+            вернуть a + b
+        случай "-":
+            вернуть a - b
+        случай "*":
+            вернуть a * b
+        случай "/":
+            если (b == 0) {
+                бросить "Деление на ноль!"
+            }
+            вернуть a / b
+        поумолчанию:
+            бросить "Неизвестная операция: " + операция
+    }
+}
+
+печать(калькулятор(10, "+", 5))   # 15
+печать(калькулятор(10, "*", 3))   # 30
+```
+
+### Exemplo 2: Fatorial
+
+```trest
+функция факториал(n) {
+    если (n <= 1) {
+        вернуть 1
+    }
+    вернуть n * факториал(n - 1)
+}
+
+печать(факториал(5))  # 120
+печать(факториал(10)) # 3628800
+```
+
+### Exemplo 3: Fibonacci
+
+```trest
+функция фибоначчи(n) {
+    если (n <= 1) {
+        вернуть n
+    }
+    вернуть фибоначчи(n - 1) + фибоначчи(n - 2)
+}
+
+для (пусть i = 0; i < 10; i = i + 1) {
+    печать(фибоначчи(i))
+}
+```
+
+### Exemplo 4: Gerenciamento de Usuários
+
+```trest
+класс Пользователь {
+    функция конструктор(имя, email) {
+        это.имя = имя
+        это.email = email
+        это.id = Math.random() * 1000000
+    }
+    
+    функция показать() {
+        печать("ID: " + это.id)
+        печать("Имя: " + это.имя)
+        печать("Email: " + это.email)
+    }
+}
+
+класс МенеджерПользователей {
+    функция конструктор() {
+        это.пользователи = []
+    }
+    
+    функция добавить(пользователь) {
+        это.пользователи.добавить(пользователь)
+    }
+    
+    функция найти(id) {
+        для (пусть пользователь из это.пользователи) {
+            если (пользователь.id == id) {
+                вернуть пользователь
+            }
+        }
+        вернуть нуль
+    }
+    
+    функция список() {
+        для (пусть пользователь из это.пользователи) {
+            пользователь.показать()
+            печать("---")
+        }
+    }
+}
+
+# Uso
+пусть менеджер = новый МенеджерПользователей()
+пусть иван = новый Пользователь("Иван", "ivan@example.com")
+пусть мария = новый Пользователь("Мария", "maria@example.com")
+
+менеджер.добавить(иван)
+менеджер.добавить(мария)
+менеджер.список()
+```
+
+### Exemplo 5: Leitura de Arquivo com Tratamento de Erro
+
+```trest
+импорт * как FileSystem измодуля "std/filesystem"
+
+функция прочитатьФайлБезопасно(путь) {
+    попытаться {
+        если (!FileSystem.exists(путь)) {
+            бросить "Файл не существует: " + путь
+        }
+        
+        пусть содержимое = FileSystem.readFile(путь)
+        печать("Файл прочитан успешно!")
+        вернуть содержимое
+        
+    } перехватить (ошибка) {
+        печать("Ошибка при чтении файла: " + ошибка)
+        вернуть нуль
+    } наконец {
+        печать("Операция завершена")
+    }
+}
+
+пусть данные = прочитатьФайлБезопасно("dados.txt")
+если (данные != нуль) {
+    печать(данные)
+}
+```
+
+### Exemplo 6: API HTTP Simples
+
+```trest
+импорт * как HTTP измодуля "std/http"
+
+HTTP.создатьСервер(3000, функция(запрос, ответ) {
+    печать("Новый запрос: " + запрос.метод + " " + запрос.путь)
+    
+    если (запрос.путь == "/") {
+        ответ.json({ message: "Добро пожаловать в Trest API!" })
+    } иначе если (запрос.путь == "/users") {
+        ответ.json([
+            { id: 1, имя: "Иван" },
+            { id: 2, имя: "Мария" }
+        ])
+    } иначе {
+        ответ.json({ error: "Не найдено" }, 404)
+    }
+})
+
+печать("Сервер запущен на порту 3000")
+```
+
+---
+
+## 🎓 Melhores Práticas
+
+### Nomenclatura
+
+✅ **Bom:**
+```trest
+пусть имяПользователя = "Иван"
+пусть возрастПользователя = 30
+функция рассчитатьСумму(a, b) {
+    вернуть a + b
+}
+```
+
+❌ **Ruim:**
+```trest
+пусть x = "Иван"
+пусть y = 30
+функция f(a, b) {
+    вернуть a + b
+}
+```
+
+**Regras:**
+- Use nomes claros em russo
+- Use camelCase para variáveis e funções: `имяПользователя`
+- Use PascalCase para classes: `МенеджерПользователей`
+- Evite abreviações
+- Nomes devem refletir o propósito
+
+### Organização de Código
+
+✅ **Dividir em Módulos:**
+```trest
+# utils/math.trest
+экспорт функция сложить(a, b) {
+    вернуть a + b
+}
+
+# main.trest
+импорт { сложить } из "./utils/math.trest"
+```
+
+✅ **Comentários Úteis:**
+```trest
+# Calcula a área de um círculo dado o raio
+функция площадьКруга(радиус) {
+    вернуть Math.PI * радиус ** 2
+}
+```
+
+### Funções
+
+✅ **Funções Pequenas e Específicas:**
+```trest
+функция валидировать(данные) {
+    # validação
+}
+
+функция обработать(данные) {
+    # processamento
+}
+
+функция сохранить(данные) {
+    # salvamento
+}
+```
+
+❌ **Função Gigante:**
+```trest
+функция обработатьДанные(данные) {
+    # 100 linhas de código
+    # fazendo tudo junto
+}
+```
+
+### Tratamento de Erros
+
+✅ **Sempre Trate Erros:**
+```trest
+попытаться {
+    пусть результат = делить(10, 0)
+} перехватить (ошибка) {
+    печать("Ошибка: " + ошибка)
+}
+```
+
+✅ **Mensagens Claras:**
+```trest
+бросить "Не удалось загрузить файл: " + путь
+```
+
+### Desempenho
+
+✅ **Cache de Valores:**
+```trest
+пусть длина = массив.длина
+для (пусть i = 0; i < длина; i = i + 1) {
+    # ...
+}
+```
+
+❌ **Recálculo Desnecessário:**
+```trest
+для (пусть i = 0; i < массив.длина; i = i + 1) {
+    # массив.длина calculado em cada iteração
+}
+```
+
+---
+
+## 📖 Referência Completa
+
+### Palavras-chave Completas
+
+| Cirílico | Latim | Tipo |
+|----------|-------|------|
+| `пусть` | let | Declaração |
+| `конст` | const | Declaração |
+| `перем` | var | Declaração |
+| `если` | if | Controle |
+| `иначе` | else | Controle |
+| `иначе если` | else if | Controle |
+| `для` | for | Controle |
+| `пока` | while | Controle |
+| `прервать` | break | Controle |
+| `продолжить` | continue | Controle |
+| `переключатель` | switch | Controle |
+| `случай` | case | Controle |
+| `поумолчанию` | default | Controle |
+| `функция` | function | Função |
+| `вернуть` | return | Função |
+| `импорт` | import | Módulo |
+| `экспорт` | export | Módulo |
+| `измодуля` | from | Módulo |
+| `попытаться` | try | Erro |
+| `перехватить` | catch | Erro |
+| `наконец` | finally | Erro |
+| `бросить` | throw | Erro |
+| `класс` | class | OOP |
+| `расширяет` | extends | OOP |
+| `это` | this | OOP |
+| `супер` | super | OOP |
+| `новый` | new | OOP |
+| `истина` | true | Valor |
+| `ложь` | false | Valor |
+| `нуль` | null | Valor |
+| `неопределен` | undefined | Valor |
+
+### Operadores Completos
+
+**Aritméticos:**
+- `+` (adição)
+- `-` (subtração)
+- `*` (multiplicação)
+- `/` (divisão)
+- `%` (resto/módulo)
+- `**` (potência)
+
+**Comparação:**
+- `==` (igual)
+- `!=` (diferente)
+- `<` (menor)
+- `>` (maior)
+- `<=` (menor ou igual)
+- `>=` (maior ou igual)
+
+**Lógicos:**
+- `&&` (E/AND)
+- `||` (OU/OR)
+- `!` (NÃO/NOT)
+
+**Atribuição:**
+- `=` (atribuição)
+- `+=`, `-=`, `*=`, `/=`, `%=` (compostos)
+
+### Biblioteca Padrão - Resumo
+
+| Módulo | Funções Principais | Status |
+|--------|-------------------|--------|
+| **Math** | abs, max, min, sqrt, pow, ceil, floor, round, PI, E | ✅ Completo |
+| **String** | размер, верхний, нижний, заменить, разделить | ✅ Completo |
+| **Array** | длина, добавить, удалить, включает, обратить, срез, отсортировать | ✅ Completo |
+| **HTTP** | GET, POST, PUT, DELETE, fetch, создатьСервер | ✅ Completo |
+| **Crypto** | md5, sha256, sha512, encrypt, decrypt, randomBytes | ✅ Completo |
+| **FileSystem** | readFile, writeFile, exists, deleteFile, listDir, createDir, deleteDir, getStats | ✅ Completo |
+| **JSON** | parse, stringify | ✅ Completo |
+| **Date** | now, format, timezone | ✅ Completo |
+| **Database** | openDB, Model | ✅ Completo |
+| **Async** | delay, createPromise, allPromises, anyPromise, setTimer, clearTimer, repeatInterval, clearRepeat | ✅ Completo |
+| **RegEx** | create, test, match, findAll, replace, split | ✅ Completo |
+| **Path** | join, resolve, dirname, basename, extname, normalize, isAbsolute, relative | ✅ Completo |
+| **Process** | getEnv, getAllEnv, setEnv, chdir, exit, platform, arch, version, cwd, pid | ✅ Completo |
+| **IO** | читать, печать | ✅ Completo |
+| **GUI** | createWindow, createButton, createText, createList | 🚧 Em desenvolvimento |
+
+---
+
+## 📚 Recursos Adicionais
+
+### Documentação Online
+
+- **Site Oficial**: [https://trest-site.vercel.app](https://trest-site.vercel.app)
+- **GitHub**: [https://github.com/trest-language/trest](https://github.com/trest-language/trest)
+- **npm**: [https://www.npmjs.com/package/treste](https://www.npmjs.com/package/treste)
+
+### Exemplos de Código
+
+Veja a pasta `exemplos/` para mais exemplos:
+- `crypto_demo.trest` - Demonstração de criptografia
+- `http_demo.trest` - Cliente HTTP e servidor
+- `database_demo.trest` - Operações de banco de dados
+- `filesystem_demo.trest` - Operações de arquivo
+- `todas_funcionalidades.trest` - Exemplo completo
+
+### Scripts Úteis
+
+```bash
+# Desenvolvimento
+npm run build          # Compilar TypeScript
+npm run build:watch    # Compilar em modo watch
+npm run dev            # Executar em modo desenvolvimento
+npm run test           # Executar testes
+
+# Compilação
+npm run compile:web    # Compilar para JavaScript
+npm run compile:exe    # Compilar para executável
+npm run bundle         # Criar bundle executável
+```
+
+---
+
+## 🎉 Conclusão
+
+Trest é uma linguagem moderna e poderosa que combina:
+- ✅ Sintaxe intuitiva em cirílico
+- ✅ Biblioteca padrão rica
+- ✅ Compilação universal (Web e Desktop)
+- ✅ Sistema de módulos completo
+- ✅ Tratamento de erros robusto
+
+**Comece agora mesmo:**
+
+```bash
+npm install -g treste
+trest -e "печать('Привет, Trest!')"
+```
+
+---
+
+**Versão:** 2.4.3  
+**Autor:** PoktWeb  
+**Licença:** MIT  
+**Ano:** 2025
+
+---
+
+*Documentação completa e atualizada. Para questões ou sugestões, visite o GitHub: [https://github.com/trest-language/trest](https://github.com/trest-language/trest)*

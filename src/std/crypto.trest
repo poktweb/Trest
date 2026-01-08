@@ -1,0 +1,44 @@
+# Crypto Library - Criptografia e Hash
+
+# Hash MD5
+экспорт функция md5(text) {
+    # TODO: Implementar MD5 hash
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Hash SHA256
+экспорт функция sha256(text) {
+    # TODO: Implementar SHA256 hash
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Hash SHA512
+экспорт функция sha512(text) {
+    # TODO: Implementar SHA512 hash
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Bytes aleatórios
+экспорт функция randomBytes(length) {
+    # TODO: Implementar randomBytes
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Criptografar texto
+экспорт функция encrypt(text, key) {
+    # TODO: Implementar encrypt AES
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Descriptografar texto
+экспорт функция decrypt(encrypted, key) {
+    # TODO: Implementar decrypt AES
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+

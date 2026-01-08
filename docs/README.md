@@ -391,7 +391,7 @@ trest --help
 
 ## 📝 Versão
 
-**Versão atual:** 2.3.0
+**Versão atual:** 2.4.0
 
 **Autor:** PoktWeb  
 **Documentação:** https://trest-site.vercel.app  

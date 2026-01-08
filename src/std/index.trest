@@ -9,6 +9,13 @@
 импорт * как async измодуля "std/async"
 импорт * как gui измодуля "std/gui"
 импорт * как database измодуля "std/database"
+импорт * как json измодуля "std/json"
+импорт * как date измодуля "std/date"
+импорт * как crypto измодуля "std/crypto"
+импорт * как regex измодуля "std/regex"
+импорт * как path измодуля "std/path"
+импорт * как process измодуля "std/process"
+импорт * как filesystem измодуля "std/filesystem"
 
 # Экспортировать объекты со всеми функциями
 экспорт конст Math = math
@@ -19,3 +26,10 @@
 экспорт конст Async = async
 экспорт конст GUI = gui
 экспорт конст DB = database
+экспорт конст JSON = json
+экспорт конст Date = date
+экспорт конст Crypto = crypto
+экспорт конст RegEx = regex
+экспорт конст Path = path
+экспорт конст Process = process
+экспорт конст FileSystem = filesystem

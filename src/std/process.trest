@@ -1,0 +1,49 @@
+# Process Library - Variáveis de Ambiente e Sistema
+
+# Obter variável de ambiente
+экспорт функция getEnv(name) {
+    # TODO: Implementar getEnv
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть null
+}
+
+# Obter todas as variáveis de ambiente
+экспорт функция getAllEnv() {
+    # TODO: Implementar getAllEnv
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть {}
+}
+
+# Definir variável de ambiente
+экспорт функция setEnv(name, value) {
+    # TODO: Implementar setEnv
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Mudar diretório
+экспорт функция chdir(path) {
+    # TODO: Implementar chdir
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Sair do processo
+экспорт функция exit(code) {
+    # TODO: Implementar exit
+    # A implementação real é fornecida pelo módulo nativo
+}
+
+# Plataforma (propriedade)
+экспорт конст platform = ""
+
+# Arquitetura (propriedade)
+экспорт конст arch = ""
+
+# Versão do Node.js (propriedade)
+экспорт конст version = ""
+
+# Diretório de trabalho atual (propriedade)
+экспорт конст cwd = ""
+
+# Process ID (propriedade)
+экспорт конст pid = 0
+

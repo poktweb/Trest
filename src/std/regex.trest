@@ -1,0 +1,44 @@
+# RegEx Library - Expressões Regulares
+
+# Criar regex pattern
+экспорт функция create(pattern, flags) {
+    # TODO: Implementar create regex
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть { pattern, flags }
+}
+
+# Testar padrão
+экспорт функция test(pattern, text, flags) {
+    # TODO: Implementar test
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ложь
+}
+
+# Encontrar primeira correspondência
+экспорт функция match(pattern, text, flags) {
+    # TODO: Implementar match
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть null
+}
+
+# Encontrar todas as correspondências
+экспорт функция findAll(pattern, text, flags) {
+    # TODO: Implementar findAll
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть []
+}
+
+# Substituir texto
+экспорт функция replace(pattern, text, replacement, flags) {
+    # TODO: Implementar replace
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть text
+}
+
+# Dividir por padrão
+экспорт функция split(pattern, text, limit) {
+    # TODO: Implementar split
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть [text]
+}
+

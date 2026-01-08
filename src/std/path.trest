@@ -1,0 +1,61 @@
+# Path Library - Manipulação de Caminhos
+
+# Juntar segmentos de caminho
+экспорт функция join(...segments) {
+    # TODO: Implementar join
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Resolver caminho absoluto
+экспорт функция resolve(...segments) {
+    # TODO: Implementar resolve
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Obter diretório pai
+экспорт функция dirname(path) {
+    # TODO: Implementar dirname
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Obter nome base do arquivo
+экспорт функция basename(path, ext) {
+    # TODO: Implementar basename
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Obter extensão do arquivo
+экспорт функция extname(path) {
+    # TODO: Implementar extname
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Normalizar caminho
+экспорт функция normalize(path) {
+    # TODO: Implementar normalize
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть path
+}
+
+# Verificar se é caminho absoluto
+экспорт функция isAbsolute(path) {
+    # TODO: Implementar isAbsolute
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ложь
+}
+
+# Obter caminho relativo
+экспорт функция relative(from, to) {
+    # TODO: Implementar relative
+    # A implementação real é fornecida pelo módulo nativo
+    вернуть ""
+}
+
+# Diretório atual (constante)
+экспорт конст cwd = ""
+
