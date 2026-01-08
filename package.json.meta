@@ -7,7 +7,7 @@
       "https": "Usado apenas no módulo std/http para requisições HTTPS quando solicitado pelo código do usuário"
     },
     "userControl": true,
-    "documentation": "https://github.com/trest-language/trest/blob/main/SECURITY.md"
+    "documentation": "https://trest-site.vercel.app"
   },
   "maintenance": {
     "status": "active",

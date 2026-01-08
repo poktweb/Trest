@@ -30,7 +30,7 @@ O pacote `treste` é uma linguagem de programação **nova** e **especializada**
 - Documentação completa (2000+ linhas)
 
 ✅ **Transparência:**
-- Código-fonte aberto no GitHub
+- Código-fonte aberto
 - Licença MIT
 - Documentação pública completa
 
@@ -43,7 +43,7 @@ O pacote `treste` é uma linguagem de programação **nova** e **especializada**
 
 1. ✅ **Documentação Completa**: 2000+ linhas de documentação
 2. ✅ **Testes**: Suite de testes incluída
-3. ✅ **Código Aberto**: GitHub público com histórico de commits
+3. ✅ **Código Aberto**: Código-fonte disponível publicamente
 4. ✅ **Manutenção Ativa**: Atualizações regulares
 5. ✅ **Segurança**: Correções de segurança implementadas
 

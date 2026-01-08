@@ -1,6 +1,6 @@
 {
   "name": "treste",
-  "version": "2.4.5",
+  "version": "2.4.6",
   "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop com suporte a Cirílico. Inclui módulo HTTP opcional para requisições de rede (acesso controlado pelo usuário, documentado em SECURITY.md).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,13 +42,11 @@
     "production-ready"
   ],
   "author": {
-    "name": "PoktWeb",
-    "url": "https://github.com/poktweb"
+    "name": "PoktWeb"
   },
   "contributors": [
     {
-      "name": "PoktWeb",
-      "url": "https://github.com/poktweb"
+      "name": "PoktWeb"
     }
   ],
   "license": "MIT",
@@ -63,18 +61,7 @@
     "LICENSE",
     "INSTALL.md"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/trest-language/trest.git"
-  },
-  "bugs": {
-    "url": "https://github.com/trest-language/trest/issues"
-  },
   "homepage": "https://trest-site.vercel.app",
-  "funding": {
-    "type": "individual",
-    "url": "https://github.com/sponsors/poktweb"
-  },
   "publishConfig": {
     "access": "public"
   },

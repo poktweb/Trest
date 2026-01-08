@@ -110,7 +110,7 @@ O acesso ao shell via `child_process` foi **removido** dos scripts de instalaç�
 
 Se você encontrar uma vulnerabilidade de segurança:
 
-1. **NÃO** abra um issue público no GitHub
+1. **NÃO** abra um issue público
 2. Envie email para: [marcus.vieiraleal94@gmail.com](mailto:marcus.vieiraleal94@gmail.com)
 3. Inclua detalhes sobre a vulnerabilidade encontrada
 

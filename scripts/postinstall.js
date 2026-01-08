@@ -76,7 +76,7 @@ function showInstructions() {
   console.log('    npx trestc yourfile.trest --mode exe\n');
   console.log('  For more information:');
   console.log('    npx trest --help\n');
-  console.log('📖 Documentation: https://github.com/trest-language/trest\n');
+  console.log('📖 Documentation: https://trest-site.vercel.app\n');
 }
 
 // Executar configurações

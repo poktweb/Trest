@@ -4,6 +4,9 @@ import {
   Program,
   VariableDeclaration,
   FunctionDeclaration,
+  ClassDeclaration,
+  ClassBody,
+  ClassMethod,
   BlockStatement,
   IfStatement,
   SwitchStatement,
@@ -11,6 +14,8 @@ import {
   DefaultClause,
   WhileStatement,
   ForStatement,
+  ForOfStatement,
+  ForInStatement,
   ReturnStatement,
   ExpressionStatement,
   PrintStatement,
@@ -20,10 +25,13 @@ import {
   UnaryExpression,
   TernaryExpression,
   CallExpression,
+  NewExpression,
+  FunctionExpression,
   Identifier,
   Literal,
   ArrayLiteral,
   IndexExpression,
+  MemberExpression,
 } from './ast';
 
 export class Parser {
@@ -100,6 +108,8 @@ export class Parser {
         return this.parseVariableDeclaration();
       case TokenType.FUNC:
         return this.parseFunctionDeclaration();
+      case TokenType.CLASS:
+        return this.parseClassDeclaration();
       case TokenType.IF:
         return this.parseIfStatement();
       case TokenType.SWITCH:
@@ -294,10 +304,58 @@ export class Parser {
     };
   }
 
-  private parseForStatement(): ForStatement {
+  private parseForStatement(): ForStatement | ForOfStatement | ForInStatement {
     this.expect(TokenType.FOR);
     this.expect(TokenType.LPAREN);
 
+    // Verificar se é for...of ou for...in
+    const isForOfOrIn = 
+      (this.currentToken().type === TokenType.VAR ||
+       this.currentToken().type === TokenType.LET ||
+       this.currentToken().type === TokenType.CONST ||
+       this.currentToken().type === TokenType.IDENTIFIER) &&
+      this.peekToken().type === TokenType.OF || this.peekToken().type === TokenType.IN;
+
+    if (isForOfOrIn) {
+      // Parse for...of ou for...in
+      let left: VariableDeclaration | Identifier;
+      
+      if (this.currentToken().type === TokenType.VAR ||
+          this.currentToken().type === TokenType.LET ||
+          this.currentToken().type === TokenType.CONST) {
+        left = this.parseVariableDeclaration();
+      } else {
+        left = {
+          type: 'Identifier',
+          name: this.expect(TokenType.IDENTIFIER).value as string,
+        };
+      }
+
+      const isOf = this.currentToken().type === TokenType.OF;
+      this.advance(); // Consumir OF ou IN
+      
+      const right = this.parseExpression();
+      this.expect(TokenType.RPAREN);
+      const body = this.parseBlockStatement();
+
+      if (isOf) {
+        return {
+          type: 'ForOfStatement',
+          left,
+          right,
+          body,
+        };
+      } else {
+        return {
+          type: 'ForInStatement',
+          left,
+          right,
+          body,
+        };
+      }
+    }
+
+    // For loop tradicional
     let init: VariableDeclaration | ExpressionStatement | undefined;
     if (this.currentToken().type !== TokenType.SEMICOLON) {
       if (
@@ -402,16 +460,62 @@ export class Parser {
   private parseAssignment(): Expression {
     let expr = this.parseLogicalOr();
 
-    if (this.currentToken().type === TokenType.ASSIGN) {
-      const operator = this.currentToken().value as string;
+    // Verificar operadores de atribuição compostos
+    if (
+      this.currentToken().type === TokenType.ASSIGN ||
+      this.currentToken().type === TokenType.PLUS_ASSIGN ||
+      this.currentToken().type === TokenType.MINUS_ASSIGN ||
+      this.currentToken().type === TokenType.MULTIPLY_ASSIGN ||
+      this.currentToken().type === TokenType.DIVIDE_ASSIGN ||
+      this.currentToken().type === TokenType.MODULO_ASSIGN
+    ) {
+      let operator: '=' | '+=' | '-=' | '*=' | '/=' | '%=' = '=';
+      
+      switch (this.currentToken().type) {
+        case TokenType.ASSIGN:
+          operator = '=';
+          break;
+        case TokenType.PLUS_ASSIGN:
+          operator = '+=';
+          break;
+        case TokenType.MINUS_ASSIGN:
+          operator = '-=';
+          break;
+        case TokenType.MULTIPLY_ASSIGN:
+          operator = '*=';
+          break;
+        case TokenType.DIVIDE_ASSIGN:
+          operator = '/=';
+          break;
+        case TokenType.MODULO_ASSIGN:
+          operator = '%=';
+          break;
+      }
+      
       this.advance();
       const right = this.parseAssignment();
 
       if (expr.type === 'Identifier' || expr.type === 'IndexExpression') {
+        // Para operadores compostos, transformar em expressão binária + atribuição
+        if (operator !== '=') {
+          const binaryOp = operator.slice(0, -1) as '+' | '-' | '*' | '/' | '%';
+          return {
+            type: 'AssignmentExpression',
+            left: expr,
+            operator,
+            right: {
+              type: 'BinaryExpression',
+              operator: binaryOp,
+              left: expr,
+              right,
+            },
+          };
+        }
+        
         return {
           type: 'AssignmentExpression',
           left: expr,
-          operator: '=',
+          operator,
           right,
         };
       }
@@ -594,6 +698,16 @@ export class Parser {
   }
 
   private parsePostfix(): Expression {
+    // Verificar se é 'new' expression
+    if (this.currentToken().type === TokenType.NEW) {
+      return this.parseNewExpression();
+    }
+    
+    // Verificar se é função anônima
+    if (this.currentToken().type === TokenType.FUNC) {
+      return this.parseFunctionExpression();
+    }
+    
     let expr = this.parsePrimary();
 
     while (true) {
@@ -877,9 +991,128 @@ export class Parser {
 
     this.expect(TokenType.RBRACE);
 
+      return {
+        type: 'ObjectLiteral',
+        properties,
+      };
+    }
+
+  private parseClassDeclaration(): ClassDeclaration {
+    this.expect(TokenType.CLASS);
+    const name = this.expect(TokenType.IDENTIFIER).value as string;
+    
+    let superClass: Identifier | undefined;
+    if (this.currentToken().type === TokenType.EXTENDS) {
+      this.advance();
+      superClass = {
+        type: 'Identifier',
+        name: this.expect(TokenType.IDENTIFIER).value as string,
+      };
+    }
+    
+    this.expect(TokenType.LBRACE);
+    const body = this.parseClassBody();
+    this.expect(TokenType.RBRACE);
+    
     return {
-      type: 'ObjectLiteral',
-      properties,
+      type: 'ClassDeclaration',
+      name,
+      superClass,
+      body,
+    };
+  }
+
+  private parseClassBody(): ClassBody {
+    const methods: ClassMethod[] = [];
+    this.skipNewlines();
+    
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      if (this.currentToken().type === TokenType.FUNC) {
+        this.advance();
+        const key = this.expect(TokenType.IDENTIFIER).value as string;
+        const kind: 'constructor' | 'method' = key === 'конструктор' || key === 'constructor' ? 'constructor' : 'method';
+        
+        this.expect(TokenType.LPAREN);
+        const params: string[] = [];
+        if (this.currentToken().type !== TokenType.RPAREN) {
+          params.push(this.expect(TokenType.IDENTIFIER).value as string);
+          while (this.currentToken().type === TokenType.COMMA) {
+            this.advance();
+            params.push(this.expect(TokenType.IDENTIFIER).value as string);
+          }
+        }
+        this.expect(TokenType.RPAREN);
+        
+        const body = this.parseBlockStatement();
+        
+        methods.push({
+          type: 'ClassMethod',
+          key,
+          kind,
+          params,
+          body,
+        });
+      } else {
+        this.advance(); // Skip unknown tokens
+      }
+      this.skipNewlines();
+    }
+    
+    return {
+      type: 'ClassBody',
+      body: methods,
+    };
+  }
+
+  private parseNewExpression(): NewExpression {
+    this.expect(TokenType.NEW);
+    const callee = this.parsePrimary() as Identifier | MemberExpression;
+    
+    this.expect(TokenType.LPAREN);
+    const args: Expression[] = [];
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      args.push(this.parseExpression());
+      while (this.currentToken().type === TokenType.COMMA) {
+        this.advance();
+        args.push(this.parseExpression());
+      }
+    }
+    this.expect(TokenType.RPAREN);
+    
+    return {
+      type: 'NewExpression',
+      callee,
+      arguments: args,
+    };
+  }
+
+  private parseFunctionExpression(): FunctionExpression {
+    this.expect(TokenType.FUNC);
+    
+    let name: string | undefined;
+    if (this.currentToken().type === TokenType.IDENTIFIER) {
+      name = this.currentToken().value as string;
+      this.advance();
+    }
+    
+    this.expect(TokenType.LPAREN);
+    const params: string[] = [];
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      params.push(this.expect(TokenType.IDENTIFIER).value as string);
+      while (this.currentToken().type === TokenType.COMMA) {
+        this.advance();
+        params.push(this.expect(TokenType.IDENTIFIER).value as string);
+      }
+    }
+    this.expect(TokenType.RPAREN);
+    
+    const body = this.parseBlockStatement();
+    
+    return {
+      type: 'FunctionExpression',
+      name,
+      params,
+      body,
     };
   }
 }

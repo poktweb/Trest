@@ -145,7 +145,7 @@ Examples:
   trestc script.trest --mode exe -o app.exe
   trestc app.trest --mode web --minify --expose
 
-For more information visit: https://github.com/trest-language/trest
+For more information visit: https://trest-site.vercel.app
 `);
 }
 

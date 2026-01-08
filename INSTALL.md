@@ -59,7 +59,7 @@ Se você quer contribuir ou customizar o Trest:
 
 ```bash
 # Clone o repositório
-git clone https://github.com/trest-language/trest.git
+# Baixar o código-fonte do projeto
 cd trest
 
 # Instale as dependências
@@ -255,7 +255,7 @@ Veja [CONTRIBUTING.md](CONTRIBUTING.md) para informações sobre como contribuir
 Se você encontrar problemas:
 
 1. Verifique a seção de resolução de problemas acima
-2. Consulte as [issues no GitHub](https://github.com/trest-language/trest/issues)
+2. Consulte a documentação em https://trest-site.vercel.app
 3. Abra uma nova issue se necessário
 
 ## 📄 Licença

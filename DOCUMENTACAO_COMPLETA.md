@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.4.4
+# 📚 Documentação Completa - Trest Language v2.4.6
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,6 +20,7 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
+15. [Novidades da Versão 2.4.6](#novidades-da-versão-246)
 
 ---
 
@@ -77,7 +78,7 @@ npx trestc programa.trest --mode web
 
 ```bash
 # Clonar o repositório
-git clone https://github.com/trest-language/trest.git
+# Baixar o código-fonte do projeto
 cd trest
 
 # Instalar dependências
@@ -151,15 +152,25 @@ trestc programa.trest --mode exe --output app.exe
 ### Variáveis e Constantes
 
 ```trest
-# Variável com escopo de bloco (let)
+# Variável mutável com 'let' (пусть)
 пусть имя = "Иван"
 пусть возраст = 25
+имя = "Петр"  # ✅ Pode ser alterado
 
-# Constante
-конст PI = 3.14159
+# Variável com 'var' (variavel)
+variavel x = 10
+x = 20  # ✅ Pode ser alterado
 
-# Variável com escopo funcional (var)
-перем globalVar = "global"
+# Constante imutável com 'const' (константа)
+константа PI = 3.14159
+# PI = 3.14  # ❌ Erro! Constante não pode ser alterada
+# PI += 1    # ❌ Erro! Operadores compostos também não funcionam
+
+# Exemplo prático
+константа MAX_USERS = 100
+пусть currentUsers = 0
+currentUsers += 1  # ✅ OK - variável pode ser modificada
+# MAX_USERS += 1   # ❌ Erro - constante protegida
 ```
 
 ### Tipos de Dados
@@ -224,16 +235,42 @@ Linha 2"
 ```
 
 #### Atribuição
+
+**Atribuição Simples:**
 ```trest
 пусть x = 10
-x += 5   # x = x + 5 → 15
-x -= 3   # x = x - 3 → 12
-x *= 2   # x = x * 2 → 24
-x /= 4   # x = x / 4 → 6
-x %= 4   # x = x % 4 → 2
+x = 20  # x agora é 20
 ```
 
+**Operadores Compostos (Novo em 2.4.6):**
+```trest
+пусть x = 10
+x += 5   # x = x + 5 → 15 (adição composta)
+x -= 3   # x = x - 3 → 12 (subtração composta)
+x *= 2   # x = x * 2 → 24 (multiplicação composta)
+x /= 4   # x = x / 4 → 6 (divisão composta)
+x %= 4   # x = x % 4 → 2 (módulo composto)
+
+# Exemplo prático
+пусть contador = 0
+contador += 1  # Incrementar contador
+contador += 1
+печать(contador)  # 2
+
+# Acumulador em loop
+пусть сумма = 0
+пусть числа = [10, 20, 30]
+для (пусть число из числа) {
+    сумма += число  # Mais conciso que: сумма = сумма + число
+}
+печать(сумма)  # 60
+```
+
+**⚠️ Nota:** Constantes (`константа`) não podem ser modificadas com operadores compostos!
+
 ### Funções
+
+#### Funções Nomeadas
 
 ```trest
 # Declaração de função
@@ -254,6 +291,27 @@ x %= 4   # x = x % 4 → 2
     печать("Имя: " + имя)
     печать("Возраст: " + возраст)
 }
+```
+
+#### Funções Anônimas (Novo em 2.4.6)
+
+```trest
+# Função anônima atribuída a variável
+пусть dobrar = функция(x) {
+    вернуть x * 2
+}
+
+печать( dobrar(5) )  # 10
+
+# Função anônima como argumento
+функция aplicarОперацию(число, операция) {
+    вернуть операция(число)
+}
+
+пусть resultado = aplicarОперацию(5, функция(x) {
+    вернуть x * x  # Quadrado
+})
+печать(resultado)  # 25
 ```
 
 ### Condicionais
@@ -311,23 +369,43 @@ x %= 4   # x = x % 4 → 2
 
 #### For (Para)
 
+**For Clássico:**
 ```trest
-# For clássico
+# For tradicional com inicialização, condição e incremento
 для (пусть i = 0; i < 10; i = i + 1) {
     печать(i)
 }
+```
 
-# For...of (iterar sobre arrays)
+**For...of - Iterar sobre Arrays (Novo em 2.4.6):**
+```trest
+# Iterar sobre valores de um array
 пусть числа = [1, 2, 3, 4, 5]
 для (пусть число из числа) {
     печать(число)
 }
+# Saída: 1, 2, 3, 4, 5
 
-# For...in (iterar sobre objetos)
-пусть человек = { имя: "Иван", возраст: 30 }
+# Exemplo prático: calcular soma
+пусть сумма = 0
+пусть valores = [10, 20, 30, 40]
+для (пусть значение из значения) {
+    сумма += значение  # Usando operador composto
+}
+печать(сумма)  # 100
+```
+
+**For...in - Iterar sobre Objetos (Novo em 2.4.6):**
+```trest
+# Iterar sobre chaves de um objeto
+пусть человек = { имя: "Иван", возраст: 30, город: "Москва" }
 для (пусть ключ в человек) {
     печать(ключ + ": " + человек[ключ])
 }
+# Saída:
+# имя: Иван
+# возраст: 30
+# город: Москва
 ```
 
 #### Break e Continue
@@ -401,7 +479,11 @@ x %= 4   # x = x % 4 → 2
 }
 ```
 
-### Classes e Orientação a Objetos
+### Classes e Orientação a Objetos (Novo em 2.4.6)
+
+Trest agora suporta Programação Orientada a Objetos completa com classes, construtores, métodos, herança e instanciação.
+
+#### Declaração Básica de Classe
 
 ```trest
 # Declaração de classe
@@ -416,20 +498,37 @@ x %= 4   # x = x % 4 → 2
     }
     
     функция праздноватьДеньРождения() {
-        это.возраст = это.возраст + 1
+        это.возраст += 1  # Usando operador composto
         печать("С Днем Рождения! Теперь мне " + это.возраст + " лет")
     }
 }
 
-# Criar instância
+# Criar instância com 'новый'
 пусть иван = новый Человек("Иван", 30)
 иван.представиться()  # "Я Иван, мне 30 лет"
 иван.праздноватьДеньРождения()  # "С Днем Рождения! Теперь мне 31 лет"
+```
 
-# Herança
+#### Herança de Classes
+
+```trest
+# Classe base
+класс Транспорт {
+    функция конструктор(марка, год) {
+        это.марка = марка
+        это.год = год
+    }
+    
+    функция завести() {
+        печать(это.марка + " заведен")
+    }
+}
+
+# Classe derivada usando 'расширяет'
 класс Студент расширяет Человек {
     функция конструктор(имя, возраст, группа) {
-        супер(имя, возраст)  # chama construtor da classe pai
+        это.имя = имя
+        это.возраст = возраст
         это.группа = группа
     }
     
@@ -443,6 +542,37 @@ x %= 4   # x = x % 4 → 2
 студент.учиться()        # "Мария учится в группе ИТ-101"
 ```
 
+#### Exemplo Avançado: Sistema de Gerenciamento
+
+```trest
+# Sistema completo de gerenciamento de produtos
+класс Продукт {
+    функция конструктор(название, цена, количество) {
+        это.название = название
+        это.цена = цена
+        это.количество = количество
+    }
+    
+    функция получитьСтоимость() {
+        вернуть это.цена * это.количество
+    }
+    
+    функция продать(сколько) {
+        если (сколько <= это.количество) {
+            это.количество -= сколько  # Operador composto
+            вернуть истина
+        }
+        вернуть ложь
+    }
+}
+
+# Usar a classe
+пусть товар = новый Продукт("Ноутбук", 50000, 10)
+печать(товар.получитьСтоимость())  # 500000
+товар.продать(3)
+печать(товар.количество)  # 7
+```
+
 ---
 
 ## 🔤 Palavras-chave
@@ -452,8 +582,8 @@ x %= 4   # x = x % 4 → 2
 | Trest (Cirílico) | Latim | Descrição |
 |-----------------|-------|-----------|
 | `пусть` | let | Variável com escopo de bloco |
-| `конст` | const | Constante (não pode ser reatribuída) |
-| `перем` | var | Variável com escopo funcional |
+| `константа` | const | Constante (não pode ser reatribuída) |
+| `variavel` | var | Variável com escopo funcional |
 
 ### Controle de Fluxo
 
@@ -1089,7 +1219,7 @@ StdLib.Math.sqrt(25)
 }
 
 # Exportar constante
-экспорт конст PI = 3.14159
+экспорт константа PI = 3.14159
 
 # Exportar variável
 экспорт пусть contador = 0
@@ -1515,8 +1645,8 @@ HTTP.создатьСервер(3000, функция(запрос, ответ) {
 | Cirílico | Latim | Tipo |
 |----------|-------|------|
 | `пусть` | let | Declaração |
-| `конст` | const | Declaração |
-| `перем` | var | Declaração |
+| `константа` | const | Declaração |
+| `variavel` | var | Declaração |
 | `если` | if | Controle |
 | `иначе` | else | Controle |
 | `иначе если` | else if | Controle |
@@ -1984,7 +2114,7 @@ HTTP.GET("https://api.example.com")  # ← Aqui a rede é acessada
 
 Se você encontrar uma vulnerabilidade de segurança:
 
-1. **NÃO** abra um issue público no GitHub
+1. **NÃO** abra um issue público
 2. Envie email para: [marcus.vieiraleal94@gmail.com](mailto:marcus.vieiraleal94@gmail.com)
 3. Inclua detalhes sobre a vulnerabilidade encontrada
 
@@ -2024,7 +2154,6 @@ Para mais detalhes, consulte:
 ### Documentação Online
 
 - **Site Oficial**: [https://trest-site.vercel.app](https://trest-site.vercel.app)
-- **GitHub**: [https://github.com/trest-language/trest](https://github.com/trest-language/trest)
 - **npm**: [https://www.npmjs.com/package/treste](https://www.npmjs.com/package/treste)
 
 ### Exemplos de Código
@@ -2071,20 +2200,31 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.4.4  
+**Versão:** 2.4.6  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
 
+### 🆕 Novidades da Versão 2.4.6
+
+A versão 2.4.6 traz funcionalidades poderosas que tornam Trest ainda mais expressivo e moderno:
+
+**Principais adições:**
+- ✅ **Classes e OOP Completo** - Suporte total a classes, herança e instanciação
+- ✅ **For...of e For...in** - Loops modernos para iterar arrays e objetos
+- ✅ **Operadores Compostos** - Atribuição com operação em uma única expressão
+- ✅ **Funções Anônimas** - Funções sem nome para maior flexibilidade
+- ✅ **Validação de Constantes** - Proteção contra reatribuição de constantes
+
 ### 🔒 Nota de Segurança
 
-A versão 2.4.4 inclui correções importantes de segurança na cadeia de suprimentos. Recomendamos atualizar para a versão mais recente.
+A versão 2.4.4 incluiu correções importantes de segurança na cadeia de suprimentos. A versão 2.4.6 mantém todas essas melhorias:
 
-**Principais correções:**
+**Correções de segurança:**
 - ✅ Scripts de instalação automáticos removidos
 - ✅ Acesso ao shell durante instalação removido
 - ✅ Melhorias na segurança do pacote NPM
 
 ---
 
-*Documentação completa e atualizada. Para questões ou sugestões, visite o GitHub: [https://github.com/trest-language/trest](https://github.com/trest-language/trest)*
+*Documentação completa e atualizada. Para questões ou sugestões, visite: https://trest-site.vercel.app*

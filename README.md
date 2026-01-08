@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/treste.svg)](https://www.npmjs.com/package/treste)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Active Maintenance](https://img.shields.io/badge/maintenance-active-green.svg)](https://github.com/trest-language/trest)
+[![Active Maintenance](https://img.shields.io/badge/maintenance-active-green.svg)](https://trest-site.vercel.app)
 
 Linguagem de programação moderna e profissional, estruturalmente organizada e compilável para **Web** e **Desktop (.exe)** com suporte completo a cirílico (alfabeto russo).
 
@@ -54,9 +54,8 @@ npx trestc programa.trest --mode web
 Se você quiser instalar a partir do código-fonte ou fazer modificações:
 
 ```bash
-# Clonar o repositório
-git clone https://github.com/trest-language/trest.git
-cd trest
+# Baixar o código-fonte
+cd treste
 
 # Instalar dependências
 npm install
@@ -502,7 +501,6 @@ MIT
 **PoktWeb**
 
 - Site de documentação: [https://trest-site.vercel.app](https://trest-site.vercel.app)
-- GitHub: [@poktweb](https://github.com/poktweb)
 
 ## 🤝 Contribuições
 

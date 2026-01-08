@@ -3,6 +3,9 @@ import {
   Program,
   VariableDeclaration,
   FunctionDeclaration,
+  ClassDeclaration,
+  ForOfStatement,
+  ForInStatement,
   BlockStatement,
   IfStatement,
   SwitchStatement,
@@ -18,6 +21,8 @@ import {
   UnaryExpression,
   TernaryExpression,
   CallExpression,
+  NewExpression,
+  FunctionExpression,
   Identifier,
   Literal,
   ArrayLiteral,
@@ -47,9 +52,19 @@ interface FunctionValue {
   closure: Environment;
 }
 
+interface ClassValue {
+  type: 'class';
+  name: string;
+  superClass?: ClassValue;
+  methods: Map<string, FunctionValue>;
+  constructor?: FunctionValue;
+}
+
 interface Environment {
   variables: Map<string, RuntimeValue>;
   functions: Map<string, FunctionValue>;
+  classes: Map<string, ClassValue>;
+  constants: Set<string>; // Track constant variables
   parent?: Environment;
 }
 
@@ -60,6 +75,8 @@ export class Interpreter {
     this.globalEnv = {
       variables: new Map(),
       functions: new Map(),
+      classes: new Map(),
+      constants: new Set(),
     };
     
     // Registrar módulos nativos
@@ -207,6 +224,12 @@ export class Interpreter {
         return this.evaluateWhileStatement(statement as WhileStatement, env);
       case 'ForStatement':
         return this.evaluateForStatement(statement as ForStatement, env);
+      case 'ForOfStatement':
+        return this.evaluateForOfStatement(statement as ForOfStatement, env);
+      case 'ForInStatement':
+        return this.evaluateForInStatement(statement as ForInStatement, env);
+      case 'ClassDeclaration':
+        return this.evaluateClassDeclaration(statement as ClassDeclaration, env);
       case 'ReturnStatement':
         return this.evaluateReturnStatement(statement as ReturnStatement, env);
       case 'PrintStatement':
@@ -250,8 +273,14 @@ export class Interpreter {
       value = this.evaluateExpression(decl.value, env);
     }
 
-    if (decl.kind === 'const' && env.variables.has(name)) {
+    // Verificar se está tentando reatribuir uma constante
+    if (env.constants.has(name)) {
       throw new Error(`Variável constante '${name}' não pode ser reatribuída`);
+    }
+
+    // Marcar constantes
+    if (decl.kind === 'const') {
+      env.constants.add(name);
     }
 
     env.variables.set(name, value);
@@ -281,6 +310,8 @@ export class Interpreter {
     const newEnv: Environment = {
       variables: new Map(),
       functions: new Map(),
+      classes: new Map(),
+      constants: new Set(),
       parent: env,
     };
 
@@ -399,6 +430,10 @@ export class Interpreter {
         return this.evaluateTernaryExpression(expr as TernaryExpression, env);
       case 'CallExpression':
         return this.evaluateCallExpression(expr as CallExpression, env);
+      case 'NewExpression':
+        return this.evaluateNewExpression(expr as NewExpression, env);
+      case 'FunctionExpression':
+        return this.evaluateFunctionExpression(expr as FunctionExpression, env);
       case 'Identifier':
         return this.evaluateIdentifier(expr as Identifier, env);
       case 'Literal':
@@ -420,11 +455,46 @@ export class Interpreter {
     expr: AssignmentExpression,
     env: Environment
   ): RuntimeValue {
-    const value = this.evaluateExpression(expr.right, env);
+    // Para operadores compostos, calcular o valor primeiro
+    let value: RuntimeValue;
+    if (expr.operator !== '=') {
+      // Para +=, -=, *=, /=, %=, precisamos do valor atual
+      if (expr.left.type === 'Identifier') {
+        const name = (expr.left as Identifier).name;
+        const currentValue = this.findEnvironment(name, env)?.variables.get(name) || env.variables.get(name);
+        if (currentValue === undefined) {
+          throw new Error(`Variável '${name}' não definida`);
+        }
+        // Verificar se é constante
+        const targetEnv = this.findEnvironment(name, env) || env;
+        if (targetEnv.constants.has(name)) {
+          throw new Error(`Não é possível modificar constante '${name}'`);
+        }
+        // Calcular novo valor baseado no operador
+        const rightValue = this.evaluateExpression(expr.right, env);
+        const binaryOp = expr.operator.slice(0, -1) as '+' | '-' | '*' | '/' | '%';
+        value = this.evaluateBinaryOperation(binaryOp, currentValue, rightValue);
+      } else {
+        // Para arrays, calcular normalmente
+        const currentValue = this.evaluateExpression(expr.left, env);
+        const rightValue = this.evaluateExpression(expr.right, env);
+        const binaryOp = expr.operator.slice(0, -1) as '+' | '-' | '*' | '/' | '%';
+        value = this.evaluateBinaryOperation(binaryOp, currentValue, rightValue);
+      }
+    } else {
+      value = this.evaluateExpression(expr.right, env);
+    }
 
     if (expr.left.type === 'Identifier') {
       const name = (expr.left as Identifier).name;
       const targetEnv = this.findEnvironment(name, env);
+      
+      // Verificar se é constante
+      const checkEnv = targetEnv || env;
+      if (checkEnv.constants.has(name)) {
+        throw new Error(`Não é possível reatribuir constante '${name}'`);
+      }
+      
       if (targetEnv) {
         targetEnv.variables.set(name, value);
       } else {
@@ -455,6 +525,30 @@ export class Interpreter {
     }
 
     return value;
+  }
+
+  private evaluateBinaryOperation(
+    operator: '+' | '-' | '*' | '/' | '%',
+    left: RuntimeValue,
+    right: RuntimeValue
+  ): RuntimeValue {
+    switch (operator) {
+      case '+':
+        if (typeof left === 'string' || typeof right === 'string') {
+          return String(left) + String(right);
+        }
+        return (left as number) + (right as number);
+      case '-':
+        return (left as number) - (right as number);
+      case '*':
+        return (left as number) * (right as number);
+      case '/':
+        return (left as number) / (right as number);
+      case '%':
+        return (left as number) % (right as number);
+      default:
+        throw new Error(`Operador binário não suportado: ${operator}`);
+    }
   }
 
   private evaluateBinaryExpression(
@@ -562,6 +656,8 @@ export class Interpreter {
       const newEnv: Environment = {
         variables: new Map(),
         functions: new Map(),
+        classes: new Map(),
+        constants: new Set(),
         parent: func.closure,
       };
 
@@ -727,6 +823,8 @@ export class Interpreter {
         const newEnv: Environment = {
           variables: new Map(),
           functions: new Map(),
+          classes: new Map(),
+          constants: new Set(),
           parent: env,
         };
         if (stmt.handler.param) {
@@ -775,6 +873,8 @@ export class Interpreter {
     const newEnv: Environment = {
       variables: new Map(),
       functions: new Map(),
+      classes: new Map(),
+      constants: new Set(),
       parent: env,
     };
 
@@ -809,6 +909,252 @@ export class Interpreter {
     }
 
     return null;
+  }
+
+  private evaluateForOfStatement(
+    stmt: ForOfStatement,
+    env: Environment
+  ): RuntimeValue | null {
+    const iterable = this.evaluateExpression(stmt.right, env);
+    
+    if (!Array.isArray(iterable)) {
+      throw new Error('For...of só funciona com arrays');
+    }
+    
+    const newEnv: Environment = {
+      variables: new Map(),
+      functions: new Map(),
+      classes: new Map(),
+      constants: new Set(),
+      parent: env,
+    };
+    
+    for (const item of iterable as RuntimeValue[]) {
+      if (stmt.left.type === 'VariableDeclaration') {
+        const decl = stmt.left;
+        newEnv.variables.set(decl.name, item);
+        if (decl.kind === 'const') {
+          newEnv.constants.add(decl.name);
+        }
+      } else {
+        newEnv.variables.set((stmt.left as Identifier).name, item);
+      }
+      
+      const result = this.evaluateBlockStatement(stmt.body, newEnv);
+      if (result !== null) {
+        if (this.isReturnValue(result)) {
+          return result;
+        }
+        if ((result as any).type === 'break') {
+          break;
+        }
+        if ((result as any).type === 'continue') {
+          continue;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  private evaluateForInStatement(
+    stmt: ForInStatement,
+    env: Environment
+  ): RuntimeValue | null {
+    const object = this.evaluateExpression(stmt.right, env);
+    
+    if (typeof object !== 'object' || object === null || Array.isArray(object)) {
+      throw new Error('For...in só funciona com objetos');
+    }
+    
+    const newEnv: Environment = {
+      variables: new Map(),
+      functions: new Map(),
+      classes: new Map(),
+      constants: new Set(),
+      parent: env,
+    };
+    
+    const obj = object as { [key: string]: RuntimeValue };
+    for (const key in obj) {
+      if (stmt.left.type === 'VariableDeclaration') {
+        const decl = stmt.left;
+        newEnv.variables.set(decl.name, key);
+        if (decl.kind === 'const') {
+          newEnv.constants.add(decl.name);
+        }
+      } else {
+        newEnv.variables.set((stmt.left as Identifier).name, key);
+      }
+      
+      const result = this.evaluateBlockStatement(stmt.body, newEnv);
+      if (result !== null) {
+        if (this.isReturnValue(result)) {
+          return result;
+        }
+        if ((result as any).type === 'break') {
+          break;
+        }
+        if ((result as any).type === 'continue') {
+          continue;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  private evaluateClassDeclaration(
+    stmt: ClassDeclaration,
+    env: Environment
+  ): RuntimeValue | null {
+    const methods = new Map<string, FunctionValue>();
+    let constructor: FunctionValue | undefined;
+    
+    // Avaliar métodos da classe
+    for (const method of stmt.body.body) {
+      const funcValue: FunctionValue = {
+        type: 'function',
+        name: method.key,
+        params: method.params,
+        body: method.body,
+        closure: env,
+      };
+      
+      if (method.kind === 'constructor') {
+        constructor = funcValue;
+      } else {
+        methods.set(method.key, funcValue);
+      }
+    }
+    
+    const classValue: ClassValue = {
+      type: 'class',
+      name: stmt.name,
+      methods,
+      constructor,
+    };
+    
+    // Se tem superclasse, resolver
+    if (stmt.superClass) {
+      const superClass = env.classes.get(stmt.superClass.name);
+      if (!superClass) {
+        throw new Error(`Classe pai '${stmt.superClass.name}' não encontrada`);
+      }
+      classValue.superClass = superClass;
+    }
+    
+    env.classes.set(stmt.name, classValue);
+    return null;
+  }
+
+  private evaluateNewExpression(
+    expr: NewExpression,
+    env: Environment
+  ): RuntimeValue {
+    const calleeName = (expr.callee as Identifier).name;
+    const classValue = this.findClass(calleeName, env);
+    
+    if (!classValue) {
+      throw new Error(`Classe '${calleeName}' não encontrada`);
+    }
+    
+    return this.instantiateClass(classValue, expr.arguments, env);
+  }
+
+  private findClass(name: string, env: Environment): ClassValue | null {
+    if (env.classes.has(name)) {
+      return env.classes.get(name)!;
+    }
+    if (env.parent) {
+      return this.findClass(name, env.parent);
+    }
+    return null;
+  }
+
+  private instantiateClass(
+    classValue: ClassValue,
+    args: Expression[],
+    env: Environment
+  ): RuntimeValue {
+    const instance: any = {};
+    
+    // Se tem superclasse, criar instância pai
+    if (classValue.superClass) {
+      instance.__proto__ = this.instantiateClass(classValue.superClass, [], env);
+    }
+    
+    // Executar construtor se existir
+    if (classValue.constructor) {
+      const constructorEnv: Environment = {
+        variables: new Map(),
+        functions: new Map(),
+        classes: new Map(),
+        constants: new Set(),
+        parent: env,
+      };
+      
+      // Adicionar 'это' (this) ao ambiente
+      constructorEnv.variables.set('это', instance);
+      constructorEnv.variables.set('this', instance);
+      
+      // Mapear argumentos
+      for (let i = 0; i < classValue.constructor.params.length; i++) {
+        const paramName = classValue.constructor.params[i];
+        const argValue = i < args.length 
+          ? this.evaluateExpression(args[i], env)
+          : null;
+        constructorEnv.variables.set(paramName, argValue);
+      }
+      
+      // Executar construtor
+      this.evaluateBlockStatement(classValue.constructor.body, constructorEnv);
+    }
+    
+    // Adicionar métodos ao objeto
+    for (const [methodName, method] of classValue.methods) {
+      const methodFunc = (...methodArgs: RuntimeValue[]) => {
+        const methodEnv: Environment = {
+          variables: new Map(),
+          functions: new Map(),
+          classes: new Map(),
+          constants: new Set(),
+          parent: env,
+        };
+        
+        methodEnv.variables.set('это', instance);
+        methodEnv.variables.set('this', instance);
+        
+        for (let i = 0; i < method.params.length; i++) {
+          methodEnv.variables.set(method.params[i], methodArgs[i] || null);
+        }
+        
+        const result = this.evaluateBlockStatement(method.body, methodEnv);
+        if (result !== null && this.isReturnValue(result)) {
+          return (result as any).value;
+        }
+        return null;
+      };
+      
+      instance[methodName] = methodFunc;
+    }
+    
+    return instance;
+  }
+
+  private evaluateFunctionExpression(
+    expr: FunctionExpression,
+    env: Environment
+  ): RuntimeValue {
+    const funcValue: FunctionValue = {
+      type: 'function',
+      name: expr.name || '<anonymous>',
+      params: expr.params,
+      body: expr.body,
+      closure: env,
+    };
+    
+    return funcValue;
   }
 
   /**
@@ -977,6 +1323,8 @@ export class Interpreter {
     const moduleEnv: Environment = {
       variables: new Map(),
       functions: new Map(),
+      classes: new Map(),
+      constants: new Set(),
     };
     
     // Evaluate module statements

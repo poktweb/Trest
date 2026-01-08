@@ -102,6 +102,7 @@ export enum TokenType {
   MINUS_ASSIGN = 'MINUS_ASSIGN',
   MULTIPLY_ASSIGN = 'MULTIPLY_ASSIGN',
   DIVIDE_ASSIGN = 'DIVIDE_ASSIGN',
+  MODULO_ASSIGN = 'MODULO_ASSIGN',
   COLON = 'COLON',
   
   // Especiais
@@ -332,30 +333,37 @@ export class Lexer {
 
       // Operadores e delimitadores
       switch (this.currentChar) {
-        case '+':
-          tokens.push({ type: TokenType.PLUS, value: '+', line: startLine, column: startColumn });
-          this.advance();
-          break;
-        case '-':
-          tokens.push({ type: TokenType.MINUS, value: '-', line: startLine, column: startColumn });
-          this.advance();
-          break;
         case '*':
           this.advance();
           if (this.currentChar === '*') {
             tokens.push({ type: TokenType.POW, value: '**', line: startLine, column: startColumn });
+            this.advance();
+          } else if (this.currentChar === '=') {
+            tokens.push({ type: TokenType.MULTIPLY_ASSIGN, value: '*=', line: startLine, column: startColumn });
             this.advance();
           } else {
             tokens.push({ type: TokenType.MULTIPLY, value: '*', line: startLine, column: startColumn });
           }
           break;
         case '/':
-          tokens.push({ type: TokenType.DIVIDE, value: '/', line: startLine, column: startColumn });
           this.advance();
+          // @ts-ignore - Type narrowing issue
+          if (this.currentChar === '=') {
+            tokens.push({ type: TokenType.DIVIDE_ASSIGN, value: '/=', line: startLine, column: startColumn });
+            this.advance();
+          } else {
+            tokens.push({ type: TokenType.DIVIDE, value: '/', line: startLine, column: startColumn });
+          }
           break;
         case '%':
-          tokens.push({ type: TokenType.MODULO, value: '%', line: startLine, column: startColumn });
           this.advance();
+          // @ts-ignore - Type narrowing issue
+          if (this.currentChar === '=') {
+            tokens.push({ type: TokenType.MODULO_ASSIGN, value: '%=', line: startLine, column: startColumn });
+            this.advance();
+          } else {
+            tokens.push({ type: TokenType.MODULO, value: '%', line: startLine, column: startColumn });
+          }
           break;
         case '=':
           this.advance();
@@ -364,6 +372,26 @@ export class Lexer {
             this.advance();
           } else {
             tokens.push({ type: TokenType.ASSIGN, value: '=', line: startLine, column: startColumn });
+          }
+          break;
+        case '+':
+          this.advance();
+          // @ts-ignore - Type narrowing issue
+          if (this.currentChar === '=') {
+            tokens.push({ type: TokenType.PLUS_ASSIGN, value: '+=', line: startLine, column: startColumn });
+            this.advance();
+          } else {
+            tokens.push({ type: TokenType.PLUS, value: '+', line: startLine, column: startColumn });
+          }
+          break;
+        case '-':
+          this.advance();
+          // @ts-ignore - Type narrowing issue
+          if (this.currentChar === '=') {
+            tokens.push({ type: TokenType.MINUS_ASSIGN, value: '-=', line: startLine, column: startColumn });
+            this.advance();
+          } else {
+            tokens.push({ type: TokenType.MINUS, value: '-', line: startLine, column: startColumn });
           }
           break;
         case '!':

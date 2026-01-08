@@ -2,6 +2,7 @@ export type ASTNode =
   | Program
   | VariableDeclaration
   | FunctionDeclaration
+  | ClassDeclaration
   | BlockStatement
   | IfStatement
   | SwitchStatement
@@ -9,6 +10,8 @@ export type ASTNode =
   | DefaultClause
   | WhileStatement
   | ForStatement
+  | ForOfStatement
+  | ForInStatement
   | ReturnStatement
   | ExpressionStatement
   | PrintStatement
@@ -23,12 +26,14 @@ export type ASTNode =
   | UnaryExpression
   | TernaryExpression
   | CallExpression
+  | NewExpression
   | Identifier
   | Literal
   | ArrayLiteral
   | IndexExpression
   | ObjectLiteral
-  | MemberExpression;
+  | MemberExpression
+  | FunctionExpression;
 
 export interface Program {
   type: 'Program';
@@ -45,6 +50,33 @@ export interface VariableDeclaration {
 export interface FunctionDeclaration {
   type: 'FunctionDeclaration';
   name: string;
+  params: string[];
+  body: BlockStatement;
+}
+
+export interface FunctionExpression {
+  type: 'FunctionExpression';
+  name?: string;
+  params: string[];
+  body: BlockStatement;
+}
+
+export interface ClassDeclaration {
+  type: 'ClassDeclaration';
+  name: string;
+  superClass?: Identifier;
+  body: ClassBody;
+}
+
+export interface ClassBody {
+  type: 'ClassBody';
+  body: ClassMethod[];
+}
+
+export interface ClassMethod {
+  type: 'ClassMethod';
+  key: string;
+  kind: 'constructor' | 'method';
   params: string[];
   body: BlockStatement;
 }
@@ -89,6 +121,20 @@ export interface ForStatement {
   init?: VariableDeclaration | ExpressionStatement;
   condition?: Expression;
   update?: Expression;
+  body: BlockStatement;
+}
+
+export interface ForOfStatement {
+  type: 'ForOfStatement';
+  left: VariableDeclaration | Identifier;
+  right: Expression;
+  body: BlockStatement;
+}
+
+export interface ForInStatement {
+  type: 'ForInStatement';
+  left: VariableDeclaration | Identifier;
+  right: Expression;
   body: BlockStatement;
 }
 
@@ -154,6 +200,8 @@ export type Expression =
   | UnaryExpression
   | TernaryExpression
   | CallExpression
+  | NewExpression
+  | FunctionExpression
   | Identifier
   | Literal
   | ArrayLiteral
@@ -164,8 +212,14 @@ export type Expression =
 export interface AssignmentExpression {
   type: 'AssignmentExpression';
   left: Identifier | IndexExpression;
-  operator: '=';
+  operator: '=' | '+=' | '-=' | '*=' | '/=' | '%=';
   right: Expression;
+}
+
+export interface NewExpression {
+  type: 'NewExpression';
+  callee: Identifier | MemberExpression;
+  arguments: Expression[];
 }
 
 export interface BinaryExpression {
