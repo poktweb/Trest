@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.4.7
+# 📚 Documentação Completa - Trest Language v2.4.8
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,7 +20,7 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.4.7](#novidades-da-versão-247)
+15. [Novidades da Versão 2.4.8](#novidades-da-versão-248)
 
 ---
 
@@ -768,8 +768,10 @@ Array.добавить(числа, 9)             # [3, 1, 4, 1, 5, 9]
 - `HTTP.DELETE(url, options)` - Requisição DELETE
 - `HTTP.fetch(url, options)` - Fetch API completa
 
-**Servidor HTTP:**
-- `HTTP.создатьСервер(port, handler)` - Criar servidor HTTP
+**Servidor HTTP (Aprimorado em 2.4.8):**
+- `HTTP.создатьСервер()` - Criar servidor HTTP
+  - Métodos: `listen(port, callback)`, `get(path, handler)`, `post(path, handler)`, `put(path, handler)`, `delete(path, handler)`, `use(path, handler)` (novo)
+  - `use()` - Rotas wildcard/catch-all que aceitam qualquer método HTTP
 
 **Exemplo Cliente:**
 ```trest
@@ -786,7 +788,7 @@ Array.добавить(числа, 9)             # [3, 1, 4, 1, 5, 9]
 печать(result.status)  # 200
 ```
 
-**Exemplo Servidor Básico (Atualizado em 2.4.7):**
+**Exemplo Servidor Básico (Atualizado em 2.4.8):**
 ```trest
 импорт * как HTTP измодуля "std/http"
 
@@ -801,6 +803,23 @@ servidor.listen(3000, функция() {
     печать("✅ Servidor iniciado na porta 3000")
 })
 ```
+
+**Objeto Request (Aprimorado em 2.4.8):**
+O objeto `запрос` agora inclui:
+- `запрос.url` - URL completa
+- `запрос.pathname` - Caminho sem query string
+- `запрос.query` - Objeto com query parameters parseados
+- `запрос.method` - Método HTTP (GET, POST, etc.)
+- `запрос.headers` - Headers da requisição
+- `запрос.body` - Corpo da requisição (parseado automaticamente se JSON)
+- `запрос.ip` - **Novo** - Endereço IP do cliente
+
+**Objeto Response (Aprimorado em 2.4.8):**
+O objeto `ответ` agora inclui:
+- `ответ.status(code)` - Definir status HTTP
+- `ответ.send(data)` - Enviar resposta (HTML ou JSON)
+- `ответ.json(data)` - Enviar JSON formatado (indentado)
+- `ответ.header(name, value)` - **Novo** - Definir header customizado
 
 **Exemplo Servidor Completo com Múltiplas Rotas:**
 ```trest
@@ -822,7 +841,23 @@ servidor.get("/api/status", функция(запрос, ответ) {
 # Rota POST
 servidor.post("/api/users", функция(запрос, ответ) {
     печать("Novo usuário: " + запрос.body)
+    # Body é parseado automaticamente se for JSON
+    если (typeof запрос.body == "object") {
+        печать("Nome: " + запрос.body.nome)
+    }
     ответ.json({ sucesso = истина })
+})
+
+# Rota com wildcard (catch-all) - Novo em 2.4.8
+servidor.use("*", функция(запрос, ответ) {
+    # Captura qualquer rota não encontrada
+    ответ.status(404)
+    ответ.json({
+        erro = истина,
+        mensagem = "Rota não encontrada",
+        metodo = запрос.method,
+        caminho = запрос.pathname
+    })
 })
 
 # Iniciar servidor
@@ -839,6 +874,24 @@ Em Trest, objetos literais usam `=` (atribuição) em vez de `:` (dois pontos):
 
 # ❌ Incorreto (sintaxe JavaScript)
 пусть obj = { nome: "João", idade: 30 }
+```
+
+**Query Parameters (Novo em 2.4.8):**
+O objeto `запрос` agora inclui propriedades para trabalhar com query parameters:
+```trest
+servidor.get("/rota", функция(запрос, ответ) {
+    # URL completa
+    печать(запрос.url)  # "/rota?param1=valor1&param2=valor2"
+    
+    # Apenas o caminho (sem query string)
+    печать(запрос.pathname)  # "/rota"
+    
+    # Objeto com query parameters parseados
+    печать(запрос.query)  # { param1 = "valor1", param2 = "valor2" }
+    
+    # Acessar parâmetro específico
+    пусть valor = запрос.query["param1"]  # "valor1"
+})
 ```
 
 ---
@@ -962,22 +1015,35 @@ FileSystem.createDir("novoDiretorio")
 ```
 
 **Funções Disponíveis:**
-- `Date.now()` - Timestamp atual (milissegundos)
-- `Date.format(timestamp, format)` - Formatar data
-- `Date.timezone(tz)` - Obter/configurar timezone
+- `Date.теперь()` - Obter objeto Date atual
+- `Date.timestamp()` - **Novo em 2.4.8** - Timestamp atual em milissegundos (número)
+- `Date.формат(date, formatStr)` - Formatar data
+- `Date.timezone()` - Obter timezone atual
 
 **Exemplo:**
 ```trest
 импорт * как Date измодуля "std/date"
 
-пусть agora = Date.now()
-печать(agora)  # 1234567890123 (timestamp)
+# Obter timestamp (número)
+пусть timestamp = Date.timestamp()
+печать(timestamp)  # 1234567890123 (número em milissegundos)
 
-пусть formatado = Date.format(agora, "yyyy-MM-dd HH:mm:ss")
+# Obter objeto Date
+пусть agora = Date.теперь()
+
+# Formatar data
+пусть formatado = Date.формат(agora, "YYYY-MM-DD HH:mm:ss")
 печать(formatado)  # "2025-01-08 15:30:45"
 
-пусть tz = Date.timezone("America/Sao_Paulo")
+# Timezone
+пусть tz = Date.timezone()
+печать(tz)  # "America/Sao_Paulo"
 ```
+
+**⚠️ Nota Importante:**
+- `Date.timestamp()` retorna um **número** (milissegundos desde epoch)
+- `Date.теперь()` retorna um **objeto Date**
+- Use `Date.timestamp()` quando precisar apenas do número (mais eficiente)
 
 ---
 
@@ -1652,7 +1718,7 @@ servidor.get("/", функция(запрос, ответ) {
 })
 
 servidor.get("/sobre", функция(запрос, ответ) {
-    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.4.7</p>")
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.4.8</p>")
 })
 
 servidor.get("/api/status", функция(запрос, ответ) {
@@ -1852,11 +1918,11 @@ servidor.listen(3000, функция() {
 | **Math** | abs, max, min, sqrt, pow, ceil, floor, round, PI, E | ✅ Completo |
 | **String** | размер, верхний, нижний, заменить, разделить | ✅ Completo |
 | **Array** | длина, добавить, удалить, включает, обратить, срез, отсортировать | ✅ Completo |
-| **HTTP** | GET, POST, PUT, DELETE, fetch, создатьСервер | ✅ Completo |
+| **HTTP** | GET, POST, PUT, DELETE, fetch, создатьСервер, use (wildcard) | ✅ Completo (melhorias em 2.4.8) |
 | **Crypto** | md5, sha256, sha512, encrypt, decrypt, randomBytes | ✅ Completo |
 | **FileSystem** | readFile, writeFile, exists, deleteFile, listDir, createDir, deleteDir, getStats | ✅ Completo |
 | **JSON** | parse, stringify | ✅ Completo |
-| **Date** | now, format, timezone | ✅ Completo |
+| **Date** | теперь, timestamp, format, timezone | ✅ Completo (timestamp adicionado em 2.4.8) |
 | **Database** | openDB, Model | ✅ Completo |
 | **Async** | delay, createPromise, allPromises, anyPromise, setTimer, clearTimer, repeatInterval, clearRepeat | ✅ Completo |
 | **RegEx** | create, test, match, findAll, replace, split | ✅ Completo |
@@ -2306,7 +2372,7 @@ Veja a pasta `exemplos/` para mais exemplos:
 - `database_demo.trest` - Operações de banco de dados
 - `filesystem_demo.trest` - Operações de arquivo
 - `site_web.trest` - **Site web completo (Novo em 2.4.7)** - Exemplo de site com múltiplas rotas HTML e API JSON
-- `site_web.trest` - **Site web completo (Novo em 2.4.7)** - Exemplo de site com múltiplas rotas HTML e API JSON
+- `api_calculadora.trest` - **API Calculadora (Novo em 2.4.8)** - API REST completa com query parameters e tratamento robusto de erros
 - `todas_funcionalidades.trest` - Exemplo completo
 
 ### Scripts Úteis
@@ -2344,12 +2410,36 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.4.7  
+**Versão:** 2.4.8  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
 
-### 🆕 Novidades da Versão 2.4.7
+### 🆕 Novidades da Versão 2.4.8
+
+A versão 2.4.8 torna a API HTTP mais robusta e confiável:
+
+**Melhorias Críticas na API HTTP:**
+- ✅ **Sistema de Módulos Nativos** - Módulos `std/` sempre usam implementações nativas (mais robustas e performáticas)
+- ✅ **Date.timestamp()** - Nova função para obter timestamp em milissegundos
+- ✅ **Tratamento de Erros Robusto** - Handlers envolvidos em try-catch, erros 500 retornam JSON formatado
+- ✅ **Método `use()`** - Suporte a rotas wildcard (`*`) para catch-all e middlewares
+- ✅ **Parsing de Body Melhorado** - Detecção automática e parsing seguro de JSON
+- ✅ **Validação de Headers** - Proteção contra envio duplo de headers
+- ✅ **Respostas JSON Formatadas** - JSON indentado (2 espaços) para melhor legibilidade
+- ✅ **Objeto Request Aprimorado** - Propriedade `ip` adicionada, `method` com fallback
+- ✅ **Objeto Response Aprimorado** - Método `header()` para headers customizados
+- ✅ **404 Automático** - Respostas 404 em JSON formatado com timestamp
+
+**Correções:**
+- ✅ **Parsing de Query Parameters** - Correção no parsing de query parameters da URL
+- ✅ **Indexação de Objetos** - Melhor tratamento de `null` em indexação
+- ✅ **Conversão de Números** - Função de conversão sem dependência de `Number` ou `isNaN`
+
+**Exemplos Adicionados:**
+- ✅ **API Calculadora** - Exemplo completo em `exemplos/api_calculadora.trest`
+
+### 📋 Versão Anterior (2.4.7)
 
 A versão 2.4.7 implementa funcionalidades críticas que tornam Trest ainda mais funcional e prático:
 

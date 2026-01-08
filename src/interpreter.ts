@@ -141,6 +141,7 @@ export class Interpreter {
     // Date Module
     this.globalEnv.variables.set('Date', {
       теперь: StdModules.Date.now.bind(StdModules.Date),
+      timestamp: StdModules.Date.timestamp.bind(StdModules.Date),
       формат: StdModules.Date.format.bind(StdModules.Date),
       timezone: StdModules.Date.timezone.bind(StdModules.Date),
     });
@@ -761,7 +762,7 @@ export class Interpreter {
     const array = this.evaluateExpression(expr.object, env);
     const index = this.evaluateExpression(expr.index, env);
 
-    if (!Array.isArray(array) && typeof array !== 'object') {
+    if (!Array.isArray(array) && (typeof array !== 'object' || array === null)) {
       throw new Error('Indexação só é permitida em arrays ou objetos');
     }
 
@@ -1211,25 +1212,13 @@ export class Interpreter {
     const specifiers = statement.specifiers;
     const source = statement.source;
     
-    // Para imports std/, primeiro tentar carregar .trest, senão usar nativos
+    // Para imports std/, sempre usar implementações nativas (mais robustas)
     if (source.startsWith('std/')) {
       for (const spec of specifiers) {
         if (spec.imported === '*') {
           const localName = spec.local || '*';
           
-          // Tentar carregar arquivo .trest primeiro
-          const stdPath = this.resolveStdPath(source);
-          if (stdPath && fs.existsSync(stdPath)) {
-            try {
-              const moduleValue = this.loadTrestModule(stdPath);
-              env.variables.set(localName, moduleValue);
-              continue;
-            } catch (e) {
-              // Se falhar, tentar nativos
-            }
-          }
-          
-          // Fallback para módulos nativos
+          // Sempre usar módulos nativos para std/ (mais robusto e performático)
           let moduleName = source.replace('std/', '').replace('.trest', '');
           if (moduleName === 'index') {
             moduleName = '';
@@ -1288,6 +1277,7 @@ export class Interpreter {
             },
             'date': {
               теперь: StdModules.Date.now.bind(StdModules.Date),
+              timestamp: StdModules.Date.timestamp.bind(StdModules.Date),
               формат: StdModules.Date.format.bind(StdModules.Date),
               timezone: StdModules.Date.timezone.bind(StdModules.Date),
             },

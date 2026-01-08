@@ -1,10 +1,15 @@
 # Date Library - Data e Hora
 
-# Obter timestamp atual
+# Obter data atual
 экспорт функция now() {
-    # TODO: Implementar now()
-    # A implementação real é fornecida pelo módulo nativo
-    вернуть 0
+    # Реализация nativa em src/std-native.ts
+    бросить "now() requer implementação nativa."
+}
+
+# Obter timestamp atual (milissegundos desde epoch)
+экспорт функция timestamp() {
+    # Реализация nativa em src/std-native.ts
+    бросить "timestamp() requer implementação nativa."
 }
 
 # Formatar data

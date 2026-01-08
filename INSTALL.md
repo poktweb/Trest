@@ -95,7 +95,7 @@ O Trest cria automaticamente um arquivo `.trestrc` na primeira execução:
 
 ```json
 {
-  "version": "2.4.7",
+  "version": "2.4.8",
   "compiler": {
     "web": {
       "minify": false,

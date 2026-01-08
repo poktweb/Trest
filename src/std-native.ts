@@ -115,36 +115,109 @@ export class StdHTTP {
    */
   static createServer(): any {
     const routes: Map<string, Map<string, Function>> = new Map();
+    const wildcardRoutes: Array<{ method: string; handler: Function }> = [];
 
     const addRoute = (method: string, path: string, handler: Function) => {
+      // Se for wildcard (*), adicionar à lista de wildcards
+      if (path === '*') {
+        wildcardRoutes.push({ method, handler });
+        return;
+      }
+      
       if (!routes.has(path)) {
         routes.set(path, new Map());
       }
       routes.get(path)!.set(method, handler);
     };
 
+    const findHandler = (method: string, pathname: string): Function | null => {
+      // Primeiro, tentar encontrar rota exata
+      const handlers = routes.get(pathname);
+      const exactHandler = handlers?.get(method);
+      if (exactHandler) {
+        return exactHandler;
+      }
+
+      // Se não encontrar, tentar wildcard routes
+      for (const wildcardRoute of wildcardRoutes) {
+        if (wildcardRoute.method === method || wildcardRoute.method === '*') {
+          return wildcardRoute.handler;
+        }
+      }
+
+      return null;
+    };
+
     const server = http.createServer((req, res) => {
-      const handlers = routes.get(req.url || '/');
-      const handler = handlers?.get(req.method || 'GET');
+      // Parse URL to separate pathname from query string
+      let pathname = '/';
+      let queryParams: any = {};
+      
+      try {
+        const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+        pathname = url.pathname;
+        url.searchParams.forEach((value, key) => {
+          queryParams[key] = value;
+        });
+      } catch (e) {
+        // Fallback: manual parsing if URL constructor fails
+        const urlStr = req.url || '/';
+        const queryIndex = urlStr.indexOf('?');
+        if (queryIndex >= 0) {
+          pathname = urlStr.substring(0, queryIndex);
+          const queryString = urlStr.substring(queryIndex + 1);
+          queryString.split('&').forEach((pair) => {
+            const equalIndex = pair.indexOf('=');
+            if (equalIndex >= 0) {
+              const key = decodeURIComponent(pair.substring(0, equalIndex));
+              const value = decodeURIComponent(pair.substring(equalIndex + 1));
+              queryParams[key] = value;
+            }
+          });
+        } else {
+          pathname = urlStr;
+        }
+      }
+      
+      const handler = findHandler(req.method || 'GET', pathname);
 
       if (handler) {
         const requestObj = {
           url: req.url,
-          method: req.method,
+          pathname: pathname,
+          query: queryParams,
+          method: req.method || 'GET',
           headers: req.headers,
           body: '',
+          ip: req.socket.remoteAddress || 'unknown',
         };
 
         let body = '';
         req.on('data', (chunk) => {
-          body += chunk;
+          body += chunk.toString();
         });
 
         req.on('end', () => {
+          // Parse body de forma mais robusta
           try {
-            requestObj.body = JSON.parse(body);
-          } catch {
-            requestObj.body = body;
+            if (body && body.trim().length > 0) {
+              const trimmedBody = body.trim();
+              if (trimmedBody.startsWith('{') || trimmedBody.startsWith('[')) {
+                try {
+                  requestObj.body = JSON.parse(body);
+                } catch (parseError) {
+                  // Se falhar o parse JSON, manter como string
+                  requestObj.body = body;
+                }
+              } else {
+                requestObj.body = body;
+              }
+            } else {
+              requestObj.body = '';
+            }
+          } catch (error) {
+            // Em caso de erro, manter body vazio
+            requestObj.body = '';
           }
 
           const responseObj = {
@@ -153,22 +226,75 @@ export class StdHTTP {
               return responseObj;
             },
             send: (data: any) => {
-              const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
-              res.end(dataStr);
+              try {
+                const dataStr = typeof data === 'string' ? data : JSON.stringify(data);
+                if (!res.headersSent) {
+                  if (typeof data === 'string' && !res.getHeader('Content-Type')) {
+                    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+                  }
+                }
+                res.end(dataStr);
+              } catch (error) {
+                if (!res.headersSent) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+                  res.end(JSON.stringify({ error: true, message: 'Internal server error' }));
+                }
+              }
               return responseObj;
             },
             json: (data: any) => {
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify(data));
+              try {
+                if (!res.headersSent) {
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+                }
+                res.end(JSON.stringify(data, null, 2));
+              } catch (error) {
+                if (!res.headersSent) {
+                  res.statusCode = 500;
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+                  res.end(JSON.stringify({ error: true, message: 'Error serializing JSON' }));
+                }
+              }
+              return responseObj;
+            },
+            header: (name: string, value: string) => {
+              if (!res.headersSent) {
+                res.setHeader(name, value);
+              }
               return responseObj;
             },
           };
 
-          handler(requestObj, responseObj);
+          // Executar handler com tratamento de erros robusto
+          try {
+            handler(requestObj, responseObj);
+          } catch (error: any) {
+            // Se o handler lançar erro, retornar 500
+            if (!res.headersSent) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json; charset=utf-8');
+              res.end(JSON.stringify({
+                error: true,
+                message: 'Internal server error',
+                details: error?.message || String(error),
+                timestamp: Date.now()
+              }, null, 2));
+            }
+          }
         });
       } else {
+        // Nenhum handler encontrado - retornar 404 com melhor tratamento
         res.statusCode = 404;
-        res.end('Not Found');
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        const errorResponse = {
+          error: true,
+          message: 'Route not found',
+          path: pathname,
+          method: req.method || 'GET',
+          timestamp: Date.now()
+        };
+        res.end(JSON.stringify(errorResponse, null, 2));
       }
     });
 
@@ -193,6 +319,10 @@ export class StdHTTP {
       post: (path: string, handler: Function) => addRoute('POST', path, handler),
       put: (path: string, handler: Function) => addRoute('PUT', path, handler),
       delete: (path: string, handler: Function) => addRoute('DELETE', path, handler),
+      use: (path: string, handler: Function) => {
+        // Middleware ou catch-all - aceita qualquer método
+        addRoute('*', path, handler);
+      },
     };
   }
 
@@ -624,6 +754,13 @@ export class StdDate {
    */
   static now(): Date {
     return new Date();
+  }
+
+  /**
+   * Get Timestamp (milliseconds since epoch)
+   */
+  static timestamp(): number {
+    return Date.now();
   }
 
   /**
