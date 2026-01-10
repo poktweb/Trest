@@ -1,0 +1,43 @@
+# Teste 3: Condicionais
+# Testa if/else, ternário e switch/case
+
+печать("=== Teste 3: Condicionais ===")
+
+# Teste if/else (conforme documentação)
+пусть возраст = 18
+если (возраст >= 18) {
+    печать("Совершеннолетний")
+} иначе {
+    печать("Несовершеннолетний")
+}
+
+# Teste else if
+пусть nota = 85
+если (nota >= 90) {
+    печать("Nota A")
+} иначе если (nota >= 80) {
+    печать("Nota B")
+} иначе если (nota >= 70) {
+    печать("Nota C")
+} иначе {
+    печать("Nota abaixo de C")
+}
+
+# Teste operador ternário (conforme documentação)
+пусть result = возраст >= 18 ? "Adulto" : "Menor"
+печать(result)
+
+# Teste switch/case (conforme documentação)
+пусть день = 1
+переключатель (день) {
+    случай 1:
+        печать("Понедельник")
+        прервать
+    случай 2:
+        печать("Вторник")
+        прервать
+    поумолчанию:
+        печать("Другой день")
+}
+
+печать("✅ Teste 3: Condicionais - PASSOU")

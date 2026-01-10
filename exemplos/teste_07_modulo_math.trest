@@ -1,0 +1,25 @@
+# Teste 7: Módulo Math
+# Testa funções matemáticas da biblioteca padrão
+
+# Importar módulo Math
+импорт * как Math измодуля "std/math"
+
+печать("=== Teste 7: Módulo Math ===")
+
+# Teste funções básicas
+печать("abs(-5) = " + Math.abs(-5))
+печать("max(10, 20) = " + Math.max(10, 20))
+печать("min(10, 20) = " + Math.min(10, 20))
+
+# Teste funções avançadas
+печать("sqrt(16) = " + Math.sqrt(16))
+печать("pow(2, 3) = " + Math.pow(2, 3))
+печать("round(3.7) = " + Math.round(3.7))
+печать("floor(3.7) = " + Math.floor(3.7))
+печать("ceil(3.2) = " + Math.ceil(3.2))
+
+# Teste constantes
+печать("PI = " + Math.PI)
+печать("E = " + Math.E)
+
+печать("✅ Teste 7: Módulo Math - PASSOU")

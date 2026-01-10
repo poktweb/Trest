@@ -25,6 +25,10 @@ interface CliOptions {
   debug?: boolean;
   e?: string;
   execute?: string;
+  mode?: string;
+  m?: string;
+  output?: string;
+  o?: string;
   _: string[];
 }
 
@@ -71,6 +75,29 @@ function main() {
     process.exit(0);
   }
 
+  // Se há flags de compilação (--mode ou -m), redirecionar para o compilador
+  if (args.mode || args.m) {
+    const { spawn } = require('child_process');
+    const compilerPath = path.join(__dirname, 'compiler.js');
+    const compilerArgs = process.argv.slice(2);
+    
+    const compilerProcess = spawn('node', [compilerPath, ...compilerArgs], {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
+    
+    compilerProcess.on('close', (code: number | null) => {
+      process.exit(code || 0);
+    });
+    
+    compilerProcess.on('error', (err: any) => {
+      console.error('❌ Erro ao executar compilador:', err.message);
+      process.exit(1);
+    });
+    
+    return;
+  }
+
   const filePath = args._[0];
 
   // Validações de arquivo
@@ -105,12 +132,186 @@ function executeFile(filePath: string, args: CliOptions) {
   try {
     const startTime = Date.now();
     
+    // Se há flags de compilação (--mode), redirecionar para o compilador
+    const mode = args.mode || args.m;
+    if (mode) {
+      const { spawn } = require('child_process');
+      const compilerPath = path.join(__dirname, 'compiler.js');
+      const compilerArgs = process.argv.slice(2);
+      
+      const compilerProcess = spawn('node', [compilerPath, ...compilerArgs], {
+        stdio: 'inherit',
+        cwd: process.cwd()
+      });
+      
+      compilerProcess.on('close', (code: number | null) => {
+        process.exit(code || 0);
+      });
+      
+      compilerProcess.on('error', (err: any) => {
+        console.error('❌ Erro ao executar compilador:', err.message);
+        process.exit(1);
+      });
+      
+      return;
+    }
+    
     // Ler arquivo
     const code = fs.readFileSync(filePath, 'utf-8');
     
     if (code.length === 0) {
       console.warn('⚠️  Warning: File is empty');
       process.exit(0);
+    }
+    
+    // Detectar se usa GUI (Electron precisa ser processo principal)
+    const usesGUI = /GUI\.|импорт.*GUI|import.*GUI|создатьОкно|createWindow/i.test(code);
+    
+    if (args.debug || args.verbose) {
+      console.log(`🔍 GUI detectado: ${usesGUI}, Electron disponível: ${!!process.versions.electron}`);
+    }
+    
+    // Se usar GUI e não estiver no Electron, executar através do Electron
+    // Mas apenas se não estiver em modo de compilação
+    const isCompilationMode = args.mode || args.m;
+    if (usesGUI && !process.versions.electron && !isCompilationMode) {
+      try {
+        const electronPath = require.resolve('electron');
+        if (electronPath) {
+          console.log('🖥️  Detectado uso de GUI - executando através do Electron...\n');
+          
+          // Criar script temporário que executa o Trest code no Electron
+          const tempScript = path.join(__dirname, '..', 'scripts', 'electron-run.js');
+          const resolvedFilePath = path.resolve(filePath);
+          const basePath = path.dirname(resolvedFilePath);
+          
+          const distPath = path.join(__dirname, '..', 'dist').replace(/\\/g, '/');
+          const scriptContent = `const { app } = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+const distPath = ${JSON.stringify(distPath)};
+const filePath = ${JSON.stringify(resolvedFilePath.replace(/\\/g, '/'))};
+const basePath = ${JSON.stringify(basePath.replace(/\\/g, '/'))};
+
+const { Interpreter } = require(path.join(distPath, 'interpreter'));
+const { Lexer } = require(path.join(distPath, 'lexer'));
+const { Parser } = require(path.join(distPath, 'parser'));
+const { ModuleSystem } = require(path.join(distPath, 'module'));
+
+app.whenReady().then(() => {
+  try {
+    const code = fs.readFileSync(filePath, 'utf-8');
+    const lexer = new Lexer(code);
+    const tokens = lexer.tokenize();
+    const parser = new Parser(tokens);
+    const program = parser.parse();
+    
+    const moduleSystem = new ModuleSystem(basePath);
+    const interpreter = new Interpreter();
+    interpreter.interpret(program);
+  } catch (error) {
+    console.error('❌ Erro:', error.message);
+    if (error.stack) console.error(error.stack);
+    app.quit();
+  }
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+`;
+          
+          // Criar pasta scripts se não existir
+          const scriptsDir = path.dirname(tempScript);
+          if (!fs.existsSync(scriptsDir)) {
+            fs.mkdirSync(scriptsDir, { recursive: true });
+          }
+          
+          fs.writeFileSync(tempScript, scriptContent);
+          
+          // Executar através do Electron
+          const { spawn } = require('child_process');
+          
+          // Tentar encontrar o binário do electron
+          let electronCmd: string;
+          let electronArgs: string[] = [];
+          
+          try {
+            // Tentar encontrar o executável do electron usando o package.json do electron
+            const electronPackageJson = require.resolve('electron/package.json');
+            const electronPackageDir = path.dirname(electronPackageJson);
+            const electronExe = path.join(electronPackageDir, 'dist', 'electron.exe');
+            const electronCli = path.join(electronPackageDir, 'cli.js');
+            
+            // No Windows, usar o .exe diretamente se existir
+            if (process.platform === 'win32' && fs.existsSync(electronExe)) {
+              electronCmd = electronExe;
+              electronArgs = [tempScript];
+            } else if (fs.existsSync(electronCli)) {
+              // Usar node para executar o cli.js do electron (funciona em todos os sistemas)
+              electronCmd = process.execPath;
+              electronArgs = [electronCli, tempScript];
+            } else {
+              // Usar npx como fallback
+              electronCmd = 'npx';
+              electronArgs = ['--yes', 'electron', tempScript];
+            }
+          } catch (e: any) {
+            // Usar npx como fallback
+            electronCmd = 'npx';
+            electronArgs = ['--yes', 'electron', tempScript];
+          }
+          
+          console.log(`🚀 Executando Electron: ${electronCmd} ${electronArgs.join(' ')}`);
+          
+          const electronProcess = spawn(electronCmd, electronArgs, {
+            stdio: 'inherit',
+            cwd: path.dirname(__dirname),
+            shell: process.platform === 'win32'
+          });
+          
+          electronProcess.on('close', (code: number | null) => {
+            // Limpar script temporário
+            try {
+              if (fs.existsSync(tempScript)) {
+                fs.unlinkSync(tempScript);
+              }
+            } catch (e) {
+              // Ignorar erros de limpeza
+            }
+            process.exit(code || 0);
+          });
+          
+          electronProcess.on('error', (err: any) => {
+            console.error('❌ Erro ao executar Electron:', err.message);
+            console.error('💡 Tentando executar normalmente...\n');
+            // Limpar script temporário
+            try {
+              if (fs.existsSync(tempScript)) {
+                fs.unlinkSync(tempScript);
+              }
+            } catch (e) {
+              // Ignorar erros de limpeza
+            }
+            // Fallback: executar normalmente
+            try {
+              const basePath = path.dirname(filePath);
+              executeCode(code, basePath, args);
+            } catch (execError: any) {
+              handleError(execError, args);
+              process.exit(1);
+            }
+          });
+          
+          return;
+        }
+      } catch (e: any) {
+        // Electron não disponível ou erro ao executar - continuar normalmente
+        console.warn('⚠️  Aviso: GUI detectado mas Electron não disponível. Executando normalmente...\n');
+      }
     }
     
     const basePath = path.dirname(filePath);

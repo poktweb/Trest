@@ -211,7 +211,7 @@ export type Expression =
 
 export interface AssignmentExpression {
   type: 'AssignmentExpression';
-  left: Identifier | IndexExpression;
+  left: Identifier | IndexExpression | MemberExpression;
   operator: '=' | '+=' | '-=' | '*=' | '/=' | '%=';
   right: Expression;
 }

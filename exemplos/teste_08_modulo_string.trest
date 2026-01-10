@@ -1,0 +1,16 @@
+# Teste 8: Módulo String
+# Testa funções de manipulação de strings
+
+импорт * как String измодуля "std/string"
+
+печать("=== Teste 8: Módulo String ===")
+
+# Teste conforme documentação
+пусть текст = "Привет Мир"
+пусть размер = String.размер(текст)      # 11
+печать("Размер: " + размер)
+
+пусть верхний = String.верхний(текст)  # "ПРИВЕТ МИР"
+печать("Верхний: " + верхний)
+
+печать("✅ Teste 8: Módulo String - PASSOU")

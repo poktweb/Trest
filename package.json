@@ -1,12 +1,14 @@
 {
   "name": "treste",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop com suporte a Cirílico. Inclui módulo HTTP opcional para requisições de rede (acesso controlado pelo usuário, documentado em SECURITY.md).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
     "trest": "dist/cli.js",
-    "trestc": "dist/compiler.js"
+    "trestc": "dist/compiler.js",
+    "create-trest-app": "dist/scripts/create-app.js",
+    "create-treste-app": "dist/scripts/create-app.js"
   },
   "scripts": {
     "prebuild": "npm run clean",
@@ -84,6 +86,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "electron": "^28.3.3",
     "minimist": "^1.2.8",
     "readline-sync": "^1.4.10"
   },

@@ -329,6 +329,8 @@ export class WebCompiler {
         return this.compileObjectLiteral(expr);
       case 'MemberExpression':
         return this.compileMemberExpression(expr);
+      case 'FunctionExpression':
+        return this.compileFunctionExpression(expr);
       default:
         throw new Error(`Tipo de expressão não suportado: ${(expr as any).type}`);
     }
@@ -377,6 +379,43 @@ export class WebCompiler {
       ? `[${this.compileExpression(expr.property)}]` 
       : `.${expr.property}`;
     return `${obj}${prop}`;
+  }
+
+  private compileFunctionExpression(expr: any): string {
+    const name = expr.name || '';
+    const params = expr.params.join(', ');
+    
+    // Criar função anônima ou nomeada
+    const funcName = name ? `function ${name}` : 'function';
+    
+    // Compilar o corpo da função em um buffer separado
+    const funcBodyBuffer: string[] = [];
+    const savedOutput = this.output;
+    const savedIndent = this.indentLevel;
+    
+    // Compilar apenas o conteúdo do bloco (sem as chaves externas)
+    this.output = funcBodyBuffer;
+    this.indentLevel = 0; // Sem indentação extra, pois será formatado aqui
+    
+    // Compilar as declarações dentro do bloco
+    for (const stmt of expr.body.body) {
+      this.compileNode(stmt, false);
+    }
+    
+    // Restaurar output e indent originais
+    this.output = savedOutput;
+    this.indentLevel = savedIndent;
+    
+    // Juntar o corpo e adicionar indentação correta
+    const bodyLines = funcBodyBuffer.join('').split('\n').filter(line => line.trim().length > 0);
+    const indentedBody = bodyLines.map(line => {
+      // Remover indentação existente e adicionar indentação correta para função
+      const trimmed = line.trim();
+      return trimmed ? '    ' + trimmed : '';
+    }).join('\n');
+    
+    // Retornar como string de função (com formatação correta)
+    return `${funcName}(${params}) {\n${indentedBody}\n  }`;
   }
 
   private formatLiteral(value: any): string {

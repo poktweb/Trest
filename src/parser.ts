@@ -143,7 +143,7 @@ export class Parser {
     }
   }
 
-  private parseVariableDeclaration(): VariableDeclaration {
+  private parseVariableDeclaration(skipNewlines: boolean = true): VariableDeclaration {
     const kind = this.currentToken().value as 'var' | 'let' | 'const';
     this.advance();
     const name = this.expect(TokenType.IDENTIFIER).value as string;
@@ -154,7 +154,9 @@ export class Parser {
       value = this.parseExpression();
     }
 
-    this.skipNewlines();
+    if (skipNewlines) {
+      this.skipNewlines();
+    }
 
     return {
       type: 'VariableDeclaration',
@@ -309,21 +311,42 @@ export class Parser {
     this.expect(TokenType.LPAREN);
 
     // Verificar se é for...of ou for...in
-    const isForOfOrIn = 
-      (this.currentToken().type === TokenType.VAR ||
-       this.currentToken().type === TokenType.LET ||
-       this.currentToken().type === TokenType.CONST ||
-       this.currentToken().type === TokenType.IDENTIFIER) &&
-      this.peekToken().type === TokenType.OF || this.peekToken().type === TokenType.IN;
+    // Precisamos verificar 2 tokens à frente: após LET/VAR/CONST + IDENTIFIER deve vir OF/IN
+    const currentIsVarLetConst = this.currentToken().type === TokenType.VAR ||
+                                  this.currentToken().type === TokenType.LET ||
+                                  this.currentToken().type === TokenType.CONST;
+    
+    let isForOfOrIn = false;
+    if (currentIsVarLetConst) {
+      // Se temos LET/VAR/CONST, verificar se o token após o IDENTIFIER é OF/IN
+      const peek1 = this.peekToken(); // Deveria ser IDENTIFIER
+      if (peek1 && peek1.type === TokenType.IDENTIFIER) {
+        // Verificar token após o IDENTIFIER (posição + 2)
+        const positionAfterId = this.position + 2;
+        if (positionAfterId < this.tokens.length) {
+          const tokenAfterId = this.tokens[positionAfterId];
+          isForOfOrIn = tokenAfterId.type === TokenType.OF || tokenAfterId.type === TokenType.IN;
+        }
+      }
+    } else if (this.currentToken().type === TokenType.IDENTIFIER) {
+      // Se já temos IDENTIFIER, verificar se o próximo é OF/IN
+      isForOfOrIn = this.peekToken().type === TokenType.OF || this.peekToken().type === TokenType.IN;
+    }
 
     if (isForOfOrIn) {
       // Parse for...of ou for...in
       let left: VariableDeclaration | Identifier;
       
-      if (this.currentToken().type === TokenType.VAR ||
-          this.currentToken().type === TokenType.LET ||
-          this.currentToken().type === TokenType.CONST) {
-        left = this.parseVariableDeclaration();
+      if (currentIsVarLetConst) {
+        // Para for...of/for...in, não deve haver atribuição na declaração
+        const kind = this.currentToken().value as 'var' | 'let' | 'const';
+        this.advance(); // Consumir VAR/LET/CONST
+        const name = this.expect(TokenType.IDENTIFIER).value as string;
+        left = {
+          type: 'VariableDeclaration',
+          kind,
+          name,
+        };
       } else {
         left = {
           type: 'Identifier',
@@ -331,7 +354,13 @@ export class Parser {
         };
       }
 
+      // Pular newlines antes de verificar OF/IN
+      this.skipNewlines();
+      
       const isOf = this.currentToken().type === TokenType.OF;
+      if (!isOf && this.currentToken().type !== TokenType.IN) {
+        throw new Error(`Esperado 'из' ou 'в', mas encontrado: ${this.currentToken().type} na linha ${this.currentToken().line}`);
+      }
       this.advance(); // Consumir OF ou IN
       
       const right = this.parseExpression();
@@ -495,7 +524,7 @@ export class Parser {
       this.advance();
       const right = this.parseAssignment();
 
-      if (expr.type === 'Identifier' || expr.type === 'IndexExpression') {
+      if (expr.type === 'Identifier' || expr.type === 'IndexExpression' || expr.type === 'MemberExpression') {
         // Para operadores compostos, transformar em expressão binária + atribuição
         if (operator !== '=') {
           const binaryOp = operator.slice(0, -1) as '+' | '-' | '*' | '/' | '%';
@@ -520,7 +549,7 @@ export class Parser {
         };
       }
 
-      throw new Error('Lado esquerdo da atribuição deve ser um identificador');
+      throw new Error('Lado esquerdo da atribuição deve ser um identificador, índice de array ou membro de objeto');
     }
 
     return expr;
@@ -793,7 +822,8 @@ export class Parser {
         };
 
       case TokenType.IDENTIFIER:
-        const name = token.value as string;
+      case TokenType.THIS:
+        const name = token.type === TokenType.THIS ? 'это' : (token.value as string);
         this.advance();
         return { type: 'Identifier', name };
 

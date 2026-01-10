@@ -27,6 +27,7 @@ import {
   Literal,
   ArrayLiteral,
   IndexExpression,
+  MemberExpression,
 } from './ast';
 import { StdModules } from './std-native';
 import * as fs from 'fs';
@@ -530,6 +531,19 @@ export class Interpreter {
       }
       
       array[index] = value;
+    } else if (expr.left.type === 'MemberExpression') {
+      const memberExpr = expr.left as MemberExpression;
+      const object = this.evaluateExpression(memberExpr.object, env);
+      const property = memberExpr.computed 
+        ? this.evaluateExpression(memberExpr.property as Expression, env)
+        : memberExpr.property;
+      
+      if (object === null || object === undefined) {
+        throw new Error('Não é possível atribuir propriedade a null ou undefined');
+      }
+      
+      const key = String(property);
+      (object as any)[key] = value;
     }
 
     return value;
@@ -1249,8 +1263,42 @@ export class Interpreter {
               создатьОбещание: StdModules.Async.createPromise.bind(StdModules.Async),
             },
             'gui': {
+              criarТерминал: StdModules.GUI.createTerminal.bind(StdModules.GUI),
+              создатьТерминал: StdModules.GUI.createTerminal.bind(StdModules.GUI),
               создатьОкно: StdModules.GUI.createWindow.bind(StdModules.GUI),
+              criarJanela: StdModules.GUI.createWindow.bind(StdModules.GUI),
+              criarJanelaProgramática: StdModules.GUI.createProgrammaticWindow.bind(StdModules.GUI),
+              criarJanelaProgramatica: StdModules.GUI.createProgrammaticWindow.bind(StdModules.GUI),
               создатьКнопку: StdModules.GUI.createButton.bind(StdModules.GUI),
+              criarBotão: StdModules.GUI.createButton.bind(StdModules.GUI),
+              Button: StdModules.GUI.Button.bind(StdModules.GUI),
+              создатьТекст: StdModules.GUI.createText.bind(StdModules.GUI),
+              criarTexto: StdModules.GUI.createText.bind(StdModules.GUI),
+              Input: StdModules.GUI.Input.bind(StdModules.GUI),
+              criarCampoTexto: StdModules.GUI.Input.bind(StdModules.GUI),
+              создатьСписок: StdModules.GUI.createList.bind(StdModules.GUI),
+              criarLista: StdModules.GUI.createList.bind(StdModules.GUI),
+              Label: StdModules.GUI.Label.bind(StdModules.GUI),
+              criarRótulo: StdModules.GUI.Label.bind(StdModules.GUI),
+              VBox: StdModules.GUI.VBox.bind(StdModules.GUI),
+              criarVBox: StdModules.GUI.VBox.bind(StdModules.GUI),
+              HBox: StdModules.GUI.HBox.bind(StdModules.GUI),
+              criarHBox: StdModules.GUI.HBox.bind(StdModules.GUI),
+              Grid: StdModules.GUI.Grid.bind(StdModules.GUI),
+              criarGrid: StdModules.GUI.Grid.bind(StdModules.GUI),
+              Widget: StdModules.GUI.Widget.bind(StdModules.GUI),
+              criarWidget: StdModules.GUI.Widget.bind(StdModules.GUI),
+              компонентКонтейнер: StdModules.GUI.componentContainer.bind(StdModules.GUI),
+              container: StdModules.GUI.componentContainer.bind(StdModules.GUI),
+              компонентМетка: StdModules.GUI.componentLabel.bind(StdModules.GUI),
+              label: StdModules.GUI.componentLabel.bind(StdModules.GUI),
+              компонентИзображение: StdModules.GUI.componentImage.bind(StdModules.GUI),
+              imagem: StdModules.GUI.componentImage.bind(StdModules.GUI),
+              manterRodando: StdModules.GUI.keepRunning.bind(StdModules.GUI),
+              mantenerEjecutando: StdModules.GUI.keepRunning.bind(StdModules.GUI),
+              keepRunning: StdModules.GUI.keepRunning.bind(StdModules.GUI),
+              renderizarComponente: StdModules.GUI.renderComponentToHTML.bind(StdModules.GUI),
+              renderComponent: StdModules.GUI.renderComponentToHTML.bind(StdModules.GUI),
             },
             'database': {
               открытьБД: StdModules.Database.openDB.bind(StdModules.Database),
@@ -1317,14 +1365,51 @@ export class Interpreter {
               печать: StdModules.IO.print.bind(StdModules.IO),
               печатьВстроенный: StdModules.IO.printInline.bind(StdModules.IO),
             },
+            'math': {
+              abs: Math.abs,
+              max: Math.max,
+              min: Math.min,
+              pow: Math.pow,
+              sqrt: Math.sqrt,
+              ceil: Math.ceil,
+              floor: Math.floor,
+              round: Math.round,
+              PI: Math.PI,
+              E: Math.E,
+            },
+            'string': {
+              size: (str: string) => str.length,
+              размер: (str: string) => str.length,
+              upper: (str: string) => str.toUpperCase(),
+              верхний: (str: string) => str.toUpperCase(),
+              lower: (str: string) => str.toLowerCase(),
+              нижний: (str: string) => str.toLowerCase(),
+              trim: (str: string) => str.trim(),
+              substring: (str: string, start: number, end?: number) => str.substring(start, end),
+            },
+            'array': {
+              push: (arr: any[], item: any) => { arr.push(item); return arr; },
+              добавить: (arr: any[], item: any) => { arr.push(item); return arr; },
+              pop: (arr: any[]) => arr.pop(),
+              sort: (arr: any[]) => [...arr].sort((a, b) => a > b ? 1 : a < b ? -1 : 0),
+              отсортировать: (arr: any[]) => [...arr].sort((a, b) => a > b ? 1 : a < b ? -1 : 0),
+              reverse: (arr: any[]) => [...arr].reverse(),
+              обратить: (arr: any[]) => [...arr].reverse(),
+            },
           };
           
           const moduleValue = moduleMap[moduleName] || {};
-          env.variables.set(localName, moduleValue);
+          if (moduleValue && Object.keys(moduleValue).length > 0) {
+            env.variables.set(localName, moduleValue);
+            return null; // Módulo nativo carregado com sucesso
+          }
         }
       }
+      // Se chegou aqui e não encontrou módulo nativo, tentar carregar .trest como fallback
+      // (mas para std/ sempre priorizar nativos, então apenas log se debug)
     }
     
+    // Para módulos não-std, continuar com o carregamento normal de .trest
     return null;
   }
 

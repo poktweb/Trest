@@ -31,6 +31,24 @@ function addShebang() {
   });
 }
 
+// Copiar script create-app.js para dist/scripts
+function copyCreateAppScript() {
+  const srcScript = path.join(__dirname, 'create-app.js');
+  const distScriptsDir = path.join(__dirname, '..', 'dist', 'scripts');
+  const distScript = path.join(distScriptsDir, 'create-app.js');
+  
+  if (fs.existsSync(srcScript)) {
+    // Criar pasta dist/scripts se não existir
+    if (!fs.existsSync(distScriptsDir)) {
+      fs.mkdirSync(distScriptsDir, { recursive: true });
+    }
+    
+    // Copiar arquivo
+    fs.copyFileSync(srcScript, distScript);
+    console.log('✅ Copied create-app.js');
+  }
+}
+
 // Verificar arquivos gerados
 function verifyBuild() {
   const requiredFiles = [
@@ -82,6 +100,7 @@ try {
   addShebang();
   verifyBuild();
   copyStdModules();
+  copyCreateAppScript();
   console.log('\n✅ Post-build complete!\n');
 } catch (error) {
   console.error('❌ Post-build error:', error.message);

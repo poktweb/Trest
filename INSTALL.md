@@ -39,9 +39,39 @@ trest arquivo.trest
 trestc arquivo.trest --mode web
 ```
 
-### Opção 2: Instalação Local em Projeto
+### Opção 2: Criar Novo Projeto com create-trest-app (Recomendado para Novos Projetos)
 
-Para usar o Trest apenas em um projeto específico:
+Crie um novo projeto Trest localmente com estrutura completa:
+
+```bash
+npx create-trest-app meu-projeto
+```
+
+ou
+
+```bash
+npx create-treste-app meu-projeto
+```
+
+Isso criará:
+- ✅ Estrutura de pastas (`src/`, `exemplos/`)
+- ✅ Arquivo principal (`src/main.trest`)
+- ✅ Exemplo de código (`exemplos/exemplo.trest`)
+- ✅ `package.json` configurado com scripts
+- ✅ `README.md` com instruções
+- ✅ Instalação local do Trest (versão atualizada)
+
+**Entrar no projeto e executar:**
+```bash
+cd meu-projeto
+npm start
+```
+
+Veja [CREATE_APP.md](CREATE_APP.md) para mais informações.
+
+### Opção 3: Instalação Local em Projeto Existente
+
+Para usar o Trest em um projeto já existente:
 
 ```bash
 npm install treste
@@ -53,7 +83,7 @@ npx trest arquivo.trest
 npx trestc arquivo.trest --mode web
 ```
 
-### Opção 3: Instalação a partir do Código Fonte
+### Opção 4: Instalação a partir do Código Fonte
 
 Se você quer contribuir ou customizar o Trest:
 
@@ -95,7 +125,7 @@ O Trest cria automaticamente um arquivo `.trestrc` na primeira execução:
 
 ```json
 {
-  "version": "2.4.8",
+  "version": "2.4.9",
   "compiler": {
     "web": {
       "minify": false,
@@ -220,6 +250,7 @@ npm uninstall treste
 Depois de instalar, consulte:
 
 - [README.md](README.md) - Visão geral do projeto
+- [CREATE_APP.md](CREATE_APP.md) - Como criar novos projetos com `create-trest-app`
 - [DOCUMENTACAO_COMPLETA.md](DOCUMENTACAO_COMPLETA.md) - Documentação completa unificada
 
 ## 💡 Dicas

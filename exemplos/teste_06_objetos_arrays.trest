@@ -1,0 +1,24 @@
+# Teste 6: Objetos e Arrays
+# Testa criação e manipulação de objetos e arrays
+
+печать("=== Teste 6: Objetos e Arrays ===")
+
+# Teste objetos (conforme documentação - usando = em vez de :)
+пусть человек = {
+    имя = "Иван",
+    возраст = 30,
+    город = "Москва"
+}
+
+печать(человек.имя)  # "Иван"
+печать("Имя: " + человек.имя)
+
+# Teste arrays (conforme documentação)
+пусть числа = [1, 2, 3, 4, 5]
+печать(числа[0])  # 1
+
+# Teste atribuição direta (conforme documentação)
+числа[0] = 10
+печать(числа)  # [10, 2, 3, 4, 5]
+
+печать("✅ Teste 6: Objetos e Arrays - PASSOU")

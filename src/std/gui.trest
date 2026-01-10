@@ -67,3 +67,8 @@
     }
 }
 
+# Manter aplicação rodando (requer implementação nativa)
+экспорт функция manterRodando() {
+    # Esta função requer implementação nativa
+    вернуть нуль
+}

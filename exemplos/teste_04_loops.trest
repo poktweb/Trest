@@ -1,0 +1,28 @@
+# Teste 4: Loops
+# Testa while, for, for...of, for...in
+
+печать("=== Teste 4: Loops ===")
+
+# Teste while (conforme documentação)
+печать("While loop:")
+пусть i = 0
+пока (i < 10) {
+    печать(i)
+    i = i + 1
+}
+
+# Teste for...of (arrays) - Conforme documentação
+печать("For...of loop:")
+пусть numeros = [10, 20, 30]
+для (пусть num из numeros) {
+    печать("Número: " + num)
+}
+
+# Teste for...in (objetos) - Conforme documentação
+печать("For...in loop:")
+пусть pessoa = { nome = "João", idade = 30, cidade = "São Paulo" }
+для (пусть chave в pessoa) {
+    печать(chave + ": " + pessoa[chave])
+}
+
+печать("✅ Teste 4: Loops - PASSOU")

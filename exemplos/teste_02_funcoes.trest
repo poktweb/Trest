@@ -1,0 +1,25 @@
+# Teste 2: Funções
+# Testa declaração e chamada de funções
+
+печать("=== Teste 2: Funções ===")
+
+# Função simples
+функция сложить(a, b) {
+    вернуть a + b
+}
+
+пусть результат = сложить(5, 3)
+печать("5 + 3 = " + результат)
+печать(результат)
+
+# Função com múltiplos retornos
+функция calcular(a, b) {
+    пусть soma = a + b
+    пусть produto = a * b
+    вернуть { soma = soma, produto = produto }
+}
+
+пусть calc = calcular(4, 5)
+печать("Soma: " + calc.soma + ", Produto: " + calc.produto)
+
+печать("✅ Teste 2: Funções - PASSOU")

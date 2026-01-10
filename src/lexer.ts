@@ -171,6 +171,9 @@ export class Lexer {
     'из': TokenType.OF,
     'нуль': TokenType.NULL,
     'неопределен': TokenType.UNDEFINED,
+    // Aliases e variantes
+    'константа': TokenType.CONST,
+    'вариавель': TokenType.VAR,
   };
 
   constructor(input: string) {

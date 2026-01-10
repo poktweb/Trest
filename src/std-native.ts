@@ -401,10 +401,87 @@ export class StdAsync {
 
 /**
  * ========================================
- * GUI Module - Interface Gráfica
+ * GUI Module - Interface Gráfica Desktop com Electron
  * ========================================
  */
+
+// Variáveis globais para Electron
+let electronModule: any = null;
+let BrowserWindow: any = null;
+let app: any = null;
+
+function loadElectron(): boolean {
+  // Se já carregado e disponível, retornar true
+  if (electronModule && app && BrowserWindow) {
+    // Verificar se app.isReady() ou se está disponível
+    if (app && typeof app.isReady === 'function') {
+      return true;
+    }
+  }
+
+  try {
+    // Tentar carregar Electron
+    electronModule = require('electron');
+    if (electronModule) {
+      // Tentar acessar app e BrowserWindow
+      // Quando executado através do Node.js (não Electron main process),
+      // app e BrowserWindow podem não estar disponíveis diretamente
+      if (electronModule.app) {
+        app = electronModule.app;
+      }
+      if (electronModule.BrowserWindow) {
+        BrowserWindow = electronModule.BrowserWindow;
+      }
+      
+      // Se temos Electron instalado mas app/BrowserWindow não estão disponíveis,
+      // ainda podemos tentar usá-los (pode funcionar em contexto Electron)
+      if (electronModule && electronModule.app && electronModule.BrowserWindow) {
+        app = electronModule.app;
+        BrowserWindow = electronModule.BrowserWindow;
+        return true;
+      }
+      
+      // Se app ou BrowserWindow não estão disponíveis, retornar false
+      // Isso significa que não estamos no contexto Electron main process
+      return false;
+    }
+  } catch (e: any) {
+    // Electron não instalado
+    return false;
+  }
+
+  return false;
+}
+
 export class StdGUI {
+  private static windows: Map<number, any> = new Map();
+  private static windowCounter: number = 0;
+  private static appReady: boolean = false;
+
+  /**
+   * Initialize Electron app
+   */
+  private static ensureAppReady(): Promise<boolean> {
+    if (!loadElectron()) {
+      console.error('❌ Electron não está instalado. Para usar GUI desktop, instale: npm install electron');
+      return Promise.resolve(false);
+    }
+
+    if (this.appReady) {
+      return Promise.resolve(true);
+    }
+
+    if (app.isReady()) {
+      this.appReady = true;
+      return Promise.resolve(true);
+    }
+
+    return app.whenReady().then(() => {
+      this.appReady = true;
+      return true;
+    });
+  }
+
   /**
    * Create Terminal
    */
@@ -414,7 +491,6 @@ export class StdGUI {
         console.clear();
       },
       printAt: (x: number, y: number, text: string) => {
-        // Basic terminal positioning
         process.stdout.write(`\x1b[${y};${x}H${text}`);
       },
       getHeight: () => process.stdout.rows || 24,
@@ -423,54 +499,257 @@ export class StdGUI {
   }
 
   /**
-   * Create Window (placeholder)
+   * Create Desktop Window with Electron
    */
   static createWindow(options: any): any {
-    console.log(`Creating window: ${options.title || 'Untitled'}`);
+    const title = options.title || options.título || 'Janela Trest';
+    const width = options.width || options.largura || 800;
+    const height = options.height || options.altura || 600;
+    const resizable = options.resizable !== false;
+    const center = options.center !== false;
+    const minWidth = options.minWidth || options.larguraMinima || undefined;
+    const minHeight = options.minHeight || options.alturaMinima || undefined;
+    const maxWidth = options.maxWidth || options.larguraMaxima || undefined;
+    const maxHeight = options.maxHeight || options.alturaMaxima || undefined;
+    const fullscreen = options.fullscreen || options.telaCheia || false;
+    const alwaysOnTop = options.alwaysOnTop || options.sempreNoTopo || false;
+
+    const winId = ++this.windowCounter;
+    let browserWindow: any = null;
+
+    // Check if Electron is available
+    if (!loadElectron()) {
+      return this.createFallbackWindow(options);
+    }
+
+    // Create window wrapper object immediately (window will be created when app is ready)
+    const windowWrapper: any = {
+      id: winId,
+      _pending: true,
+      _options: options,
+      show: () => {
+        if (browserWindow) {
+          browserWindow.show();
+        } else if (windowWrapper._pending) {
+          windowWrapper._pendingShow = true;
+        }
+      },
+      hide: () => {
+        if (browserWindow) {
+          browserWindow.hide();
+        }
+      },
+      close: () => {
+        if (browserWindow) {
+          browserWindow.close();
+          this.windows.delete(winId);
+        }
+      },
+      loadHTML: (html: string) => {
+        if (browserWindow) {
+          browserWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+        } else {
+          windowWrapper._pendingHTML = html;
+        }
+      },
+      loadFile: (filePath: string) => {
+        if (browserWindow) {
+          browserWindow.loadFile(filePath);
+        } else {
+          windowWrapper._pendingFile = filePath;
+        }
+      },
+      loadURL: (url: string) => {
+        if (browserWindow) {
+          browserWindow.loadURL(url);
+        } else {
+          windowWrapper._pendingURL = url;
+        }
+      },
+      setTitle: (newTitle: string) => {
+        if (browserWindow) {
+          browserWindow.setTitle(newTitle);
+        } else {
+          windowWrapper._pendingTitle = newTitle;
+        }
+      },
+      setSize: (w: number, h: number) => {
+        if (browserWindow) {
+          browserWindow.setSize(w, h);
+        }
+      },
+      setMinimumSize: (w: number, h: number) => {
+        if (browserWindow) {
+          browserWindow.setMinimumSize(w, h);
+        }
+      },
+      setMaximumSize: (w: number, h: number) => {
+        if (browserWindow) {
+          browserWindow.setMaximumSize(w, h);
+        }
+      },
+      minimize: () => {
+        if (browserWindow) browserWindow.minimize();
+      },
+      maximize: () => {
+        if (browserWindow) browserWindow.maximize();
+      },
+      restore: () => {
+        if (browserWindow) browserWindow.restore();
+      },
+      focus: () => {
+        if (browserWindow) browserWindow.focus();
+      },
+      on: (event: string, callback: Function) => {
+        if (browserWindow) {
+          browserWindow.on(event, callback);
+        }
+      },
+      webContents: null,
+    };
+
+    // Initialize app and create window in background
+    this.ensureAppReady().then((isReady) => {
+      if (!isReady) {
+        return;
+      }
+
+      try {
+        browserWindow = new BrowserWindow({
+          width: width,
+          height: height,
+          title: title,
+          resizable: resizable,
+          center: center,
+          minWidth: minWidth,
+          minHeight: minHeight,
+          maxWidth: maxWidth,
+          maxHeight: maxHeight,
+          fullscreen: fullscreen,
+          alwaysOnTop: alwaysOnTop,
+          webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            webSecurity: false,
+          },
+          show: false,
+        });
+
+        this.windows.set(winId, browserWindow);
+        windowWrapper._pending = false;
+        windowWrapper.webContents = browserWindow.webContents;
+
+        browserWindow.on('closed', () => {
+          this.windows.delete(winId);
+          browserWindow = null;
+        });
+
+        // Apply pending operations
+        if (windowWrapper._pendingHTML) {
+          browserWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(windowWrapper._pendingHTML)}`);
+        } else if (windowWrapper._pendingFile) {
+          browserWindow.loadFile(windowWrapper._pendingFile);
+        } else if (windowWrapper._pendingURL) {
+          browserWindow.loadURL(windowWrapper._pendingURL);
+        }
+
+        if (windowWrapper._pendingTitle) {
+          browserWindow.setTitle(windowWrapper._pendingTitle);
+        }
+
+        if (windowWrapper._pendingShow) {
+          browserWindow.show();
+        }
+      } catch (error: any) {
+        console.error('❌ Erro ao criar janela Electron:', error.message);
+      }
+    });
+
+    return windowWrapper;
+  }
+
+  /**
+   * Fallback window (quando Electron não está disponível)
+   */
+  private static createFallbackWindow(options: any): any {
+    console.warn('⚠️  Electron não disponível - usando modo fallback');
     return {
-      show: () => console.log('Window shown'),
-      hide: () => console.log('Window hidden'),
-      close: () => console.log('Window closed'),
-      addComponent: (component: any) => {
-        console.log('Component added', component);
+      id: ++this.windowCounter,
+      show: () => console.log('Window shown (fallback mode)'),
+      hide: () => console.log('Window hidden (fallback mode)'),
+      close: () => console.log('Window closed (fallback mode)'),
+      loadHTML: (html: string) => console.log('HTML loaded (fallback mode)'),
+      loadFile: (filePath: string) => console.log(`File loaded: ${filePath} (fallback mode)`),
+      loadURL: (url: string) => console.log(`URL loaded: ${url} (fallback mode)`),
+      setTitle: (title: string) => console.log(`Title set: ${title} (fallback mode)`),
+      setSize: () => {},
+      setMinimumSize: () => {},
+      setMaximumSize: () => {},
+      minimize: () => {},
+      maximize: () => {},
+      restore: () => {},
+      focus: () => {},
+      on: () => {},
+      webContents: null,
+    };
+  }
+
+  /**
+   * Create Button (HTML-based)
+   */
+  static createButton(text: string, onClick: Function): any {
+    return {
+      type: 'button',
+      text: text,
+      onClick: onClick,
+      disabled: false,
+      disable: function() {
+        this.disabled = true;
+      },
+      enable: function() {
+        this.disabled = false;
+      },
+      setText: function(newText: string) {
+        this.text = newText;
       },
     };
   }
 
   /**
-   * Create Button
-   */
-  static createButton(text: string, onClick: Function): any {
-    return {
-      text,
-      click: onClick,
-      disable: () => console.log(`Button "${text}" disabled`),
-      enable: () => console.log(`Button "${text}" enabled`),
-    };
-  }
-
-  /**
-   * Create Text Input
+   * Create Text Input (HTML-based)
    */
   static createText(placeholder: string, onChange: Function): any {
     return {
+      type: 'text',
+      placeholder: placeholder,
       value: '',
-      change: onChange,
-      focus: () => console.log('Text focused'),
-      blur: () => console.log('Text blurred'),
+      onChange: onChange,
+      setValue: function(newValue: string) {
+        this.value = newValue;
+      },
+      focus: function() {},
+      blur: function() {},
     };
   }
 
   /**
-   * Create List
+   * Create List (HTML-based)
    */
   static createList(data: any[], onSelect: Function): any {
     return {
-      data,
-      select: onSelect,
-      update: (newData: any[]) => {
-        data = newData;
-        console.log('List updated');
+      type: 'list',
+      data: data || [],
+      onSelect: onSelect,
+      update: function(newData: any[]) {
+        this.data = newData || [];
+      },
+      add: function(item: any) {
+        this.data.push(item);
+      },
+      remove: function(index: number) {
+        if (index >= 0 && index < this.data.length) {
+          this.data.splice(index, 1);
+        }
       },
     };
   }
@@ -480,13 +759,17 @@ export class StdGUI {
    */
   static componentContainer(children: any[]): any {
     return {
-      children,
-      add: (component: any) => {
-        children.push(component);
+      type: 'container',
+      children: children || [],
+      add: function(component: any) {
+        this.children.push(component);
       },
-      remove: (component: any) => {
-        const index = children.indexOf(component);
-        if (index > -1) children.splice(index, 1);
+      remove: function(component: any) {
+        const index = this.children.indexOf(component);
+        if (index > -1) this.children.splice(index, 1);
+      },
+      clear: function() {
+        this.children = [];
       },
     };
   }
@@ -495,7 +778,13 @@ export class StdGUI {
    * Component Label
    */
   static componentLabel(text: string): any {
-    return { text };
+    return {
+      type: 'label',
+      text: text,
+      setText: function(newText: string) {
+        this.text = newText;
+      },
+    };
   }
 
   /**
@@ -503,10 +792,458 @@ export class StdGUI {
    */
   static componentImage(src: string): any {
     return {
-      src,
-      show: () => console.log(`Image shown: ${src}`),
-      hide: () => console.log(`Image hidden: ${src}`),
+      type: 'image',
+      src: src,
+      visible: true,
+      show: function() {
+        this.visible = true;
+      },
+      hide: function() {
+        this.visible = false;
+      },
+      setSrc: function(newSrc: string) {
+        this.src = newSrc;
+      },
     };
+  }
+
+  /**
+   * Helper: Render components to HTML
+   */
+  static renderComponentToHTML(component: any): string {
+    if (!component) return '';
+
+    switch (component.type) {
+      case 'button':
+        return `<button onclick="window.trestGuiClickHandler(${JSON.stringify(component.text)})" ${component.disabled ? 'disabled' : ''}>${component.text}</button>`;
+      
+      case 'text':
+        return `<input type="text" placeholder="${component.placeholder || ''}" value="${component.value || ''}" onchange="window.trestGuiChangeHandler(this.value)" />`;
+      
+      case 'label':
+        return `<label>${component.text || ''}</label>`;
+      
+      case 'image':
+        if (!component.visible) return '';
+        return `<img src="${component.src || ''}" alt="" />`;
+      
+      case 'list':
+        const items = (component.data || []).map((item: any, index: number) => 
+          `<li onclick="window.trestGuiSelectHandler(${index})">${item}</li>`
+        ).join('');
+        return `<ul>${items}</ul>`;
+      
+      case 'container':
+        const childrenHTML = (component.children || []).map((child: any) => 
+          this.renderComponentToHTML(child)
+        ).join('');
+        return `<div>${childrenHTML}</div>`;
+      
+      default:
+        return '';
+    }
+  }
+
+  /**
+   * Keep app running (prevents Electron from closing)
+   */
+  static keepRunning(): void {
+    if (!loadElectron() || !app) {
+      console.warn('⚠️  Electron não disponível para manterRodando()');
+      return;
+    }
+
+    app.on('window-all-closed', () => {
+      // On macOS, apps typically stay active
+      if (process.platform !== 'darwin') {
+        // Keep running - don't quit automatically
+      }
+    });
+  }
+
+  /**
+   * Create Widget (base class for all GUI components)
+   * Allows creating GUI programmatically without HTML
+   */
+  static Widget(type: string, props: any = {}): any {
+    return {
+      type: type,
+      props: props || {},
+      children: [],
+      id: `widget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      setText: function(text: string) {
+        this.props.text = text;
+        this.update();
+      },
+      setVisible: function(visible: boolean) {
+        this.props.visible = visible !== false;
+        this.update();
+      },
+      setEnabled: function(enabled: boolean) {
+        this.props.enabled = enabled !== false;
+        this.update();
+      },
+      addChild: function(child: any) {
+        this.children.push(child);
+        this.update();
+      },
+      removeChild: function(child: any) {
+        const index = this.children.indexOf(child);
+        if (index > -1) {
+          this.children.splice(index, 1);
+          this.update();
+        }
+      },
+      update: function() {
+        // Update será implementado quando widget for adicionado a uma janela
+        if (this._parentWindow) {
+          this._parentWindow._updateGUI();
+        }
+      },
+      toHTML: function(): string {
+        return this._renderToHTML();
+      },
+      _renderToHTML: function(): string {
+        // Implementação base - será sobrescrita por widgets específicos
+        return '';
+      }
+    };
+  }
+
+  /**
+   * Create Button Widget (programmatic)
+   */
+  static Button(text: string, onClick?: Function): any {
+    const widget = this.Widget('button', {
+      text: text || '',
+      onClick: onClick,
+      enabled: true,
+      visible: true,
+      style: {}
+    });
+    
+    widget._renderToHTML = function(): string {
+      const style = this.props.style || {};
+      const styleStr = Object.keys(style).map(k => `${k}:${style[k]}`).join(';');
+      const disabled = this.props.enabled === false ? 'disabled' : '';
+      const onclick = this.props.onClick ? `onclick="window.trestGuiButtonClick('${this.id}')"` : '';
+      return `<button id="${this.id}" ${onclick} ${disabled} style="${styleStr}">${this.props.text || ''}</button>`;
+    };
+    
+    return widget;
+  }
+
+  /**
+   * Create Label Widget (programmatic)
+   */
+  static Label(text: string): any {
+    const widget = this.Widget('label', {
+      text: text || '',
+      visible: true,
+      style: {}
+    });
+    
+    widget._renderToHTML = function(): string {
+      const style = this.props.style || {};
+      const styleStr = Object.keys(style).map(k => `${k}:${style[k]}`).join(';');
+      return `<label id="${this.id}" style="${styleStr}">${this.props.text || ''}</label>`;
+    };
+    
+    return widget;
+  }
+
+  /**
+   * Create Input Widget (programmatic)
+   */
+  static Input(placeholder: string = '', onChange?: Function): any {
+    const widget = this.Widget('input', {
+      placeholder: placeholder || '',
+      value: '',
+      onChange: onChange,
+      enabled: true,
+      visible: true,
+      type: 'text',
+      style: {}
+    });
+    
+    widget.setValue = function(value: string) {
+      this.props.value = value;
+      this.update();
+    };
+    
+    widget.getValue = function(): string {
+      return this.props.value || '';
+    };
+    
+    widget._renderToHTML = function(): string {
+      const style = this.props.style || {};
+      const styleStr = Object.keys(style).map(k => `${k}:${style[k]}`).join(';');
+      const disabled = this.props.enabled === false ? 'disabled' : '';
+      const onchange = this.props.onChange ? `onchange="window.trestGuiInputChange('${this.id}', this.value)"` : '';
+      return `<input id="${this.id}" type="${this.props.type || 'text'}" placeholder="${this.props.placeholder || ''}" value="${this.props.value || ''}" ${onchange} ${disabled} style="${styleStr}">`;
+    };
+    
+    return widget;
+  }
+
+  /**
+   * Create VBox Layout (vertical box - like PySide6)
+   */
+  static VBox(children: any[] = [], spacing: number = 0): any {
+    const widget = this.Widget('vbox', {
+      spacing: spacing || 0,
+      alignment: 'top'
+    });
+    
+    widget.children = children || [];
+    
+    widget._renderToHTML = function(): string {
+      const spacing = this.props.spacing || 0;
+      const style = `display: flex; flex-direction: column; gap: ${spacing}px;`;
+      const childrenHTML = this.children.map((child: any) => {
+        if (child && typeof child.toHTML === 'function') {
+          return child.toHTML();
+        }
+        return typeof child === 'string' ? child : '';
+      }).join('');
+      return `<div id="${this.id}" style="${style}">${childrenHTML}</div>`;
+    };
+    
+    return widget;
+  }
+
+  /**
+   * Create HBox Layout (horizontal box - like PySide6)
+   */
+  static HBox(children: any[] = [], spacing: number = 0): any {
+    const widget = this.Widget('hbox', {
+      spacing: spacing || 0,
+      alignment: 'left'
+    });
+    
+    widget.children = children || [];
+    
+    widget._renderToHTML = function(): string {
+      const spacing = this.props.spacing || 0;
+      const style = `display: flex; flex-direction: row; gap: ${spacing}px;`;
+      const childrenHTML = this.children.map((child: any) => {
+        if (child && typeof child.toHTML === 'function') {
+          return child.toHTML();
+        }
+        return typeof child === 'string' ? child : '';
+      }).join('');
+      return `<div id="${this.id}" style="${style}">${childrenHTML}</div>`;
+    };
+    
+    return widget;
+  }
+
+  /**
+   * Create Grid Layout (like PySide6)
+   */
+  static Grid(rows: number = 1, cols: number = 1, spacing: number = 0): any {
+    const widget = this.Widget('grid', {
+      rows: rows || 1,
+      cols: cols || 1,
+      spacing: spacing || 0
+    });
+    
+    widget.children = [];
+    widget._grid = Array(rows).fill(null).map(() => Array(cols).fill(null));
+    
+    widget.addWidget = function(child: any, row: number, col: number, rowSpan: number = 1, colSpan: number = 1) {
+      if (row >= 0 && row < this.props.rows && col >= 0 && col < this.props.cols) {
+        this.children.push({ widget: child, row, col, rowSpan, colSpan });
+        this._grid[row][col] = child;
+        this.update();
+      }
+    };
+    
+    widget._renderToHTML = function(): string {
+      const spacing = this.props.spacing || 0;
+      const style = `display: grid; grid-template-rows: repeat(${this.props.rows}, 1fr); grid-template-columns: repeat(${this.props.cols}, 1fr); gap: ${spacing}px;`;
+      
+      // Renderizar widgets nos lugares corretos do grid
+      const gridItems = Array(this.props.rows * this.props.cols).fill('<div></div>');
+      
+      this.children.forEach((item: any) => {
+        const index = item.row * this.props.cols + item.col;
+        const rowSpan = item.rowSpan || 1;
+        const colSpan = item.colSpan || 1;
+        const gridArea = `${item.row + 1} / ${item.col + 1} / ${item.row + rowSpan + 1} / ${item.col + colSpan + 1}`;
+        const childHTML = item.widget && typeof item.widget.toHTML === 'function' 
+          ? item.widget.toHTML() 
+          : '';
+        gridItems[index] = `<div style="grid-area: ${gridArea}">${childHTML}</div>`;
+      });
+      
+      return `<div id="${this.id}" style="${style}">${gridItems.join('')}</div>`;
+    };
+    
+    return widget;
+  }
+
+  /**
+   * Create Programmatic Window (without HTML dependency)
+   * This allows creating windows and adding widgets programmatically
+   */
+  static createProgrammaticWindow(options: any): any {
+    const title = options.title || options.título || 'Janela Trest';
+    const width = options.width || options.largura || 800;
+    const height = options.height || options.altura || 600;
+    
+    // Create window normally
+    const window = this.createWindow(options);
+    
+    // Add programmatic methods
+    window._widgets = [];
+    window._layout = null;
+    window._useProgrammatic = true;
+    
+    window.setLayout = function(layout: any) {
+      this._layout = layout;
+      if (layout && layout._parentWindow) {
+        layout._parentWindow = this;
+      }
+      this._updateGUI();
+    };
+    
+    window.addWidget = function(widget: any) {
+      this._widgets.push(widget);
+      if (widget && widget._parentWindow) {
+        widget._parentWindow = this;
+      }
+      this._updateGUI();
+    };
+    
+    window.removeWidget = function(widget: any) {
+      const index = this._widgets.indexOf(widget);
+      if (index > -1) {
+        this._widgets.splice(index, 1);
+        this._updateGUI();
+      }
+    };
+    
+    window.clear = function() {
+      this._widgets = [];
+      this._layout = null;
+      this._updateGUI();
+    };
+    
+      window._updateGUI = function() {
+      // Gerar HTML automaticamente dos widgets
+      let contentHTML = '';
+      
+      if (this._layout) {
+        // Se há um layout, renderizar o layout
+        if (this._layout.toHTML) {
+          contentHTML = this._layout.toHTML();
+        }
+      } else {
+        // Senão, renderizar widgets diretamente
+        contentHTML = this._widgets.map((w: any) => {
+          if (w && typeof w.toHTML === 'function') {
+            return w.toHTML();
+          }
+          return '';
+        }).join('');
+      }
+      
+      // Criar HTML completo
+      const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-height: calc(100vh - 40px);
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${contentHTML}
+    </div>
+    
+    <script>
+        // Handlers para widgets programáticos
+        window.trestGuiButtonClick = function(widgetId) {
+            // Callback será implementado quando widget for criado
+            console.log('Button clicked:', widgetId);
+        };
+        
+        window.trestGuiInputChange = function(widgetId, value) {
+            console.log('Input changed:', widgetId, value);
+        };
+    </script>
+</body>
+</html>`;
+      
+      // Atualizar janela com HTML gerado
+      if (this.loadHTML) {
+        this.loadHTML(html);
+      }
+    };
+    
+    return window;
   }
 }
 

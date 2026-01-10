@@ -50,30 +50,158 @@ export class ExeCompiler {
   }
 
   private createWrapper(jsPath: string): string {
-    return `
-const fs = require('fs');
-const path = require('path');
+    // Criar wrapper que inclui o código diretamente e garante execução correta
+    const jsCode = fs.readFileSync(jsPath, 'utf-8');
+    
+    // Detectar se o código usa GUI (Electron) ou servidor HTTP
+    const usesGUI = /GUI\.|создатьОкно|createWindow|createProgrammaticWindow|manterRodando|keepRunning/i.test(jsCode);
+    const usesServer = /createServer|\.listen\(/i.test(jsCode);
+    
+    // Criar wrapper que garante execução correta no Node.js
+    let wrapperCode = `#!/usr/bin/env node
+// Wrapper para executável Trest
+'use strict';
 
-// Carregar e executar código compilado
-const code = fs.readFileSync(__dirname + '/${path.basename(jsPath)}', 'utf-8');
-eval(code);
-`.trim();
+// Capturar erros não tratados
+process.on('uncaughtException', (error) => {
+  console.error('❌ Erro não tratado:', error.message);
+  if (error.stack) {
+    console.error(error.stack);
+  }
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Promise rejeitada não tratada:', reason);
+  process.exit(1);
+});
+
+// Executar código compilado
+try {
+${jsCode}
+} catch (error) {
+  console.error('❌ Erro ao executar código:', error.message);
+  if (error.stack) {
+    console.error(error.stack);
+  }
+  process.exit(1);
+}
+
+// Gerenciar ciclo de vida do processo
+${usesGUI || usesServer ? `
+// Programa usa GUI ou servidor - manter processo vivo
+// O código do programa deve gerenciar o ciclo de vida (GUI.manterRodando() ou servidor.listen())
+` : `
+// Programa simples - aguardar um pouco para garantir que a saída seja exibida
+// Aguardar um tempo maior para permitir operações assíncronas completarem
+setTimeout(() => {
+  process.exit(0);
+}, 500);
+`}
+`;
+
+    return wrapperCode;
   }
 
   private async buildExecutable(wrapperPath: string, outputPath: string): Promise<void> {
-    const pkgPath = path.join(process.cwd(), 'node_modules', '.bin', 'pkg');
-    const command = `"${pkgPath}" "${wrapperPath}" --target node18-win-x64 --output "${outputPath}"`;
-
-    try {
-      const { stdout, stderr } = await execAsync(command);
-      if (stderr && !stderr.includes('warning')) {
-        console.warn(stderr);
+    // Determinar plataforma e arquitetura
+    const platform = process.platform === 'win32' ? 'win' : process.platform === 'darwin' ? 'macos' : 'linux';
+    const arch = process.arch === 'x64' ? 'x64' : process.arch === 'ia32' ? 'x86' : 'x64';
+    const target = `node18-${platform}-${arch}`;
+    
+    // Escapar caminhos para Windows
+    const escapePath = (p: string) => p.replace(/\\/g, '/');
+    const wrapperPathEscaped = escapePath(wrapperPath);
+    const outputPathEscaped = escapePath(outputPath);
+    
+    // Tentar múltiplas estratégias para encontrar o pkg
+    const strategies: Array<{ name: string; cmd: string | null }> = [
+      // 1. Tentar npx pkg (funciona para local e global) - mais confiável
+      { 
+        name: 'npx', 
+        cmd: `npx --yes pkg "${wrapperPathEscaped}" --target ${target} --output "${outputPathEscaped}"` 
+      },
+      // 2. Tentar pkg global no PATH
+      { 
+        name: 'global', 
+        cmd: `pkg "${wrapperPathEscaped}" --target ${target} --output "${outputPathEscaped}"` 
+      },
+      // 3. Tentar pkg local em node_modules do projeto atual
+      {
+        name: 'project-local',
+        cmd: (() => {
+          // Tentar encontrar node_modules próximo ao dist/cli.js ou dist/compiler.js
+          const possiblePaths = [
+            path.join(__dirname, '..', 'node_modules', '.bin', 'pkg'),
+            path.join(__dirname, '..', '..', 'node_modules', '.bin', 'pkg'),
+            path.join(process.cwd(), 'node_modules', '.bin', 'pkg'),
+          ];
+          
+          // No Windows, também tentar com .cmd
+          if (process.platform === 'win32') {
+            possiblePaths.push(
+              path.join(__dirname, '..', 'node_modules', '.bin', 'pkg.cmd'),
+              path.join(__dirname, '..', '..', 'node_modules', '.bin', 'pkg.cmd'),
+              path.join(process.cwd(), 'node_modules', '.bin', 'pkg.cmd')
+            );
+          }
+          
+          for (const pkgPath of possiblePaths) {
+            if (fs.existsSync(pkgPath)) {
+              return `"${escapePath(pkgPath)}" "${wrapperPathEscaped}" --target ${target} --output "${outputPathEscaped}"`;
+            }
+          }
+          return null;
+        })()
+      },
+      // 4. Tentar pkg local em node_modules do diretório atual
+      { 
+        name: 'local', 
+        cmd: (() => {
+          const localPkg = path.join(process.cwd(), 'node_modules', '.bin', 'pkg');
+          const localPkgCmd = path.join(process.cwd(), 'node_modules', '.bin', 'pkg.cmd');
+          
+          if (fs.existsSync(localPkg)) {
+            return `"${escapePath(localPkg)}" "${wrapperPathEscaped}" --target ${target} --output "${outputPathEscaped}"`;
+          }
+          if (process.platform === 'win32' && fs.existsSync(localPkgCmd)) {
+            return `"${escapePath(localPkgCmd)}" "${wrapperPathEscaped}" --target ${target} --output "${outputPathEscaped}"`;
+          }
+          return null;
+        })()
       }
-    } catch (error: any) {
-      // Se pkg não estiver disponível, tentar método alternativo
-      console.warn('pkg não disponível, tentando método alternativo...');
-      await this.buildExecutableAlternative(wrapperPath, outputPath);
+    ];
+
+    // Tentar cada estratégia até uma funcionar
+    for (const strategy of strategies) {
+      if (!strategy.cmd) continue;
+      
+      try {
+        console.log(`🔨 Tentando criar executável usando: ${strategy.name}...`);
+        const { stdout, stderr } = await execAsync(strategy.cmd);
+        
+        if (stdout) {
+          console.log(stdout);
+        }
+        
+        if (stderr && !stderr.includes('warning') && !stderr.includes('Installing')) {
+          console.warn(stderr);
+        }
+        
+        // Verificar se o arquivo .exe foi criado
+        if (fs.existsSync(outputPath)) {
+          console.log(`✓ Executável criado com sucesso: ${outputPath}`);
+          return;
+        }
+      } catch (error: any) {
+        // Se falhar, tentar próxima estratégia
+        continue;
+      }
     }
+
+    // Se nenhuma estratégia funcionou, usar método alternativo
+    console.warn('⚠️  pkg não disponível ou não funcionou, tentando método alternativo...');
+    await this.buildExecutableAlternative(wrapperPath, outputPath);
   }
 
   private async buildExecutableAlternative(wrapperPath: string, outputPath: string): Promise<void> {

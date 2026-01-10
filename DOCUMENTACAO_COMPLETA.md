@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.4.8
+# 📚 Documentação Completa - Trest Language v2.4.9
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,7 +20,8 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.4.8](#novidades-da-versão-248)
+15. [Novidades da Versão 2.4.9](#novidades-da-versão-249)
+16. [Histórico de Versões](#histórico-de-versões)
 
 ---
 
@@ -1718,7 +1719,7 @@ servidor.get("/", функция(запрос, ответ) {
 })
 
 servidor.get("/sobre", функция(запрос, ответ) {
-    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.4.8</p>")
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.4.9</p>")
 })
 
 servidor.get("/api/status", функция(запрос, ответ) {
@@ -2410,12 +2411,77 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.4.8  
+**Versão:** 2.4.9  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
 
-### 🆕 Novidades da Versão 2.4.8
+### 🆕 Novidades da Versão 2.4.9
+
+A versão 2.4.9 traz correções críticas no sistema de compilação para executáveis, melhorias significativas na biblioteca padrão e correção de todas as limitações conhecidas:
+
+**Melhorias na Compilação de Executáveis:**
+- ✅ **Wrapper Robusto** - Novo wrapper com tratamento completo de erros e gerenciamento de ciclo de vida do processo
+- ✅ **Detecção Automática de GUI/Server** - O wrapper detecta automaticamente se o programa usa GUI ou servidor HTTP e ajusta o comportamento
+- ✅ **Tratamento de Erros Melhorado** - Handlers para `uncaughtException` e `unhandledRejection` garantem que erros sejam exibidos corretamente
+- ✅ **Gerenciamento de Ciclo de Vida** - Para programas simples, aguarda 500ms antes de fechar (permite operações assíncronas completarem)
+- ✅ **Executáveis Funcionais** - Corrigido problema onde executáveis abriam e fechavam imediatamente
+
+**Melhorias na Biblioteca Padrão:**
+- ✅ **Módulos Math, String e Array Nativos** - Implementações nativas adicionadas ao interpreter para melhor performance
+- ✅ **Suporte Completo aos Módulos** - Todos os módulos std agora funcionam corretamente via import
+- ✅ **Aliases de Palavras-chave** - Suporte adicional para `константа` e `вариавель` como aliases
+
+**Melhorias na Interface Gráfica (GUI):**
+- ✅ **Detecção Automática de GUI** - O CLI detecta automaticamente quando um arquivo usa GUI e executa via Electron
+- ✅ **Execução Transparente** - Aplicações GUI executam automaticamente através do Electron sem necessidade de comandos especiais
+- ✅ **Método `manterRodando()`** - Função corrigida e exportada corretamente no módulo GUI
+- ✅ **Suporte Completo ao Electron** - Detecção automática do caminho do Electron no Windows
+
+**Correções Críticas:**
+- ✅ **Keyword `из` Reconhecida** - Corrigido reconhecimento da palavra-chave `из` (of) no lexer
+- ✅ **Importação de Módulos** - Correção no sistema de importação para garantir que módulos sejam carregados corretamente
+- ✅ **Sintaxe de Constantes** - Corrigido uso de `конст` (const) nos testes
+- ✅ **Carregamento de Módulos Nativos** - Correção no carregamento de módulos `std/` para sempre priorizar implementações nativas
+- ✅ **Compatibilidade Windows** - Melhorias na detecção e execução do Electron no Windows
+
+**Limitações Corrigidas (100% Funcional):**
+- ✅ `for...of` e `for...in` - CORRIGIDO E FUNCIONANDO
+- ✅ Atribuição direta a índices de array (`arr[0] = valor`) - CORRIGIDO E FUNCIONANDO
+- ✅ Classes com `это` (this) em MemberExpression - CORRIGIDO E FUNCIONANDO
+
+**Testes e Qualidade:**
+- ✅ **Suite Completa de Testes** - Criada suite de 13 testes cobrindo todas as funcionalidades principais
+- ✅ **Relatório de Testes** - Documento completo com status de todos os testes
+- ✅ **100% dos Testes Passando** - Todos os 13 testes funcionando completamente
+- ✅ **Todas as Limitações Corrigidas** - for...of, for...in, atribuição a arrays e classes com `это` funcionando
+
+**Compatibilidade:**
+- Versão Anterior: 2.4.8
+- Nova Versão: 2.4.9
+- **Totalmente compatível** - Nenhuma mudança incompatível
+
+**Melhorias na Interface Gráfica (GUI):**
+- ✅ **Detecção Automática de GUI** - O CLI detecta automaticamente quando um arquivo usa GUI e executa via Electron
+- ✅ **Execução Transparente** - Aplicações GUI executam automaticamente através do Electron sem necessidade de comandos especiais
+- ✅ **Método `manterRodando()`** - Função corrigida e exportada corretamente no módulo GUI
+- ✅ **Suporte Completo ao Electron** - Detecção automática do caminho do Electron no Windows
+- ✅ **Correções de Carregamento de Módulos** - Garantia de que módulos nativos sempre têm prioridade sobre arquivos `.trest`
+
+**Melhorias no CLI:**
+- ✅ **Detecção Inteligente de GUI** - Detecta uso de GUI através de padrões no código
+- ✅ **Execução via Electron Automática** - Quando GUI é detectada, o código executa automaticamente via Electron
+- ✅ **Correções de Caminhos** - Correção do caminho do Electron para funcionar em todos os sistemas operacionais
+
+**Correções:**
+- ✅ **Carregamento de Módulos Nativos** - Correção no carregamento de módulos `std/` para sempre priorizar implementações nativas
+- ✅ **Exportação de Métodos GUI** - Todos os métodos do módulo GUI agora são exportados corretamente
+- ✅ **Compatibilidade Windows** - Melhorias na detecção e execução do Electron no Windows
+
+**Exemplos Adicionados:**
+- ✅ **Exemplo GUI Desktop** - Exemplo completo de aplicação GUI desktop em `exemplos/exemplo_gui.trest`
+
+### 📋 Versão Anterior (2.4.8)
 
 A versão 2.4.8 torna a API HTTP mais robusta e confiável:
 
