@@ -9,13 +9,16 @@ Linguagem de programação moderna e profissional, estruturalmente organizada e 
 
 > **🎯 Característica Única:** Trest permite programar usando palavras-chave em cirílico ou latino, mantendo a mesma sintaxe e funcionalidades.
 
-> **🔒 Segurança:** Versão 2.5.0 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
+> **🔒 Segurança:** Versão 2.5.1 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
+
+> **🚀 Deploy na Vercel:** Versão 2.5.1 inclui suporte completo para deploy na Vercel! Use `npm create trest` para criar projetos otimizados para serverless functions.
 
 ## 🚀 Principais Funcionalidades
 
 - ✅ **Execução Inline** - Execute código direto na linha de comando com `-e`
 - ✅ **Compilação para Web** - Gera JavaScript otimizado
 - ✅ **Compilação para Desktop** - Cria executáveis .exe nativos
+- ✅ **Deploy na Vercel** - Crie projetos otimizados para serverless functions
 - ✅ **Sistema de Módulos** - Import/Export de módulos
 - ✅ **Biblioteca Padrão** - std com funções matemáticas, strings, arrays e I/O
 - ✅ **Tratamento de Erros** - Try/Catch/Throw estendido
@@ -80,6 +83,15 @@ npm --version   # deve ser >= 9
 ```
 
 ## 🎯 Guia Rápido
+
+### Criar novo projeto (Vercel-ready)
+```bash
+npm create trest meu-projeto
+# ou
+npx create-trest-app meu-projeto
+cd meu-projeto
+npm start
+```
 
 ### Executar código inline (sem arquivo)
 ```bash
@@ -469,7 +481,7 @@ Veja a pasta `exemplos/` para programas completos demonstrando:
 
 ## 🔒 Segurança
 
-**Versão 2.5.0** mantém todas as correções de segurança da cadeia de suprimentos:
+**Versão 2.5.1** mantém todas as correções de segurança da cadeia de suprimentos:
 - ✅ Scripts de instalação removidos
 - ✅ Sem acesso ao shell durante instalação
 - ✅ Acesso à rede controlado e documentado

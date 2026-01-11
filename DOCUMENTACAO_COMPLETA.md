@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.5.0
+# 📚 Documentação Completa - Trest Language v2.5.1
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,8 +20,9 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.5.0](#novidades-da-versão-250)
-16. [Histórico de Versões](#histórico-de-versões)
+15. [Novidades da Versão 2.5.1](#novidades-da-versão-251)
+16. [Novidades da Versão 2.5.0](#novidades-da-versão-250) (versão anterior)
+17. [Histórico de Versões](#histórico-de-versões)
 
 ---
 
@@ -1719,7 +1720,7 @@ servidor.get("/", функция(запрос, ответ) {
 })
 
 servidor.get("/sobre", функция(запрос, ответ) {
-    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.0</p>")
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.1</p>")
 })
 
 servidor.get("/api/status", функция(запрос, ответ) {
@@ -2411,10 +2412,59 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.5.0  
+**Versão:** 2.5.1  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
+
+### 🆕 Novidades da Versão 2.5.1
+
+A versão 2.5.1 introduz suporte completo para deploy na Vercel e criação de projetos otimizados para serverless functions:
+
+**🚀 Deploy na Vercel - Suporte Completo:**
+- ✅ **Adapter para Serverless Functions** - Criado adapter completo (`api/index.js`) que converte aplicações Trest para serverless functions da Vercel
+- ✅ **create-trest-app Otimizado** - Comando `npm create trest` agora cria projetos otimizados para Vercel com toda estrutura necessária
+- ✅ **Estrutura Vercel-ready** - Projetos criados incluem `api/index.js`, `vercel.json`, `app.trest` configurados e prontos para deploy
+- ✅ **Rotas Dinâmicas Suportadas** - Suporte completo para rotas com parâmetros dinâmicos (ex: `/api/users/:id`)
+- ✅ **Instalação Automática** - Dependências instaladas automaticamente com versão mais recente do Trest (2.5.1)
+
+**Como Usar:**
+```bash
+# Criar novo projeto Vercel-ready
+npm create trest meu-projeto
+
+# Ou usando npx
+npx create-trest-app meu-projeto
+
+# Fazer deploy
+cd meu-projeto
+vercel --prod
+```
+
+**Estrutura Criada:**
+```
+meu-projeto/
+├── api/
+│   └── index.js          # Serverless function adapter
+├── app.trest             # Arquivo principal da aplicação
+├── vercel.json           # Configuração Vercel
+├── package.json          # Com treste@^2.5.1
+├── .gitignore
+└── README.md             # Com instruções de deploy
+```
+
+**Melhorias no create-trest-app:**
+- ✅ **Detecção Automática de Versão** - Detecta versão atual do Trest automaticamente
+- ✅ **Template Completo** - Inclui template completo de `api/index.js` otimizado
+- ✅ **README Detalhado** - README com instruções completas de deploy
+- ✅ **Configuração Vercel** - `vercel.json` configurado com timeout adequado
+
+**Compatibilidade:**
+- Versão Anterior: 2.5.0
+- Nova Versão: 2.5.1
+- **Totalmente compatível** - Nenhuma mudança incompatível
+
+Para mais informações sobre deploy na Vercel, consulte [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md).
 
 ### 🆕 Novidades da Versão 2.5.0
 
@@ -2453,6 +2503,8 @@ servidor.post("/api/admin/comments/:id", функция(запрос, ответ
 - Versão Anterior: 2.4.9
 - Nova Versão: 2.5.0
 - **Totalmente compatível** - Nenhuma mudança incompatível
+
+> **Nota:** Esta seção documenta a versão 2.5.0. Para as novidades mais recentes, veja [Novidades da Versão 2.5.1](#novidades-da-versão-251).
 
 ### 📋 Versão Anterior (2.4.9)
 

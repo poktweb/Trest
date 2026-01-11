@@ -1,17 +1,18 @@
 # 🚀 Create Trest App
 
-Comando para criar novos projetos Trest localmente, similar ao `create-next-app` do Next.js.
+Comando para criar novos projetos Trest otimizados para Vercel, similar ao `create-next-app` do Next.js.
 
 ## 📋 Descrição
 
-O `create-trest-app` (ou `create-treste-app`) cria um novo projeto Trest em uma pasta local com:
-- Estrutura básica de pastas (`src/`, `exemplos/`)
-- Arquivo principal (`src/main.trest`)
-- Arquivo de exemplo (`exemplos/exemplo.trest`)
-- `package.json` configurado com scripts úteis
-- `README.md` com instruções
+O `create-trest-app` (ou `create-treste-app`) cria um novo projeto Trest otimizado para deploy na Vercel com:
+- Estrutura Vercel-ready (`api/`, `app.trest`)
+- Adapter para serverless functions (`api/index.js`)
+- Configuração Vercel (`vercel.json`)
+- Arquivo principal (`app.trest`)
+- `package.json` configurado com scripts e dependências
+- `README.md` com instruções de deploy
 - `.gitignore` configurado
-- Instalação local do Trest Language (versão atualizada)
+- Instalação local do Trest Language (versão mais recente - 2.5.1)
 
 ## ⚙️ Requisitos
 
@@ -49,17 +50,17 @@ O comando perguntará o nome do projeto interativamente.
 
 ## 📁 Estrutura Criada
 
-Após executar o comando, será criada a seguinte estrutura:
+Após executar o comando, será criada a seguinte estrutura otimizada para Vercel:
 
 ```
 meu-projeto/
-├── src/
-│   └── main.trest          # Arquivo principal da aplicação
-├── exemplos/
-│   └── exemplo.trest       # Exemplos de código Trest
+├── api/
+│   └── index.js            # Serverless function adapter para Vercel
+├── app.trest               # Arquivo principal da aplicação
+├── vercel.json             # Configuração Vercel
 ├── package.json            # Configuração do projeto com scripts
-├── README.md              # Documentação do projeto
-└── .gitignore            # Arquivos ignorados pelo Git
+├── README.md               # Documentação do projeto com instruções de deploy
+└── .gitignore              # Arquivos ignorados pelo Git
 ```
 
 ## 📝 Scripts Disponíveis
@@ -69,15 +70,18 @@ O `package.json` criado inclui os seguintes scripts:
 ```json
 {
   "scripts": {
-    "start": "trest src/main.trest",
-    "dev": "trest src/main.trest --verbose",
-    "build": "trestc src/main.trest --mode web --output dist/app.js",
-    "build:exe": "trestc src/main.trest --mode exe --output dist/app.exe"
+    "start": "trest app.trest",
+    "dev": "trest app.trest --verbose",
+    "build": "echo \"Build não necessário - Vercel faz isso automaticamente\"",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "treste": "^2.5.1"
   }
 }
 ```
 
-### Executar o projeto:
+### Executar o projeto localmente:
 
 ```bash
 cd meu-projeto
@@ -90,17 +94,20 @@ npm start
 npm run dev
 ```
 
-### Compilar para JavaScript:
+### Deploy na Vercel:
 
 ```bash
-npm run build
+# Instalar Vercel CLI (se ainda não tiver)
+npm i -g vercel
+
+# Fazer deploy
+vercel
+
+# Para produção
+vercel --prod
 ```
 
-### Compilar para executável:
-
-```bash
-npm run build:exe
-```
+Para mais informações sobre deploy na Vercel, consulte [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md).
 
 ## 🔧 Características
 
@@ -198,5 +205,15 @@ npm install treste@latest
 
 ---
 
-**Versão**: 2.4.9  
+**Versão**: 2.5.1  
 **Criado com**: ❤️ usando Trest Language
+
+## 🚀 Deploy na Vercel
+
+Projetos criados com `create-trest-app` já vêm configurados e prontos para deploy na Vercel:
+
+1. **Estrutura Completa** - Inclui `api/index.js` (adapter para serverless functions) e `vercel.json` (configuração)
+2. **Versão Atualizada** - Instala automaticamente a versão mais recente do Trest (2.5.1)
+3. **Deploy Simples** - Execute `vercel --prod` e seu projeto estará no ar!
+
+Para detalhes completos sobre deploy na Vercel, consulte [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md).

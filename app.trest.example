@@ -1,0 +1,42 @@
+# Exemplo de aplicação Trest para Vercel
+# Copie este arquivo para app.trest e ajuste conforme necessário
+
+импорт * как HTTP измодуля "std/http"
+
+пусть servidor = HTTP.создатьСервер()
+
+# Rota principal
+servidor.get("/", функция(запрос, ответ) {
+    ответ.status(200)
+    ответ.send("<h1>Olá da Vercel!</h1><p>Aplicação Trest rodando como serverless function</p>")
+})
+
+# API de exemplo
+servidor.get("/api/hello", функция(запрос, ответ) {
+    ответ.json({ 
+        message = "Hello from Trest!",
+        timestamp = Date.теперь()
+    })
+})
+
+# Rota com parâmetros
+servidor.get("/api/users/:id", функция(запрос, ответ) {
+    пусть userId = запрос.params.id
+    ответ.json({ 
+        userId = userId,
+        message = "User ID: " + userId
+    })
+})
+
+# POST example
+servidor.post("/api/echo", функция(запрос, ответ) {
+    ответ.json({ 
+        received = запрос.body,
+        method = запрос.method
+    })
+})
+
+# Listen (na Vercel, isso não faz nada, mas não causa erro)
+servidor.listen(3000, функция() {
+    печать("✅ Servidor inicializado (modo Vercel)")
+})
