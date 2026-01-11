@@ -115,6 +115,7 @@ export class StdHTTP {
    */
   static createServer(): any {
     const routes: Map<string, Map<string, Function>> = new Map();
+    const paramRoutes: Array<{ method: string; pattern: RegExp; path: string; handler: Function }> = [];
     const wildcardRoutes: Array<{ method: string; handler: Function }> = [];
 
     const addRoute = (method: string, path: string, handler: Function) => {
@@ -124,24 +125,60 @@ export class StdHTTP {
         return;
       }
       
+      // Verificar se a rota tem parâmetros (ex: /api/users/:id)
+      if (path.includes(':')) {
+        // Converter rota com parâmetros para regex
+        // /api/users/:id -> /api/users/([^/]+)
+        const patternStr = '^' + path.replace(/:[^/]+/g, '([^/]+)') + '$';
+        const pattern = new RegExp(patternStr);
+        paramRoutes.push({ method, pattern, path, handler });
+        return;
+      }
+      
+      // Rota exata
       if (!routes.has(path)) {
         routes.set(path, new Map());
       }
       routes.get(path)!.set(method, handler);
     };
 
-    const findHandler = (method: string, pathname: string): Function | null => {
+    const findHandler = (method: string, pathname: string): { handler: Function; params?: any } | null => {
       // Primeiro, tentar encontrar rota exata
       const handlers = routes.get(pathname);
       const exactHandler = handlers?.get(method);
       if (exactHandler) {
-        return exactHandler;
+        return { handler: exactHandler };
+      }
+
+      // Tentar rotas com parâmetros
+      for (const paramRoute of paramRoutes) {
+        if (paramRoute.method === method || paramRoute.method === '*') {
+          const match = pathname.match(paramRoute.pattern);
+          if (match) {
+            // Extrair nomes dos parâmetros da rota original
+            const paramNames: string[] = [];
+            const pathParts = paramRoute.path.split('/');
+            for (const part of pathParts) {
+              if (part.startsWith(':')) {
+                paramNames.push(part.substring(1));
+              }
+            }
+            
+            // Criar objeto de parâmetros
+            const params: any = {};
+            for (let i = 0; i < paramNames.length && i + 1 < match.length; i++) {
+              params[paramNames[i]] = match[i + 1];
+            }
+            
+            return { handler: paramRoute.handler, params };
+          }
+        }
       }
 
       // Se não encontrar, tentar wildcard routes
       for (const wildcardRoute of wildcardRoutes) {
         if (wildcardRoute.method === method || wildcardRoute.method === '*') {
-          return wildcardRoute.handler;
+          return { handler: wildcardRoute.handler };
         }
       }
 
@@ -179,9 +216,9 @@ export class StdHTTP {
         }
       }
       
-      const handler = findHandler(req.method || 'GET', pathname);
+      const handlerResult = findHandler(req.method || 'GET', pathname);
 
-      if (handler) {
+      if (handlerResult) {
         const requestObj = {
           url: req.url,
           pathname: pathname,
@@ -190,6 +227,7 @@ export class StdHTTP {
           headers: req.headers,
           body: '',
           ip: req.socket.remoteAddress || 'unknown',
+          params: handlerResult.params || {},
         };
 
         let body = '';
@@ -268,7 +306,7 @@ export class StdHTTP {
 
           // Executar handler com tratamento de erros robusto
           try {
-            handler(requestObj, responseObj);
+            handlerResult.handler(requestObj, responseObj);
           } catch (error: any) {
             // Se o handler lançar erro, retornar 500
             if (!res.headersSent) {
@@ -457,6 +495,8 @@ export class StdGUI {
   private static windows: Map<number, any> = new Map();
   private static windowCounter: number = 0;
   private static appReady: boolean = false;
+  private static _windowWrappers: Map<any, any> = new Map();
+  private static _ipcHandlersRegistered: boolean = false;
 
   /**
    * Initialize Electron app
@@ -638,9 +678,15 @@ export class StdGUI {
         this.windows.set(winId, browserWindow);
         windowWrapper._pending = false;
         windowWrapper.webContents = browserWindow.webContents;
+        
+        // Registrar wrapper se for uma janela programática
+        if (windowWrapper._useProgrammatic) {
+          StdGUI._windowWrappers.set(browserWindow, windowWrapper);
+        }
 
         browserWindow.on('closed', () => {
           this.windows.delete(winId);
+          StdGUI._windowWrappers.delete(browserWindow);
           browserWindow = null;
         });
 
@@ -1100,54 +1146,95 @@ export class StdGUI {
     window._layout = null;
     window._useProgrammatic = true;
     
-    window.setLayout = function(layout: any) {
-      this._layout = layout;
+    window.setLayout = (layout: any) => {
+      window._layout = layout;
       if (layout && layout._parentWindow) {
-        layout._parentWindow = this;
+        layout._parentWindow = window;
       }
-      this._updateGUI();
+      if (window._updateGUI) {
+        window._updateGUI();
+      }
     };
     
-    window.addWidget = function(widget: any) {
-      this._widgets.push(widget);
+    window.addWidget = (widget: any) => {
+      window._widgets.push(widget);
       if (widget && widget._parentWindow) {
-        widget._parentWindow = this;
+        widget._parentWindow = window;
       }
-      this._updateGUI();
+      if (window._updateGUI) {
+        window._updateGUI();
+      }
     };
     
-    window.removeWidget = function(widget: any) {
-      const index = this._widgets.indexOf(widget);
+    window.removeWidget = (widget: any) => {
+      const index = window._widgets.indexOf(widget);
       if (index > -1) {
-        this._widgets.splice(index, 1);
-        this._updateGUI();
+        window._widgets.splice(index, 1);
+        if (window._updateGUI) {
+          window._updateGUI();
+        }
       }
     };
     
-    window.clear = function() {
-      this._widgets = [];
-      this._layout = null;
-      this._updateGUI();
+    window.clear = () => {
+      window._widgets = [];
+      window._layout = null;
+      if (window._updateGUI) {
+        window._updateGUI();
+      }
     };
     
-      window._updateGUI = function() {
+      window._updateGUI = () => {
       // Gerar HTML automaticamente dos widgets
       let contentHTML = '';
       
-      if (this._layout) {
-        // Se há um layout, renderizar o layout
-        if (this._layout.toHTML) {
-          contentHTML = this._layout.toHTML();
+      // Coletar todos os widgets (do layout ou diretamente)
+      const allWidgets: any[] = [];
+      
+      if (window._layout) {
+        // Se há um layout, coletar widgets do layout
+        const collectWidgets = (widget: any) => {
+          if (widget && widget.id) {
+            allWidgets.push(widget);
+          }
+          if (widget && widget.children) {
+            widget.children.forEach(collectWidgets);
+          }
+        };
+        collectWidgets(window._layout);
+        if (window._layout.toHTML) {
+          contentHTML = window._layout.toHTML();
         }
       } else {
         // Senão, renderizar widgets diretamente
-        contentHTML = this._widgets.map((w: any) => {
+        contentHTML = window._widgets.map((w: any) => {
           if (w && typeof w.toHTML === 'function') {
+            allWidgets.push(w);
             return w.toHTML();
           }
           return '';
         }).join('');
       }
+      
+      // Criar mapa de callbacks para injetar no JavaScript
+      const callbacksMap: { [key: string]: any } = {};
+      allWidgets.forEach((widget: any) => {
+        if (widget && widget.id) {
+          if (widget.props && widget.props.onClick) {
+            callbacksMap[`btn_${widget.id}`] = widget.props.onClick;
+          }
+          if (widget.props && widget.props.onChange) {
+            callbacksMap[`inp_${widget.id}`] = widget.props.onChange;
+          }
+        }
+      });
+      
+      // Serializar callbacks (não podemos serializar funções diretamente, então vamos usar IPC)
+      const callbacksScript = Object.keys(callbacksMap).map(key => {
+        const widgetId = key.replace(/^(btn_|inp_)/, '');
+        const type = key.startsWith('btn_') ? 'button' : 'input';
+        return `'${widgetId}': { type: '${type}', registered: true }`;
+      }).join(',\n            ');
       
       // Criar HTML completo
       const html = `<!DOCTYPE html>
@@ -1186,6 +1273,7 @@ export class StdGUI {
             cursor: pointer;
             font-size: 14px;
             transition: background 0.3s;
+            margin-top: 10px;
         }
         
         button:hover:not(:disabled) {
@@ -1203,6 +1291,8 @@ export class StdGUI {
             border-radius: 4px;
             font-size: 14px;
             width: 100%;
+            margin-top: 5px;
+            margin-bottom: 10px;
         }
         
         input:focus {
@@ -1215,6 +1305,7 @@ export class StdGUI {
             margin-bottom: 5px;
             font-weight: 500;
             color: #333;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -1224,22 +1315,116 @@ export class StdGUI {
     </div>
     
     <script>
-        // Handlers para widgets programáticos
+        const { ipcRenderer } = require('electron');
+        
+        // Handlers para widgets programáticos usando IPC
         window.trestGuiButtonClick = function(widgetId) {
-            // Callback será implementado quando widget for criado
-            console.log('Button clicked:', widgetId);
+            ipcRenderer.send('trest-gui-button-click', widgetId);
         };
         
         window.trestGuiInputChange = function(widgetId, value) {
-            console.log('Input changed:', widgetId, value);
+            ipcRenderer.send('trest-gui-input-change', widgetId, value);
         };
+        
+        // Atualizar valores dos inputs quando mudarem
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.id && window.trestGuiInputChange) {
+                        window.trestGuiInputChange(this.id, this.value);
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>`;
       
       // Atualizar janela com HTML gerado
-      if (this.loadHTML) {
-        this.loadHTML(html);
+      if (window.loadHTML) {
+        window.loadHTML(html);
+      }
+      
+      // Armazenar callbacks no wrapper da janela
+      window._widgetCallbacks = callbacksMap;
+      
+      // Registrar handlers IPC para callbacks (apenas uma vez, globalmente)
+      if (loadElectron() && !StdGUI._ipcHandlersRegistered) {
+        const ipcMain = electronModule?.ipcMain;
+        if (ipcMain) {
+          StdGUI._ipcHandlersRegistered = true;
+          
+          ipcMain.on('trest-gui-button-click', (event: any, widgetId: string) => {
+          // Encontrar o wrapper da janela pelo webContents
+          const browserWindow = Array.from(StdGUI.windows.values()).find((win: any) => {
+            return win && win.webContents && win.webContents === event.sender;
+          });
+          
+          if (browserWindow) {
+            // Encontrar o wrapper correspondente
+            // Usar um mapa estático para mapear webContents para wrappers
+            const wrapper = StdGUI._windowWrappers?.get(browserWindow);
+            if (wrapper && wrapper._widgetCallbacks) {
+              const callbackKey = `btn_${widgetId}`;
+              const callback = wrapper._widgetCallbacks[callbackKey];
+              if (callback && typeof callback === 'function') {
+                try {
+                  callback();
+                } catch (e) {
+                  console.error('Erro ao executar callback do botão:', e);
+                }
+              }
+            }
+          }
+        });
+        
+        ipcMain.on('trest-gui-input-change', (event: any, widgetId: string, value: string) => {
+          const browserWindow = Array.from(StdGUI.windows.values()).find((win: any) => {
+            return win && win.webContents && win.webContents === event.sender;
+          });
+          
+          if (browserWindow) {
+            const wrapper = StdGUI._windowWrappers?.get(browserWindow);
+            if (wrapper && wrapper._widgetCallbacks) {
+              // Atualizar o valor do widget antes de chamar o callback
+              const findWidget = (widget: any): any => {
+                if (widget && widget.id === widgetId) {
+                  return widget;
+                }
+                if (widget && widget.children) {
+                  for (const child of widget.children) {
+                    const found = findWidget(child);
+                    if (found) return found;
+                  }
+                }
+                return null;
+              };
+              
+              let targetWidget = null;
+              if (wrapper._layout) {
+                targetWidget = findWidget(wrapper._layout);
+              } else {
+                targetWidget = wrapper._widgets.find((w: any) => w && w.id === widgetId);
+              }
+              
+              if (targetWidget && targetWidget.setValue) {
+                targetWidget.setValue(value);
+              }
+              
+              const callbackKey = `inp_${widgetId}`;
+              const callback = wrapper._widgetCallbacks[callbackKey];
+              if (callback && typeof callback === 'function') {
+                try {
+                  callback(value);
+                } catch (e) {
+                  console.error('Erro ao executar callback do input:', e);
+                }
+              }
+            }
+          }
+        });
+        }
       }
     };
     

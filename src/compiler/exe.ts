@@ -76,6 +76,18 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
+// Verificar se usa GUI ANTES de executar código
+${usesGUI ? `
+// Programa usa GUI - Electron não funciona com executáveis pkg
+console.error('');
+console.error('❌ Erro: Aplicações GUI não funcionam com executáveis criados via --mode exe');
+console.error('');
+console.error('💡 Soluções:');
+console.error('   1. Execute diretamente: trest arquivo.trest');
+console.error('   2. Para criar executável GUI, use electron-builder (não implementado ainda)');
+console.error('');
+process.exit(1);
+` : `
 // Executar código compilado
 try {
 ${jsCode}
@@ -88,15 +100,16 @@ ${jsCode}
 }
 
 // Gerenciar ciclo de vida do processo
-${usesGUI || usesServer ? `
-// Programa usa GUI ou servidor - manter processo vivo
-// O código do programa deve gerenciar o ciclo de vida (GUI.manterRodando() ou servidor.listen())
+${usesServer ? `
+// Programa usa servidor - manter processo vivo
+// O servidor gerencia o ciclo de vida através de .listen()
 ` : `
 // Programa simples - aguardar um pouco para garantir que a saída seja exibida
 // Aguardar um tempo maior para permitir operações assíncronas completarem
 setTimeout(() => {
   process.exit(0);
 }, 500);
+`}
 `}
 `;
 

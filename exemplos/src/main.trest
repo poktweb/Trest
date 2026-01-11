@@ -1,0 +1,1150 @@
+импорт * как HTTP измодуля "std/http"
+импорт * как FileSystem измодуля "std/filesystem"
+импорт * как JSON измодуля "std/json"
+импорт * как Date измодуля "std/date"
+импорт * как Crypto измодуля "std/crypto"
+импорт * как String измодуля "std/string"
+импорт * как Array измодуля "std/array"
+
+# Armazenamento de sessões ativas (simples, em memória)
+пусть sessions = {}
+
+# Função para ler JSON de arquivo
+функция lerJSON(arquivo) {
+    попытаться {
+        если (!FileSystem.exists(arquivo)) {
+            печать("Arquivo não existe: " + arquivo)
+            вернуть []
+        }
+        пусть conteudo = FileSystem.readFile(arquivo)
+        если (conteudo == "" || conteudo == нуль) {
+            печать("Arquivo vazio: " + arquivo)
+            вернуть []
+        }
+        # Usar JSON.parse conforme exemplo oficial
+        вернуть JSON.parse(conteudo)
+    } перехватить (erro) {
+        печать("Erro ao ler JSON: " + arquivo + " - " + erro)
+        # Fallback para users.json se houver erro
+        если (arquivo == "data/users.json") {
+            вернуть [{ username = "poktweb", password = "84005787" }]
+        }
+        вернуть []
+    }
+}
+
+# Função para escrever JSON em arquivo
+функция escreverJSON(arquivo, dados) {
+    попытаться {
+        # Usar JSON.stringify conforme exemplo oficial (sem indentação por padrão)
+        пусть jsonStr = JSON.stringify(dados)
+        FileSystem.writeFile(arquivo, jsonStr)
+        вернуть истина
+    } перехватить (erro) {
+        печать("Erro ao escrever JSON: " + arquivo + " - " + erro)
+        вернуть ложь
+    }
+}
+
+# Função para extrair cookies do header
+функция extrairCookie(headerCookie, nome) {
+    если (headerCookie == нуль || headerCookie == "") {
+        вернуть нуль
+    }
+    пусть cookies = String.разделить(headerCookie, ";")
+    для (пусть cookie из cookies) {
+        пусть partes = String.разделить(String.нижний(cookie), "=")
+        если (Array.длина(partes) == 2) {
+            пусть key = String.заменить(partes[0], " ", "")
+            пусть value = String.заменить(partes[1], " ", "")
+            если (key == nome) {
+                вернуть value
+            }
+        }
+    }
+    вернуть нуль
+}
+
+# Função para verificar autenticação
+функция verificarAuth(запрос) {
+    пусть cookieHeader = запрос.headers["cookie"]
+    если (cookieHeader == нуль) {
+        cookieHeader = запрос.headers["Cookie"]
+    }
+    пусть token = extrairCookie(cookieHeader, "auth_token")
+    если (token == нуль) {
+        вернуть ложь
+    }
+    если (sessions[token] == нуль) {
+        вернуть ложь
+    }
+    вернуть истина
+}
+
+# Função para criar token de sessão
+функция criarToken() {
+    пусть timestamp = Date.timestamp()
+    пусть random = Crypto.randomBytes(16)
+    вернуть Crypto.sha256(timestamp + random + "trest_admin")
+}
+
+# Função para gerar HTML da página de login
+функция obterHTMLLogin() {
+    вернуть "<!DOCTYPE html>\n" +
+"<html lang=\"pt-BR\">\n" +
+"<head>\n" +
+"    <meta charset=\"UTF-8\">\n" +
+"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+"    <title>Login - Painel Admin</title>\n" +
+"    <style>\n" +
+"        * { margin: 0; padding: 0; box-sizing: border-box; }\n" +
+"        body {\n" +
+"            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n" +
+"            background: #0a0a0a;\n" +
+"            color: #e0e0e0;\n" +
+"            display: flex;\n" +
+"            justify-content: center;\n" +
+"            align-items: center;\n" +
+"            min-height: 100vh;\n" +
+"            padding: 2rem;\n" +
+"        }\n" +
+"        .login-container {\n" +
+"            background: #141414;\n" +
+"            border: 1px solid #2a2a2a;\n" +
+"            border-radius: 12px;\n" +
+"            padding: 3rem;\n" +
+"            width: 100%;\n" +
+"            max-width: 400px;\n" +
+"        }\n" +
+"        .login-container h1 {\n" +
+"            margin-bottom: 2rem;\n" +
+"            color: #6366f1;\n" +
+"            text-align: center;\n" +
+"        }\n" +
+"        .login-form input {\n" +
+"            width: 100%;\n" +
+"            background: #1a1a1a;\n" +
+"            border: 1px solid #2a2a2a;\n" +
+"            border-radius: 6px;\n" +
+"            padding: 0.75rem;\n" +
+"            color: #e0e0e0;\n" +
+"            font-size: 1rem;\n" +
+"            margin-bottom: 1rem;\n" +
+"        }\n" +
+"        .login-form input:focus {\n" +
+"            outline: none;\n" +
+"            border-color: #6366f1;\n" +
+"        }\n" +
+"        .login-form button {\n" +
+"            width: 100%;\n" +
+"            background: #6366f1;\n" +
+"            color: white;\n" +
+"            border: none;\n" +
+"            border-radius: 6px;\n" +
+"            padding: 0.75rem;\n" +
+"            font-size: 1rem;\n" +
+"            font-weight: 600;\n" +
+"            cursor: pointer;\n" +
+"            margin-top: 1rem;\n" +
+"        }\n" +
+"        .login-form button:hover { background: #818cf8; }\n" +
+"        .error { color: #ef4444; margin-top: 1rem; text-align: center; }\n" +
+"        .link-back { display: block; text-align: center; margin-top: 1.5rem; color: #a0a0a0; text-decoration: none; }\n" +
+"        .link-back:hover { color: #6366f1; }\n" +
+"    </style>\n" +
+"</head>\n" +
+"<body>\n" +
+"    <div class=\"login-container\">\n" +
+"        <h1>🔐 Login Admin</h1>\n" +
+"        <form class=\"login-form\" id=\"loginForm\">\n" +
+"            <input type=\"text\" id=\"username\" placeholder=\"Usuário\" required autofocus>\n" +
+"            <input type=\"password\" id=\"password\" placeholder=\"Senha\" required>\n" +
+"            <button type=\"submit\">Entrar</button>\n" +
+"            <div id=\"error\" class=\"error\" style=\"display: none;\"></div>\n" +
+"        </form>\n" +
+"        <a href=\"/\" class=\"link-back\">← Voltar ao site</a>\n" +
+"    </div>\n" +
+"    <script>\n" +
+"        document.getElementById('loginForm').addEventListener('submit', function(e) {\n" +
+"            e.preventDefault();\n" +
+"            const username = document.getElementById('username').value;\n" +
+"            const password = document.getElementById('password').value;\n" +
+"\n" +
+"            fetch('/api/login', {\n" +
+"                method: 'POST',\n" +
+"                headers: { 'Content-Type': 'application/json' },\n" +
+"                body: JSON.stringify({ username: username, password: password })\n" +
+"            })\n" +
+"            .then(res => res.json())\n" +
+"            .then(data => {\n" +
+"                if (data.success) {\n" +
+"                    window.location.href = '/admin';\n" +
+"                } else {\n" +
+"                    const errorDiv = document.getElementById('error');\n" +
+"                    errorDiv.textContent = data.error || 'Credenciais inválidas';\n" +
+"                    errorDiv.style.display = 'block';\n" +
+"                }\n" +
+"            })\n" +
+"            .catch(err => {\n" +
+"                const errorDiv = document.getElementById('error');\n" +
+"                errorDiv.textContent = 'Erro ao fazer login';\n" +
+"                errorDiv.style.display = 'block';\n" +
+"            });\n" +
+"        });\n" +
+"    </script>\n" +
+"</body>\n" +
+"</html>"
+}
+
+# Função para gerar HTML completo do site
+функция obterHTMLCompleto() {
+    вернуть "<!DOCTYPE html>\n" +
+"<html lang=\"pt-BR\">\n" +
+"<head>\n" +
+"    <meta charset=\"UTF-8\">\n" +
+"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+"    <title>Trest Language - Documentação</title>\n" +
+"    <style>\n" +
+"        * {\n" +
+"            margin: 0;\n" +
+"            padding: 0;\n" +
+"            box-sizing: border-box;\n" +
+"        }\n" +
+"\n" +
+"        :root {\n" +
+"            --bg-primary: #0a0a0a;\n" +
+"            --bg-secondary: #141414;\n" +
+"            --bg-tertiary: #1a1a1a;\n" +
+"            --text-primary: #e0e0e0;\n" +
+"            --text-secondary: #a0a0a0;\n" +
+"            --accent: #6366f1;\n" +
+"            --accent-hover: #818cf8;\n" +
+"            --border: #2a2a2a;\n" +
+"        }\n" +
+"\n" +
+"        body {\n" +
+"            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n" +
+"            background: var(--bg-primary);\n" +
+"            color: var(--text-primary);\n" +
+"            line-height: 1.6;\n" +
+"            display: flex;\n" +
+"            min-height: 100vh;\n" +
+"        }\n" +
+"\n" +
+"        /* Menu Lateral */\n" +
+"        .sidebar {\n" +
+"            width: 280px;\n" +
+"            background: var(--bg-secondary);\n" +
+"            border-right: 1px solid var(--border);\n" +
+"            padding: 2rem 0;\n" +
+"            position: fixed;\n" +
+"            height: 100vh;\n" +
+"            overflow-y: auto;\n" +
+"            z-index: 100;\n" +
+"        }\n" +
+"\n" +
+"        .sidebar-header {\n" +
+"            padding: 0 2rem 2rem;\n" +
+"            border-bottom: 1px solid var(--border);\n" +
+"            margin-bottom: 2rem;\n" +
+"        }\n" +
+"\n" +
+"        .sidebar-header h1 {\n" +
+"            font-size: 1.5rem;\n" +
+"            font-weight: 600;\n" +
+"            color: var(--text-primary);\n" +
+"            margin-bottom: 0.25rem;\n" +
+"        }\n" +
+"\n" +
+"        .sidebar-header p {\n" +
+"            font-size: 0.875rem;\n" +
+"            color: var(--text-secondary);\n" +
+"        }\n" +
+"\n" +
+"        .nav-menu {\n" +
+"            list-style: none;\n" +
+"            padding: 0;\n" +
+"        }\n" +
+"\n" +
+"        .nav-menu li {\n" +
+"            margin: 0;\n" +
+"        }\n" +
+"\n" +
+"        .nav-menu a {\n" +
+"            display: block;\n" +
+"            padding: 0.75rem 2rem;\n" +
+"            color: var(--text-secondary);\n" +
+"            text-decoration: none;\n" +
+"            transition: all 0.2s ease;\n" +
+"            border-left: 3px solid transparent;\n" +
+"        }\n" +
+"\n" +
+"        .nav-menu a:hover {\n" +
+"            background: var(--bg-tertiary);\n" +
+"            color: var(--text-primary);\n" +
+"            border-left-color: var(--accent);\n" +
+"        }\n" +
+"\n" +
+"        /* Conteúdo Principal */\n" +
+"        .main-content {\n" +
+"            flex: 1;\n" +
+"            margin-left: 280px;\n" +
+"            padding: 3rem 4rem;\n" +
+"            max-width: 900px;\n" +
+"        }\n" +
+"\n" +
+"        section {\n" +
+"            margin-bottom: 4rem;\n" +
+"            scroll-margin-top: 2rem;\n" +
+"        }\n" +
+"\n" +
+"        h1 {\n" +
+"            font-size: 2.5rem;\n" +
+"            font-weight: 700;\n" +
+"            margin-bottom: 1rem;\n" +
+"            color: var(--text-primary);\n" +
+"            line-height: 1.2;\n" +
+"        }\n" +
+"\n" +
+"        h2 {\n" +
+"            font-size: 1.75rem;\n" +
+"            font-weight: 600;\n" +
+"            margin: 2.5rem 0 1rem;\n" +
+"            color: var(--text-primary);\n" +
+"            padding-bottom: 0.5rem;\n" +
+"            border-bottom: 1px solid var(--border);\n" +
+"        }\n" +
+"\n" +
+"        h3 {\n" +
+"            font-size: 1.25rem;\n" +
+"            font-weight: 600;\n" +
+"            margin: 1.5rem 0 0.75rem;\n" +
+"            color: var(--text-primary);\n" +
+"        }\n" +
+"\n" +
+"        p {\n" +
+"            margin-bottom: 1rem;\n" +
+"            color: var(--text-secondary);\n" +
+"            line-height: 1.7;\n" +
+"        }\n" +
+"\n" +
+"        .intro {\n" +
+"            font-size: 1.125rem;\n" +
+"            color: var(--text-primary);\n" +
+"            margin-bottom: 2rem;\n" +
+"        }\n" +
+"\n" +
+"        .feature-grid {\n" +
+"            display: grid;\n" +
+"            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));\n" +
+"            gap: 1.5rem;\n" +
+"            margin: 2rem 0;\n" +
+"        }\n" +
+"\n" +
+"        .feature-card {\n" +
+"            background: var(--bg-secondary);\n" +
+"            border: 1px solid var(--border);\n" +
+"            border-radius: 8px;\n" +
+"            padding: 1.5rem;\n" +
+"            transition: all 0.2s ease;\n" +
+"        }\n" +
+"\n" +
+"        .feature-card:hover {\n" +
+"            border-color: var(--accent);\n" +
+"            transform: translateY(-2px);\n" +
+"        }\n" +
+"\n" +
+"        .feature-card h3 {\n" +
+"            margin-top: 0;\n" +
+"            color: var(--accent);\n" +
+"            font-size: 1.125rem;\n" +
+"        }\n" +
+"\n" +
+"        .code-block {\n" +
+"            background: var(--bg-secondary);\n" +
+"            border: 1px solid var(--border);\n" +
+"            border-radius: 8px;\n" +
+"            padding: 1.5rem;\n" +
+"            margin: 1.5rem 0;\n" +
+"            overflow-x: auto;\n" +
+"            font-family: 'Courier New', monospace;\n" +
+"            font-size: 0.875rem;\n" +
+"            line-height: 1.6;\n" +
+"        }\n" +
+"\n" +
+"        .code-block code {\n" +
+"            color: var(--text-primary);\n" +
+"        }\n" +
+"\n" +
+"        .links-grid {\n" +
+"            display: grid;\n" +
+"            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n" +
+"            gap: 1rem;\n" +
+"            margin: 2rem 0;\n" +
+"        }\n" +
+"\n" +
+"        .link-card {\n" +
+"            background: var(--bg-secondary);\n" +
+"            border: 1px solid var(--border);\n" +
+"            border-radius: 8px;\n" +
+"            padding: 1.25rem;\n" +
+"            text-decoration: none;\n" +
+"            color: var(--text-primary);\n" +
+"            display: block;\n" +
+"            transition: all 0.2s ease;\n" +
+"        }\n" +
+"\n" +
+"        .link-card:hover {\n" +
+"            border-color: var(--accent);\n" +
+"            background: var(--bg-tertiary);\n" +
+"            transform: translateY(-2px);\n" +
+"        }\n" +
+"\n" +
+"        .link-card h4 {\n" +
+"            color: var(--accent);\n" +
+"            margin-bottom: 0.5rem;\n" +
+"            font-size: 1rem;\n" +
+"        }\n" +
+"\n" +
+"        .link-card p {\n" +
+"            margin: 0;\n" +
+"            font-size: 0.875rem;\n" +
+"            color: var(--text-secondary);\n" +
+"        }\n" +
+"\n" +
+"        ul, ol {\n" +
+"            margin: 1rem 0 1rem 2rem;\n" +
+"            color: var(--text-secondary);\n" +
+"        }\n" +
+"\n" +
+"        li {\n" +
+"            margin-bottom: 0.5rem;\n" +
+"            line-height: 1.6;\n" +
+"        }\n" +
+"\n" +
+"        .badge {\n" +
+"            display: inline-block;\n" +
+"            background: var(--accent);\n" +
+"            color: white;\n" +
+"            padding: 0.25rem 0.75rem;\n" +
+"            border-radius: 4px;\n" +
+"            font-size: 0.75rem;\n" +
+"            font-weight: 600;\n" +
+"            margin-left: 0.5rem;\n" +
+"        }\n" +
+"\n" +
+"        .comment-form {\n" +
+"            background: var(--bg-secondary);\n" +
+"            border: 1px solid var(--border);\n" +
+"            border-radius: 8px;\n" +
+"            padding: 2rem;\n" +
+"            margin: 2rem 0;\n" +
+"        }\n" +
+"\n" +
+"        .comment-form input,\n" +
+"        .comment-form textarea {\n" +
+"            width: 100%;\n" +
+"            background: var(--bg-tertiary);\n" +
+"            border: 1px solid var(--border);\n" +
+"            border-radius: 6px;\n" +
+"            padding: 0.75rem;\n" +
+"            color: var(--text-primary);\n" +
+"            font-family: inherit;\n" +
+"            font-size: 0.95rem;\n" +
+"            margin-bottom: 1rem;\n" +
+"            resize: vertical;\n" +
+"        }\n" +
+"\n" +
+"        .comment-form input:focus,\n" +
+"        .comment-form textarea:focus {\n" +
+"            outline: none;\n" +
+"            border-color: var(--accent);\n" +
+"        }\n" +
+"\n" +
+"        .comment-form button {\n" +
+"            background: var(--accent);\n" +
+"            color: white;\n" +
+"            border: none;\n" +
+"            border-radius: 6px;\n" +
+"            padding: 0.75rem 2rem;\n" +
+"            font-size: 1rem;\n" +
+"            font-weight: 600;\n" +
+"            cursor: pointer;\n" +
+"            transition: background 0.2s ease;\n" +
+"        }\n" +
+"\n" +
+"        .comment-form button:hover {\n" +
+"            background: var(--accent-hover);\n" +
+"        }\n" +
+"\n" +
+"        .comments-list {\n" +
+"            margin-top: 2rem;\n" +
+"        }\n" +
+"\n" +
+"        .comment-item {\n" +
+"            background: var(--bg-secondary);\n" +
+"            border: 1px solid var(--border);\n" +
+"            border-radius: 8px;\n" +
+"            padding: 1.5rem;\n" +
+"            margin-bottom: 1rem;\n" +
+"        }\n" +
+"\n" +
+"        .comment-header {\n" +
+"            display: flex;\n" +
+"            justify-content: space-between;\n" +
+"            align-items: center;\n" +
+"            margin-bottom: 0.75rem;\n" +
+"        }\n" +
+"\n" +
+"        .comment-author {\n" +
+"            font-weight: 600;\n" +
+"            color: var(--accent);\n" +
+"            font-size: 1rem;\n" +
+"        }\n" +
+"\n" +
+"        .comment-date {\n" +
+"            font-size: 0.875rem;\n" +
+"            color: var(--text-secondary);\n" +
+"        }\n" +
+"\n" +
+"        .comment-text {\n" +
+"            color: var(--text-primary);\n" +
+"            line-height: 1.6;\n" +
+"            white-space: pre-wrap;\n" +
+"        }\n" +
+"\n" +
+"        @media (max-width: 768px) {\n" +
+"            .sidebar {\n" +
+"                width: 100%;\n" +
+"                height: auto;\n" +
+"                position: relative;\n" +
+"                border-right: none;\n" +
+"                border-bottom: 1px solid var(--border);\n" +
+"            }\n" +
+"\n" +
+"            .main-content {\n" +
+"                margin-left: 0;\n" +
+"                padding: 2rem 1.5rem;\n" +
+"            }\n" +
+"        }\n" +
+"    </style>\n" +
+"</head>\n" +
+"<body>\n" +
+"    <!-- Menu Lateral -->\n" +
+"    <aside class=\"sidebar\">\n" +
+"        <div class=\"sidebar-header\">\n" +
+"            <h1>🚀 Trest</h1>\n" +
+"            <p>v2.4.9</p>\n" +
+"        </div>\n" +
+"        <nav>\n" +
+"            <ul class=\"nav-menu\">\n" +
+"                <li><a href=\"#inicio\">Início</a></li>\n" +
+"                <li><a href=\"#sobre\">Sobre</a></li>\n" +
+"                <li><a href=\"#pontos-fortes\">Pontos Fortes</a></li>\n" +
+"                <li><a href=\"#caracteristicas\">Características</a></li>\n" +
+"                <li><a href=\"#exemplos\">Exemplos</a></li>\n" +
+"                <li><a href=\"#biblioteca\">Biblioteca Padrão</a></li>\n" +
+"                <li><a href=\"#links\">Links Úteis</a></li>\n" +
+"                <li><a href=\"#comentarios\">Comentários</a></li>\n" +
+"            </ul>\n" +
+"        </nav>\n" +
+"    </aside>\n" +
+"\n" +
+"    <!-- Conteúdo Principal -->\n" +
+"    <main class=\"main-content\">\n" +
+"        <section id=\"inicio\">\n" +
+"            <h1>Trest Language</h1>\n" +
+"            <p class=\"intro\">\n" +
+"                Linguagem de programação moderna e profissional com suporte completo a cirílico.\n" +
+"                Permite programar usando palavras-chave em russo ou latino, mantendo a mesma sintaxe e funcionalidades.\n" +
+"            </p>\n" +
+"            <p>\n" +
+"                Trest compila para Web (JavaScript) e Desktop (.exe), oferecendo uma biblioteca padrão rica\n" +
+"                e um sistema de módulos completo. Zero barreira linguística para falantes de russo.\n" +
+"            </p>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"sobre\">\n" +
+"            <h2>Sobre Trest</h2>\n" +
+"            <p>\n" +
+"                Trest é uma linguagem de programação criada para ser moderna, intuitiva e poderosa.\n" +
+"                Sua principal característica é o suporte nativo ao alfabeto cirílico, permitindo que\n" +
+"                programadores russos escrevam código usando palavras-chave em seu idioma nativo.\n" +
+"            </p>\n" +
+"            <p>\n" +
+"                Desenvolvida com foco em produtividade, Trest oferece uma sintaxe limpa baseada em\n" +
+"                JavaScript/TypeScript, mas com recursos únicos que a tornam especial. O mesmo código\n" +
+"                pode ser compilado para diferentes plataformas sem modificações.\n" +
+"            </p>\n" +
+"            <div class=\"code-block\">\n" +
+"                <code>печать(\"Привет, Мир!\")</code>\n" +
+"            </div>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"pontos-fortes\">\n" +
+"            <h2>Pontos Fortes</h2>\n" +
+"            <div class=\"feature-grid\">\n" +
+"                <div class=\"feature-card\">\n" +
+"                    <h3>🌐 Suporte Total ao Cirílico</h3>\n" +
+"                    <p>Palavras-chave em russo nativas, permitindo programação completamente em cirílico.</p>\n" +
+"                </div>\n" +
+"                <div class=\"feature-card\">\n" +
+"                    <h3>⚡ Compilação Universal</h3>\n" +
+"                    <p>Compila para Web (JavaScript) e Desktop (.exe) a partir do mesmo código fonte.</p>\n" +
+"                </div>\n" +
+"                <div class=\"feature-card\">\n" +
+"                    <h3>📚 Biblioteca Padrão Rica</h3>\n" +
+"                    <p>15+ módulos prontos para usar: HTTP, Crypto, FileSystem, Database e mais.</p>\n" +
+"                </div>\n" +
+"                <div class=\"feature-card\">\n" +
+"                    <h3>🔧 Tipagem Dinâmica</h3>\n" +
+"                    <p>Tipos inferidos automaticamente, tornando o desenvolvimento mais ágil.</p>\n" +
+"                </div>\n" +
+"                <div class=\"feature-card\">\n" +
+"                    <h3>📦 Sistema de Módulos</h3>\n" +
+"                    <p>Import/Export completo para organizar código em múltiplos arquivos.</p>\n" +
+"                </div>\n" +
+"                <div class=\"feature-card\">\n" +
+"                    <h3>🛡️ Tratamento de Erros</h3>\n" +
+"                    <p>Try/Catch/Throw robusto com mensagens claras de erro.</p>\n" +
+"                </div>\n" +
+"            </div>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"caracteristicas\">\n" +
+"            <h2>Características Principais</h2>\n" +
+"            <ul>\n" +
+"                <li><strong>Execução Inline:</strong> Execute código direto na linha de comando com <code>-e</code></li>\n" +
+"                <li><strong>Compilação para Web:</strong> Gera JavaScript otimizado para navegadores e Node.js</li>\n" +
+"                <li><strong>Compilação para Desktop:</strong> Cria executáveis .exe nativos standalone</li>\n" +
+"                <li><strong>Sintaxe Intuitiva:</strong> Baseada em JavaScript/TypeScript, fácil de aprender</li>\n" +
+"                <li><strong>Zero Configuração:</strong> Funciona imediatamente após instalação</li>\n" +
+"                <li><strong>Desenvolvimento Ativo:</strong> Versão 2.4.9 com melhorias constantes</li>\n" +
+"            </ul>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"exemplos\">\n" +
+"            <h2>Exemplos de Código</h2>\n" +
+"\n" +
+"            <h3>Variáveis e Funções</h3>\n" +
+"            <div class=\"code-block\">\n" +
+"                <code>пусть имя = \"Trest\"<br>" +
+"пусть возраст = 25<br><br>" +
+"функция приветствие(имя) {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;вернуть \"Привет, \" + имя<br>" +
+"}<br><br>" +
+"печать(приветствие(\"Мир\"))</code>\n" +
+"            </div>\n" +
+"\n" +
+"            <h3>Condicionais e Loops</h3>\n" +
+"            <div class=\"code-block\">\n" +
+"                <code>если (возраст >= 18) {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;печать(\"Совершеннолетний\")<br>" +
+"} иначе {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;печать(\"Ребенок\")<br>" +
+"}<br><br>" +
+"для (пусть i = 0; i < 10; i = i + 1) {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;печать(i)<br>" +
+"}</code>\n" +
+"            </div>\n" +
+"\n" +
+"            <h3>Servidor HTTP</h3>\n" +
+"            <div class=\"code-block\">\n" +
+"                <code>импорт * как HTTP измодуля \"std/http\"<br><br>" +
+"пусть servidor = HTTP.создатьСервер()<br><br>" +
+"servidor.get(\"/\", функция(запрос, ответ) {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;ответ.send(\"<h1>Olá do Trest!</h1>\")<br>" +
+"})<br><br>" +
+"servidor.listen(3000, функция() {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;печать(\"✅ Servidor iniciado\")<br>" +
+"})</code>\n" +
+"            </div>\n" +
+"\n" +
+"            <h3>Classes e OOP</h3>\n" +
+"            <div class=\"code-block\">\n" +
+"                <code>класс Человек {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;функция конструктор(имя, возраст) {<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;это.имя = имя<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;это.возраст = возраст<br>" +
+"&nbsp;&nbsp;&nbsp;&nbsp;}<br>" +
+"}<br><br>" +
+"пусть иван = новый Человек(\"Иван\", 30)<br>" +
+"печать(иван.имя)</code>\n" +
+"            </div>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"biblioteca\">\n" +
+"            <h2>Biblioteca Padrão (std)</h2>\n" +
+"            <p>Trest inclui uma biblioteca padrão completa com 15 módulos prontos para usar:</p>\n" +
+"            <ul>\n" +
+"                <li><strong>Math:</strong> Funções matemáticas (sqrt, pow, abs, PI, E)</li>\n" +
+"                <li><strong>String:</strong> Manipulação de strings (tamanho, maiúsculas, substituir)</li>\n" +
+"                <li><strong>Array:</strong> Operações com arrays (adicionar, remover, ordenar)</li>\n" +
+"                <li><strong>HTTP:</strong> Cliente e servidor HTTP completo</li>\n" +
+"                <li><strong>Crypto:</strong> Criptografia e segurança (MD5, SHA256, AES)</li>\n" +
+"                <li><strong>FileSystem:</strong> Operações de arquivo e diretório</li>\n" +
+"                <li><strong>JSON:</strong> Parsing e stringificação de JSON</li>\n" +
+"                <li><strong>Date:</strong> Manipulação de datas e timestamps</li>\n" +
+"                <li><strong>Database:</strong> Conexão e modelos de banco de dados</li>\n" +
+"                <li><strong>Async:</strong> Promises, timers e operações assíncronas</li>\n" +
+"                <li><strong>RegEx:</strong> Expressões regulares</li>\n" +
+"                <li><strong>Path:</strong> Manipulação de caminhos de arquivo</li>\n" +
+"                <li><strong>Process:</strong> Variáveis de ambiente e sistema</li>\n" +
+"                <li><strong>IO:</strong> Entrada e saída de dados</li>\n" +
+"                <li><strong>GUI:</strong> Interface gráfica (em desenvolvimento)</li>\n" +
+"            </ul>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"comentarios\">\n" +
+"            <h2>Comentários</h2>\n" +
+"            <div class=\"comment-form\">\n" +
+"                <h3>Deixe seu comentário</h3>\n" +
+"                <form id=\"commentForm\">\n" +
+"                    <input type=\"text\" id=\"commentName\" placeholder=\"Seu nome\" required>\n" +
+"                    <textarea id=\"commentText\" placeholder=\"Seu comentário\" rows=\"4\" required></textarea>\n" +
+"                    <button type=\"submit\">Enviar Comentário</button>\n" +
+"                </form>\n" +
+"            </div>\n" +
+"            <div id=\"commentsList\" class=\"comments-list\">\n" +
+"                <p style=\"color: var(--text-secondary);\">Carregando comentários...</p>\n" +
+"            </div>\n" +
+"        </section>\n" +
+"\n" +
+"        <section id=\"links\">\n" +
+"            <h2>Links Úteis</h2>\n" +
+"            <div class=\"links-grid\">\n" +
+"                <a href=\"https://trest-site.vercel.app/\" target=\"_blank\" class=\"link-card\">\n" +
+"                    <h4>🌐 Site Oficial</h4>\n" +
+"                    <p>Documentação completa e exemplos no site oficial do Trest</p>\n" +
+"                </a>\n" +
+"                <a href=\"https://www.npmjs.com/package/treste\" target=\"_blank\" class=\"link-card\">\n" +
+"                    <h4>📦 NPM Package</h4>\n" +
+"                    <p>Pacote oficial no NPM para instalação e uso</p>\n" +
+"                </a>\n" +
+"                <a href=\"https://socket.dev/npm/package/treste\" target=\"_blank\" class=\"link-card\">\n" +
+"                    <h4>🔒 Socket Security</h4>\n" +
+"                    <p>Análise de segurança do pacote Trest no Socket</p>\n" +
+"                </a>\n" +
+"            </div>\n" +
+"            <p style=\"margin-top: 2rem; color: var(--text-secondary); font-size: 0.875rem;\">\n" +
+"                Versão 2.4.9 • Licença MIT • Desenvolvido por PoktWeb\n" +
+"            </p>\n" +
+"        </section>\n" +
+"    </main>\n" +
+"    <script>\n" +
+"        // Carregar comentários ao carregar página\n" +
+"        function carregarComentarios() {\n" +
+"            fetch('/api/comments')\n" +
+"                .then(res => res.json())\n" +
+"                .then(data => {\n" +
+"                    const listDiv = document.getElementById('commentsList');\n" +
+"                    if (data.length === 0) {\n" +
+"                        listDiv.innerHTML = '<p style=\"color: var(--text-secondary);\">Nenhum comentário ainda. Seja o primeiro!</p>';\n" +
+"                        return;\n" +
+"                    }\n" +
+"                    listDiv.innerHTML = data.map(comment => `\n" +
+"                        <div class=\"comment-item\">\n" +
+"                            <div class=\"comment-header\">\n" +
+"                                <span class=\"comment-author\">${escapeHtml(comment.name)}</span>\n" +
+"                                <span class=\"comment-date\">${new Date(comment.date).toLocaleString('pt-BR')}</span>\n" +
+"                            </div>\n" +
+"                            <div class=\"comment-text\">${escapeHtml(comment.text)}</div>\n" +
+"                        </div>\n" +
+"                    `).join('');\n" +
+"                })\n" +
+"                .catch(err => {\n" +
+"                    console.error('Erro ao carregar comentários:', err);\n" +
+"                    document.getElementById('commentsList').innerHTML = '<p style=\"color: var(--text-secondary);\">Erro ao carregar comentários.</p>';\n" +
+"                });\n" +
+"        }\n" +
+"\n" +
+"        function escapeHtml(text) {\n" +
+"            const div = document.createElement('div');\n" +
+"            div.textContent = text;\n" +
+"            return div.innerHTML;\n" +
+"        }\n" +
+"\n" +
+"        // Enviar comentário\n" +
+"        document.getElementById('commentForm').addEventListener('submit', function(e) {\n" +
+"            e.preventDefault();\n" +
+"            const name = document.getElementById('commentName').value;\n" +
+"            const text = document.getElementById('commentText').value;\n" +
+"\n" +
+"            fetch('/api/comments', {\n" +
+"                method: 'POST',\n" +
+"                headers: { 'Content-Type': 'application/json' },\n" +
+"                body: JSON.stringify({ name: name, text: text })\n" +
+"            })\n" +
+"            .then(res => res.json())\n" +
+"            .then(data => {\n" +
+"                if (data.success) {\n" +
+"                    document.getElementById('commentForm').reset();\n" +
+"                    carregarComentarios();\n" +
+"                } else {\n" +
+"                    alert('Erro ao enviar comentário: ' + (data.error || 'Erro desconhecido'));\n" +
+"                }\n" +
+"            })\n" +
+"            .catch(err => {\n" +
+"                console.error('Erro:', err);\n" +
+"                alert('Erro ao enviar comentário');\n" +
+"            });\n" +
+"        });\n" +
+"\n" +
+"        // Carregar comentários ao carregar página\n" +
+"        carregarComentarios();\n" +
+"    </script>\n" +
+"</body>\n" +
+"</html>"
+}
+
+# Criar servidor HTTP
+пусть servidor = HTTP.создатьСервер()
+
+# Rota principal
+servidor.get("/", функция(запрос, ответ) {
+    ответ.status(200)
+    ответ.header("Content-Type", "text/html; charset=utf-8")
+    ответ.send(obterHTMLCompleto())
+})
+
+# Rota de status (API JSON)
+servidor.get("/api/status", функция(запрос, ответ) {
+    пусть status = {
+        servidor = "Trest",
+        versao = "2.4.9",
+        online = истина,
+        linguagem = "Trest Language"
+    }
+    ответ.json(status)
+})
+
+# Rota de login (página)
+servidor.get("/login", функция(запрос, ответ) {
+    ответ.status(200)
+    ответ.header("Content-Type", "text/html; charset=utf-8")
+    ответ.send(obterHTMLLogin())
+})
+
+# API de login
+servidor.post("/api/login", функция(запрос, ответ) {
+    попытаться {
+        пусть body = запрос.body
+        печать("Login attempt - body: " + body)
+        пусть username = body.username
+        пусть password = body.password
+        печать("Login attempt - username: " + username + ", password: " + password)
+        
+        # Ler usuários do arquivo
+        пусть users = lerJSON("data/users.json")
+        печать("Users loaded: " + Array.длина(users))
+        
+        пусть userEncontrado = ложь
+        для (пусть user из users) {
+            печать("Checking user: " + user.username + " == " + username + " && " + user.password + " == " + password)
+            если (user.username == username && user.password == password) {
+                userEncontrado = истина
+                прервать
+            }
+        }
+        
+        если (userEncontrado) {
+            пусть token = criarToken()
+            sessions[token] = { username = username, timestamp = Date.timestamp() }
+            ответ.header("Set-Cookie", "auth_token=" + token + "; Path=/; HttpOnly; Max-Age=3600")
+            ответ.json({ success = истина, token = token })
+        } иначе {
+            ответ.status(401)
+            ответ.json({ success = ложь, error = "Credenciais inválidas" })
+        }
+    } перехватить (erro) {
+        печать("Erro no login: " + erro)
+        ответ.status(500)
+        ответ.json({ success = ложь, error = "Erro ao processar login: " + erro })
+    }
+})
+
+# API para obter comentários
+servidor.get("/api/comments", функция(запрос, ответ) {
+    попытаться {
+        пусть comments = lerJSON("data/comments.json")
+        ответ.json(comments)
+    } перехватить (erro) {
+        ответ.status(500)
+        ответ.json({ error = "Erro ao carregar comentários" })
+    }
+})
+
+# API para adicionar comentário
+servidor.post("/api/comments", функция(запрос, ответ) {
+    попытаться {
+        пусть body = запрос.body
+        пусть comments = lerJSON("data/comments.json")
+        
+        пусть novoComment = {
+            id = Date.timestamp() + "-" + Crypto.randomBytes(8),
+            name = body.name,
+            text = body.text,
+            date = Date.timestamp()
+        }
+        
+        Array.добавить(comments, novoComment)
+        escreverJSON("data/comments.json", comments)
+        
+        ответ.json({ success = истина, comment = novoComment })
+    } перехватить (erro) {
+        ответ.status(500)
+        ответ.json({ success = ложь, error = "Erro ao adicionar comentário" })
+    }
+})
+
+# Rota do painel admin (protegida)
+servidor.get("/admin", функция(запрос, ответ) {
+    если (!verificarAuth(запрос)) {
+        ответ.status(302)
+        ответ.header("Location", "/login")
+        ответ.send("")
+    } иначе {
+        попытаться {
+        пусть comments = lerJSON("data/comments.json")
+        пусть html = "<!DOCTYPE html>\n" +
+"<html lang=\"pt-BR\">\n" +
+"<head>\n" +
+"    <meta charset=\"UTF-8\">\n" +
+"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+"    <title>Painel Admin - Comentários</title>\n" +
+"    <style>\n" +
+"        * { margin: 0; padding: 0; box-sizing: border-box; }\n" +
+"        body {\n" +
+"            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n" +
+"            background: #0a0a0a;\n" +
+"            color: #e0e0e0;\n" +
+"            padding: 2rem;\n" +
+"        }\n" +
+"        .container { max-width: 1000px; margin: 0 auto; }\n" +
+"        .header {\n" +
+"            display: flex;\n" +
+"            justify-content: space-between;\n" +
+"            align-items: center;\n" +
+"            margin-bottom: 2rem;\n" +
+"            padding-bottom: 1rem;\n" +
+"            border-bottom: 1px solid #2a2a2a;\n" +
+"        }\n" +
+"        .header h1 { color: #6366f1; }\n" +
+"        .btn { background: #6366f1; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }\n" +
+"        .btn:hover { background: #818cf8; }\n" +
+"        .btn-danger { background: #ef4444; }\n" +
+"        .btn-danger:hover { background: #dc2626; }\n" +
+"        .comment-item {\n" +
+"            background: #141414;\n" +
+"            border: 1px solid #2a2a2a;\n" +
+"            border-radius: 8px;\n" +
+"            padding: 1.5rem;\n" +
+"            margin-bottom: 1rem;\n" +
+"        }\n" +
+"        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }\n" +
+"        .comment-author { font-weight: 600; color: #6366f1; }\n" +
+"        .comment-date { font-size: 0.875rem; color: #a0a0a0; }\n" +
+"        .comment-actions { margin-top: 1rem; }\n" +
+"        .comment-actions button { margin-right: 0.5rem; }\n" +
+"        .comment-text { color: #e0e0e0; line-height: 1.6; white-space: pre-wrap; margin-bottom: 1rem; }\n" +
+"        .edit-form { display: none; margin-top: 1rem; }\n" +
+"        .edit-form textarea {\n" +
+"            width: 100%;\n" +
+"            background: #1a1a1a;\n" +
+"            border: 1px solid #2a2a2a;\n" +
+"            border-radius: 6px;\n" +
+"            padding: 0.75rem;\n" +
+"            color: #e0e0e0;\n" +
+"            font-family: inherit;\n" +
+"            resize: vertical;\n" +
+"            min-height: 100px;\n" +
+"        }\n" +
+"        .edit-form button { margin-top: 0.5rem; }\n" +
+"        .empty { text-align: center; color: #a0a0a0; padding: 3rem; }\n" +
+"    </style>\n" +
+"</head>\n" +
+"<body>\n" +
+"    <div class=\"container\">\n" +
+"        <div class=\"header\">\n" +
+"            <h1>🔐 Painel Admin - Comentários</h1>\n" +
+"            <div>\n" +
+"                <a href=\"/\" class=\"btn\">← Voltar ao site</a>\n" +
+"                <button class=\"btn btn-danger\" onclick=\"logout()\" style=\"margin-left: 0.5rem;\">Sair</button>\n" +
+"            </div>\n" +
+"        </div>\n" +
+"        <div id=\"commentsList\">Carregando comentários...</div>\n" +
+"    </div>\n" +
+"    <script>\n" +
+"        let comments = " + JSON.stringify(comments) + ";\n" +
+"        function renderComments() {\n" +
+"            const div = document.getElementById('commentsList');\n" +
+"            if (comments.length === 0) {\n" +
+"                div.innerHTML = '<div class=\"empty\">Nenhum comentário ainda.</div>';\n" +
+"                return;\n" +
+"            }\n" +
+"            div.innerHTML = comments.map((comment, index) => `\n" +
+"                <div class=\"comment-item\" id=\"comment-${comment.id}\">\n" +
+"                    <div class=\"comment-header\">\n" +
+"                        <span class=\"comment-author\">${escapeHtml(comment.name)}</span>\n" +
+"                        <span class=\"comment-date\">${new Date(comment.date).toLocaleString('pt-BR')}</span>\n" +
+"                    </div>\n" +
+"                    <div class=\"comment-text\" id=\"text-${comment.id}\">${escapeHtml(comment.text)}</div>\n" +
+"                    <div class=\"edit-form\" id=\"edit-${comment.id}\">\n" +
+"                        <textarea id=\"textarea-${comment.id}\">${escapeHtml(comment.text)}</textarea>\n" +
+"                        <button class=\"btn\" onclick=\"saveEdit('${comment.id}')\">Salvar</button>\n" +
+"                        <button class=\"btn\" onclick=\"cancelEdit('${comment.id}')\">Cancelar</button>\n" +
+"                    </div>\n" +
+"                    <div class=\"comment-actions\">\n" +
+"                        <button class=\"btn\" onclick=\"editComment('${comment.id}')\">Editar</button>\n" +
+"                        <button class=\"btn btn-danger\" onclick=\"deleteComment('${comment.id}')\">Deletar</button>\n" +
+"                    </div>\n" +
+"                </div>\n" +
+"            `).join('');\n" +
+"        }\n" +
+"        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }\n" +
+"        function editComment(id) {\n" +
+"            document.getElementById('text-' + id).style.display = 'none';\n" +
+"            document.getElementById('edit-' + id).style.display = 'block';\n" +
+"        }\n" +
+"        function cancelEdit(id) {\n" +
+"            document.getElementById('text-' + id).style.display = 'block';\n" +
+"            document.getElementById('edit-' + id).style.display = 'none';\n" +
+"        }\n" +
+"        function saveEdit(id) {\n" +
+"            const text = document.getElementById('textarea-' + id).value;\n" +
+"            fetch('/api/admin/comments/' + id, {\n" +
+"                method: 'POST',\n" +
+"                headers: { 'Content-Type': 'application/json' },\n" +
+"                body: JSON.stringify({ text: text })\n" +
+"            })\n" +
+"            .then(res => res.json())\n" +
+"            .then(data => {\n" +
+"                if (data.success) {\n" +
+"                    const comment = comments.find(c => c.id === id);\n" +
+"                    if (comment) comment.text = text;\n" +
+"                    renderComments();\n" +
+"                } else {\n" +
+"                    alert('Erro ao editar: ' + (data.error || 'Erro desconhecido'));\n" +
+"                }\n" +
+"            })\n" +
+"            .catch(err => { alert('Erro ao editar comentário'); });\n" +
+"        }\n" +
+"        function deleteComment(id) {\n" +
+"            if (!confirm('Tem certeza que deseja deletar este comentário?')) return;\n" +
+"            fetch('/api/admin/comments/' + id, { method: 'DELETE' })\n" +
+"            .then(res => res.json())\n" +
+"            .then(data => {\n" +
+"                if (data.success) {\n" +
+"                    comments = comments.filter(c => c.id !== id);\n" +
+"                    renderComments();\n" +
+"                } else {\n" +
+"                    alert('Erro ao deletar: ' + (data.error || 'Erro desconhecido'));\n" +
+"                }\n" +
+"            })\n" +
+"            .catch(err => { alert('Erro ao deletar comentário'); });\n" +
+"        }\n" +
+"        function logout() {\n" +
+"            fetch('/api/logout', { method: 'POST' })\n" +
+"            .then(() => { window.location.href = '/login'; });\n" +
+"        }\n" +
+"        renderComments();\n" +
+"    </script>\n" +
+"</body>\n" +
+"</html>"
+        ответ.status(200)
+        ответ.header("Content-Type", "text/html; charset=utf-8")
+        ответ.send(html)
+    } перехватить (erro) {
+        ответ.status(500)
+        ответ.send("Erro ao carregar painel admin")
+        }
+    }
+})
+
+# API para editar comentário (admin)
+servidor.post("/api/admin/comments/:id", функция(запрос, ответ) {
+    если (!verificarAuth(запрос)) {
+        ответ.status(401)
+        ответ.json({ success = ложь, error = "Não autorizado" })
+    } иначе {
+        попытаться {
+        пусть commentId = запрос.pathname
+        # Extrair ID da URL
+        пусть partes = String.разделить(commentId, "/")
+        пусть id = partes[Array.длина(partes) - 1]
+        
+        пусть comments = lerJSON("data/comments.json")
+        пусть body = запрос.body
+        
+        пусть encontrado = ложь
+        для (пусть i = 0; i < Array.длина(comments); i = i + 1) {
+            если (comments[i].id == id) {
+                comments[i].text = body.text
+                encontrado = истина
+                прервать
+            }
+        }
+        
+        если (encontrado) {
+            escreverJSON("data/comments.json", comments)
+            ответ.json({ success = истина })
+        } иначе {
+            ответ.status(404)
+            ответ.json({ success = ложь, error = "Comentário não encontrado" })
+        }
+        } перехватить (erro) {
+            ответ.status(500)
+            ответ.json({ success = ложь, error = "Erro ao editar comentário" })
+        }
+    }
+})
+
+# API para deletar comentário (admin)
+servidor.delete("/api/admin/comments/:id", функция(запрос, ответ) {
+    если (!verificarAuth(запрос)) {
+        ответ.status(401)
+        ответ.json({ success = ложь, error = "Não autorizado" })
+    } иначе {
+        попытаться {
+            пусть commentId = запрос.pathname
+            пусть partes = String.разделить(commentId, "/")
+            пусть id = partes[Array.длина(partes) - 1]
+            
+            пусть comments = lerJSON("data/comments.json")
+            пусть novosComments = []
+            
+            для (пусть comment из comments) {
+                если (comment.id != id) {
+                    Array.добавить(novosComments, comment)
+                }
+            }
+            
+            escreverJSON("data/comments.json", novosComments)
+            ответ.json({ success = истина })
+        } перехватить (erro) {
+            ответ.status(500)
+            ответ.json({ success = ложь, error = "Erro ao deletar comentário" })
+        }
+    }
+})
+
+# API de logout
+servidor.post("/api/logout", функция(запрос, ответ) {
+    пусть cookieHeader = запрос.headers["cookie"]
+    если (cookieHeader == нуль) {
+        cookieHeader = запрос.headers["Cookie"]
+    }
+    пусть token = extrairCookie(cookieHeader, "auth_token")
+    если (token != нуль) {
+        sessions[token] = нуль
+    }
+    ответ.header("Set-Cookie", "auth_token=; Path=/; HttpOnly; Max-Age=0")
+    ответ.json({ success = истина })
+})
+
+# Iniciar servidor
+servidor.listen(3000, функция() {
+    печать("🚀 Site Trest iniciado com sucesso!")
+    печать("🌐 Acesse: http://localhost:3000")
+    печать("📊 Status API: http://localhost:3000/api/status")
+})

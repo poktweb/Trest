@@ -127,10 +127,18 @@ export class Interpreter {
     // FileSystem Module
     this.globalEnv.variables.set('FileSystem', {
       читатьФайл: StdModules.FileSystem.readFile.bind(StdModules.FileSystem),
+      readFile: StdModules.FileSystem.readFile.bind(StdModules.FileSystem),
       писатьФайл: StdModules.FileSystem.writeFile.bind(StdModules.FileSystem),
+      writeFile: StdModules.FileSystem.writeFile.bind(StdModules.FileSystem),
       существует: StdModules.FileSystem.exists.bind(StdModules.FileSystem),
+      exists: StdModules.FileSystem.exists.bind(StdModules.FileSystem),
       удалитьФайл: StdModules.FileSystem.deleteFile.bind(StdModules.FileSystem),
+      deleteFile: StdModules.FileSystem.deleteFile.bind(StdModules.FileSystem),
       списокДиректорий: StdModules.FileSystem.listDir.bind(StdModules.FileSystem),
+      listDir: StdModules.FileSystem.listDir.bind(StdModules.FileSystem),
+      createDir: StdModules.FileSystem.createDir.bind(StdModules.FileSystem),
+      deleteDir: StdModules.FileSystem.deleteDir.bind(StdModules.FileSystem),
+      getStats: StdModules.FileSystem.getStats.bind(StdModules.FileSystem),
     });
 
     // JSON Module
@@ -153,8 +161,11 @@ export class Interpreter {
       sha256: StdModules.Crypto.sha256.bind(StdModules.Crypto),
       sha512: StdModules.Crypto.sha512.bind(StdModules.Crypto),
       случайныеБайты: StdModules.Crypto.randomBytes.bind(StdModules.Crypto),
+      randomBytes: StdModules.Crypto.randomBytes.bind(StdModules.Crypto),
       зашифровать: StdModules.Crypto.encrypt.bind(StdModules.Crypto),
+      encrypt: StdModules.Crypto.encrypt.bind(StdModules.Crypto),
       расшифровать: StdModules.Crypto.decrypt.bind(StdModules.Crypto),
+      decrypt: StdModules.Crypto.decrypt.bind(StdModules.Crypto),
     });
 
     // RegEx Module
@@ -511,26 +522,34 @@ export class Interpreter {
       }
     } else if (expr.left.type === 'IndexExpression') {
       const indexExpr = expr.left as IndexExpression;
-      const array = this.evaluateExpression(indexExpr.object, env) as RuntimeValue[];
-      const index = this.evaluateExpression(indexExpr.index, env) as number;
+      const object = this.evaluateExpression(indexExpr.object, env);
+      const index = this.evaluateExpression(indexExpr.index, env);
       
-      if (!Array.isArray(array)) {
-        throw new Error('Indexação só é permitida em arrays');
-      }
-      
-      if (index < 0) {
-        throw new Error(`Índice fora dos limites: ${index}`);
-      }
-      
-      // Permite expansão automática do array se o índice estiver além do tamanho atual
-      if (index >= array.length) {
-        // Expande array até o índice necessário
-        while (array.length <= index) {
-          array.push(null);
+      if (Array.isArray(object)) {
+        // Para arrays
+        const array = object as RuntimeValue[];
+        const arrayIndex = index as number;
+        
+        if (arrayIndex < 0) {
+          throw new Error(`Índice fora dos limites: ${arrayIndex}`);
         }
+        
+        // Permite expansão automática do array se o índice estiver além do tamanho atual
+        if (arrayIndex >= array.length) {
+          // Expande array até o índice necessário
+          while (array.length <= arrayIndex) {
+            array.push(null);
+          }
+        }
+        
+        array[arrayIndex] = value;
+      } else if (typeof object === 'object' && object !== null) {
+        // Para objetos
+        const key = String(index);
+        (object as any)[key] = value;
+      } else {
+        throw new Error('Indexação só é permitida em arrays ou objetos');
       }
-      
-      array[index] = value;
     } else if (expr.left.type === 'MemberExpression') {
       const memberExpr = expr.left as MemberExpression;
       const object = this.evaluateExpression(memberExpr.object, env);
@@ -704,7 +723,24 @@ export class Interpreter {
       return null;
     }
 
-    throw new Error(`Não é uma função: ${(expr.callee as Identifier).name}`);
+    // Melhorar mensagem de erro para MemberExpression também
+    let calleeName = 'unknown';
+    if (expr.callee.type === 'Identifier') {
+      calleeName = (expr.callee as Identifier).name;
+    } else if (expr.callee.type === 'MemberExpression') {
+      const memberExpr = expr.callee as any;
+      const objectName = memberExpr.object.type === 'Identifier' 
+        ? (memberExpr.object as Identifier).name 
+        : 'object';
+      const propertyName = typeof memberExpr.property === 'string' 
+        ? memberExpr.property 
+        : (memberExpr.property.type === 'Identifier' 
+          ? (memberExpr.property as Identifier).name 
+          : 'property');
+      calleeName = `${objectName}.${propertyName}`;
+    }
+    
+    throw new Error(`Não é uma função: ${calleeName} (tipo: ${typeof callee})`);
   }
 
   /**
@@ -1309,15 +1345,26 @@ export class Interpreter {
               sha256: StdModules.Crypto.sha256.bind(StdModules.Crypto),
               sha512: StdModules.Crypto.sha512.bind(StdModules.Crypto),
               случайныеБайты: StdModules.Crypto.randomBytes.bind(StdModules.Crypto),
+              randomBytes: StdModules.Crypto.randomBytes.bind(StdModules.Crypto),
               зашифровать: StdModules.Crypto.encrypt.bind(StdModules.Crypto),
+              encrypt: StdModules.Crypto.encrypt.bind(StdModules.Crypto),
               расшифровать: StdModules.Crypto.decrypt.bind(StdModules.Crypto),
+              decrypt: StdModules.Crypto.decrypt.bind(StdModules.Crypto),
             },
             'filesystem': {
               читатьФайл: StdModules.FileSystem.readFile.bind(StdModules.FileSystem),
+              readFile: StdModules.FileSystem.readFile.bind(StdModules.FileSystem),
               писатьФайл: StdModules.FileSystem.writeFile.bind(StdModules.FileSystem),
+              writeFile: StdModules.FileSystem.writeFile.bind(StdModules.FileSystem),
               существует: StdModules.FileSystem.exists.bind(StdModules.FileSystem),
+              exists: StdModules.FileSystem.exists.bind(StdModules.FileSystem),
               удалитьФайл: StdModules.FileSystem.deleteFile.bind(StdModules.FileSystem),
+              deleteFile: StdModules.FileSystem.deleteFile.bind(StdModules.FileSystem),
               списокДиректорий: StdModules.FileSystem.listDir.bind(StdModules.FileSystem),
+              listDir: StdModules.FileSystem.listDir.bind(StdModules.FileSystem),
+              createDir: StdModules.FileSystem.createDir.bind(StdModules.FileSystem),
+              deleteDir: StdModules.FileSystem.deleteDir.bind(StdModules.FileSystem),
+              getStats: StdModules.FileSystem.getStats.bind(StdModules.FileSystem),
             },
             'json': {
               parse: StdModules.JSON.parse.bind(StdModules.JSON),
@@ -1386,8 +1433,14 @@ export class Interpreter {
               нижний: (str: string) => str.toLowerCase(),
               trim: (str: string) => str.trim(),
               substring: (str: string, start: number, end?: number) => str.substring(start, end),
+              разделить: (str: string, separator: string) => str.split(separator),
+              split: (str: string, separator: string) => str.split(separator),
+              заменить: (str: string, search: string, replace: string) => str.replace(new RegExp(search, 'g'), replace),
+              replace: (str: string, search: string, replace: string) => str.replace(new RegExp(search, 'g'), replace),
             },
             'array': {
+              длина: (arr: any[]) => arr.length,
+              length: (arr: any[]) => arr.length,
               push: (arr: any[], item: any) => { arr.push(item); return arr; },
               добавить: (arr: any[], item: any) => { arr.push(item); return arr; },
               pop: (arr: any[]) => arr.pop(),

@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.4.9
+# 📚 Documentação Completa - Trest Language v2.5.0
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,7 +20,7 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.4.9](#novidades-da-versão-249)
+15. [Novidades da Versão 2.5.0](#novidades-da-versão-250)
 16. [Histórico de Versões](#histórico-de-versões)
 
 ---
@@ -1719,7 +1719,7 @@ servidor.get("/", функция(запрос, ответ) {
 })
 
 servidor.get("/sobre", функция(запрос, ответ) {
-    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.4.9</p>")
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.0</p>")
 })
 
 servidor.get("/api/status", функция(запрос, ответ) {
@@ -2411,12 +2411,50 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.4.9  
+**Versão:** 2.5.0  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
 
-### 🆕 Novidades da Versão 2.4.9
+### 🆕 Novidades da Versão 2.5.0
+
+A versão 2.5.0 traz melhorias significativas na biblioteca padrão, correções importantes no sistema de módulos e novas funcionalidades no servidor HTTP:
+
+**Melhorias na Biblioteca Padrão - Aliases em Inglês:**
+- ✅ **FileSystem Module** - Adicionados aliases em inglês para todas as funções: `readFile`, `writeFile`, `exists`, `deleteFile`, `listDir`, `createDir`, `deleteDir`, `getStats` (além dos nomes em cirílico)
+- ✅ **Crypto Module** - Adicionados aliases em inglês: `randomBytes`, `encrypt`, `decrypt` (além dos nomes em cirílico)
+- ✅ **Array Module** - Adicionada função `длина` (length) ao moduleMap
+- ✅ **String Module** - Adicionadas funções `разделить` (split) e `заменить` (replace) ao moduleMap
+
+**Correções Críticas:**
+- ✅ **Indexação em Objetos** - Corrigido `evaluateAssignment` para permitir indexação em objetos (ex: `obj["key"] = value`), não apenas arrays
+- ✅ **Mensagens de Erro Melhoradas** - Mensagens de erro para MemberExpression agora mostram o nome correto da função quando ocorre erro
+- ✅ **Módulos Padrão Funcionais** - Todos os módulos std agora funcionam corretamente quando importados com `импорт * как ModuleName измодуля "std/modulename"`
+
+**Novas Funcionalidades no Servidor HTTP:**
+- ✅ **Rotas Dinâmicas com Parâmetros** - Suporte completo para rotas com parâmetros dinâmicos (ex: `/api/users/:id`, `/api/admin/comments/:id`)
+- ✅ **Extração Automática de Parâmetros** - Parâmetros de rota são extraídos automaticamente e disponibilizados em `запрос.params`
+- ✅ **Compatibilidade com Rotas Exatas** - Rotas exatas continuam funcionando normalmente
+
+**Exemplo de Uso de Rotas Dinâmicas:**
+```trest
+# Rota com parâmetro :id
+servidor.post("/api/admin/comments/:id", функция(запрос, ответ) {
+    пусть id = запрос.params.id  # Parâmetro extraído automaticamente
+    # ... código ...
+})
+```
+
+**Correções de Compatibilidade:**
+- ✅ **Módulos FileSystem, Crypto, Array, String** - Todos os módulos agora funcionam tanto com nomes em cirílico quanto em inglês
+- ✅ **Indexação de Objetos** - Corrigido problema onde `sessions[token] = value` não funcionava
+
+**Compatibilidade:**
+- Versão Anterior: 2.4.9
+- Nova Versão: 2.5.0
+- **Totalmente compatível** - Nenhuma mudança incompatível
+
+### 📋 Versão Anterior (2.4.9)
 
 A versão 2.4.9 traz correções críticas no sistema de compilação para executáveis, melhorias significativas na biblioteca padrão e correção de todas as limitações conhecidas:
 
