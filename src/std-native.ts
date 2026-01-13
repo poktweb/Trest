@@ -8,6 +8,46 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import { URL } from 'url';
+import * as crypto from 'crypto';
+import * as readline from 'readline';
+
+// Database drivers - lazy loading
+let Database: any;
+let mysql: any;
+let pg: any;
+
+function loadSQLite() {
+  if (!Database) {
+    try {
+      Database = require('better-sqlite3');
+    } catch (e) {
+      // Silently fail - will throw error when used
+    }
+  }
+  return Database;
+}
+
+function loadMySQL() {
+  if (!mysql) {
+    try {
+      mysql = require('mysql2/promise');
+    } catch (e) {
+      // Silently fail - will throw error when used
+    }
+  }
+  return mysql;
+}
+
+function loadPostgreSQL() {
+  if (!pg) {
+    try {
+      pg = require('pg');
+    } catch (e) {
+      // Silently fail - will throw error when used
+    }
+  }
+  return pg;
+}
 
 /**
  * ========================================
@@ -1441,72 +1481,396 @@ export class StdDatabase {
   private static dbConnections: Map<string, any> = new Map();
 
   /**
-   * Open Database
+   * Sanitiza query SQL substituindo ? pelos valores de forma segura (Prevent SQL Injection)
    */
-  static openDB(dbPath: string): any {
+  private static sanitizeQuery(query: string, params: any[]): string {
+    if (!params || params.length === 0) {
+      return query;
+    }
+
+    // Escapar valores para prevenir SQL Injection
+    const escapeValue = (value: any): string => {
+      if (value === null || value === undefined) {
+        return 'NULL';
+      }
+      if (typeof value === 'number') {
+        return String(value);
+      }
+      if (typeof value === 'boolean') {
+        return value ? '1' : '0';
+      }
+      // String: escapar aspas simples e barras
+      const escaped = String(value)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "''")
+        .replace(/"/g, '""');
+      return `'${escaped}'`;
+    };
+
+    // Substituir cada ? pelo valor correspondente
+    let safeQuery = query;
+    let paramIndex = 0;
+    
+    // Substituir ? pelos valores escapados
+    safeQuery = safeQuery.replace(/\?/g, () => {
+      if (paramIndex < params.length) {
+        const value = escapeValue(params[paramIndex]);
+        paramIndex++;
+        return value;
+      }
+      return '?'; // Se não houver parâmetro suficiente, manter ?
+    });
+
+    return safeQuery;
+  }
+
+  /**
+   * Detect database type from connection string or path
+   */
+  private static detectDBType(connection: string): 'sqlite' | 'mysql' | 'postgresql' | 'unknown' {
+    if (connection.startsWith('mysql://') || connection.startsWith('mysql2://')) {
+      return 'mysql';
+    }
+    if (connection.startsWith('postgresql://') || connection.startsWith('postgres://')) {
+      return 'postgresql';
+    }
+    if (connection.endsWith('.db') || connection.includes('/') || connection.includes('\\')) {
+      return 'sqlite';
+    }
+    return 'unknown';
+  }
+
+  /**
+   * Parse MySQL connection string
+   */
+  private static parseMySQLConnection(connectionString: string): any {
+    try {
+      const url = new URL(connectionString);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port) || 3306,
+        user: url.username,
+        password: url.password,
+        database: url.pathname.substring(1),
+      };
+    } catch (e) {
+      throw new Error(`Invalid MySQL connection string: ${connectionString}`);
+    }
+  }
+
+  /**
+   * Parse PostgreSQL connection string
+   */
+  private static parsePostgreSQLConnection(connectionString: string): any {
+    try {
+      const url = new URL(connectionString);
+      return {
+        host: url.hostname,
+        port: parseInt(url.port) || 5432,
+        user: url.username,
+        password: url.password,
+        database: url.pathname.substring(1),
+        ssl: url.searchParams.get('ssl') === 'true',
+      };
+    } catch (e) {
+      throw new Error(`Invalid PostgreSQL connection string: ${connectionString}`);
+    }
+  }
+
+  /**
+   * Open Database - Supports SQLite, MySQL, PostgreSQL
+   */
+  static openDB(connection: string | any): any {
+    // If it's an object, treat as config
+    if (typeof connection === 'object' && connection !== null) {
+      if (connection.type === 'mysql' || connection.host && !connection.path) {
+        return this.openMySQL(connection);
+      }
+      if (connection.type === 'postgresql' || connection.type === 'postgres') {
+        return this.openPostgreSQL(connection);
+      }
+    }
+
+    // Detect type from connection string
+    const dbType = this.detectDBType(String(connection));
+
+    if (dbType === 'mysql') {
+      const config = this.parseMySQLConnection(String(connection));
+      return this.openMySQL(config);
+    }
+
+    if (dbType === 'postgresql') {
+      const config = this.parsePostgreSQLConnection(String(connection));
+      return this.openPostgreSQL(config);
+    }
+
+    // Default to SQLite
+    return this.openSQLite(String(connection));
+  }
+
+  /**
+   * Open SQLite Database (real implementation)
+   */
+  static openSQLite(dbPath: string): any {
     if (this.dbConnections.has(dbPath)) {
       return this.dbConnections.get(dbPath);
     }
 
-    // For now, use file-based mock database
-    const db = {
-      path: dbPath,
-      execute: (query: string, params: any[] = []) => {
-        console.log(`[DB] Executing: ${query}`, params);
-        return { success: true };
-      },
-      query: (query: string, params: any[] = []) => {
-        console.log(`[DB] Querying: ${query}`, params);
-        return [];
-      },
-      transaction: (fn: Function) => {
-        console.log('[DB] Transaction started');
-        fn();
-        console.log('[DB] Transaction committed');
-      },
-      close: () => {
-        console.log(`[DB] Closed: ${dbPath}`);
-        this.dbConnections.delete(dbPath);
-      },
-    };
+    const Database = loadSQLite();
+    if (!Database) {
+      throw new Error('better-sqlite3 is not installed. Install it with: npm install better-sqlite3');
+    }
 
-    this.dbConnections.set(dbPath, db);
-    return db;
+    try {
+      const db = new Database(dbPath);
+      
+      const dbWrapper = {
+        path: dbPath,
+        _db: db,
+        execute: (query: string, params: any[] = []) => {
+          try {
+            const stmt = db.prepare(query);
+            const result = stmt.run(...params);
+            return { 
+              success: true, 
+              lastInsertRowid: result.lastInsertRowid,
+              changes: result.changes 
+            };
+          } catch (error: any) {
+            throw new Error(`SQLite execute error: ${error.message}`);
+          }
+        },
+        query: (query: string, params: any[] = []) => {
+          try {
+            const stmt = db.prepare(query);
+            return stmt.all(...params);
+          } catch (error: any) {
+            throw new Error(`SQLite query error: ${error.message}`);
+          }
+        },
+        transaction: (fn: Function) => {
+          try {
+            const transaction = db.transaction(fn);
+            transaction();
+          } catch (error: any) {
+            throw new Error(`SQLite transaction error: ${error.message}`);
+          }
+        },
+        close: () => {
+          try {
+            db.close();
+            this.dbConnections.delete(dbPath);
+          } catch (error: any) {
+            throw new Error(`SQLite close error: ${error.message}`);
+          }
+        },
+      };
+
+      this.dbConnections.set(dbPath, dbWrapper);
+      return dbWrapper;
+    } catch (error: any) {
+      throw new Error(`Failed to open SQLite database: ${error.message}`);
+    }
+  }
+
+  /**
+   * Open MySQL Database (real implementation)
+   */
+  static openMySQL(config: any): any {
+    const connectionKey = `mysql://${config.host}:${config.port}/${config.database}`;
+    
+    if (this.dbConnections.has(connectionKey)) {
+      return this.dbConnections.get(connectionKey);
+    }
+
+    const mysql = loadMySQL();
+    if (!mysql) {
+      throw new Error('mysql2 is not installed. Install it with: npm install mysql2');
+    }
+
+    try {
+      const pool = mysql.createPool({
+        host: config.host || 'localhost',
+        port: config.port || 3306,
+        user: config.user || 'root',
+        password: config.password || '',
+        database: config.database,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+      });
+
+      const dbWrapper = {
+        _pool: pool,
+        _config: config,
+        execute: async (query: string, params: any[] = []) => {
+          try {
+            const [result] = await pool.execute(query, params);
+            return { 
+              success: true, 
+              insertId: (result as any).insertId,
+              affectedRows: (result as any).affectedRows 
+            };
+          } catch (error: any) {
+            throw new Error(`MySQL execute error: ${error.message}`);
+          }
+        },
+        query: async (query: string, params: any[] = []) => {
+          try {
+            const [rows] = await pool.execute(query, params);
+            return rows;
+          } catch (error: any) {
+            throw new Error(`MySQL query error: ${error.message}`);
+          }
+        },
+        transaction: async (fn: Function) => {
+          const connection = await pool.getConnection();
+          try {
+            await connection.beginTransaction();
+            await fn(connection);
+            await connection.commit();
+          } catch (error: any) {
+            await connection.rollback();
+            throw new Error(`MySQL transaction error: ${error.message}`);
+          } finally {
+            connection.release();
+          }
+        },
+        close: async () => {
+          try {
+            await pool.end();
+            this.dbConnections.delete(connectionKey);
+          } catch (error: any) {
+            throw new Error(`MySQL close error: ${error.message}`);
+          }
+        },
+      };
+
+      this.dbConnections.set(connectionKey, dbWrapper);
+      return dbWrapper;
+    } catch (error: any) {
+      throw new Error(`Failed to open MySQL database: ${error.message}`);
+    }
+  }
+
+  /**
+   * Open PostgreSQL Database (real implementation)
+   */
+  static openPostgreSQL(config: any): any {
+    const connectionKey = `postgresql://${config.host}:${config.port}/${config.database}`;
+    
+    if (this.dbConnections.has(connectionKey)) {
+      return this.dbConnections.get(connectionKey);
+    }
+
+    const pgLib = loadPostgreSQL();
+    if (!pgLib) {
+      throw new Error('pg is not installed. Install it with: npm install pg');
+    }
+
+    try {
+      const pool = new pgLib.Pool({
+        host: config.host || 'localhost',
+        port: config.port || 5432,
+        user: config.user || 'postgres',
+        password: config.password || '',
+        database: config.database,
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+        ssl: config.ssl || false,
+      });
+
+      const dbWrapper = {
+        _pool: pool,
+        _config: config,
+        execute: async (query: string, params: any[] = []) => {
+          try {
+            const result = await pool.query(query, params);
+            return { 
+              success: true, 
+              rowCount: result.rowCount,
+              rows: result.rows 
+            };
+          } catch (error: any) {
+            throw new Error(`PostgreSQL execute error: ${error.message}`);
+          }
+        },
+        query: async (query: string, params: any[] = []) => {
+          try {
+            const result = await pool.query(query, params);
+            return result.rows;
+          } catch (error: any) {
+            throw new Error(`PostgreSQL query error: ${error.message}`);
+          }
+        },
+        transaction: async (fn: Function) => {
+          const client = await pool.connect();
+          try {
+            await client.query('BEGIN');
+            await fn(client);
+            await client.query('COMMIT');
+          } catch (error: any) {
+            await client.query('ROLLBACK');
+            throw new Error(`PostgreSQL transaction error: ${error.message}`);
+          } finally {
+            client.release();
+          }
+        },
+        close: async () => {
+          try {
+            await pool.end();
+            this.dbConnections.delete(connectionKey);
+          } catch (error: any) {
+            throw new Error(`PostgreSQL close error: ${error.message}`);
+          }
+        },
+      };
+
+      this.dbConnections.set(connectionKey, dbWrapper);
+      return dbWrapper;
+    } catch (error: any) {
+      throw new Error(`Failed to open PostgreSQL database: ${error.message}`);
+    }
   }
 
   /**
    * Query Builder
    */
   static createQueryBuilder(table: string): any {
-    const builder = {
-      table,
+    const builder: any = {
+      table: table,
       selectFields: '*',
       whereClause: '',
       orderClause: '',
       limitValue: '',
       conditions: [] as any[],
+    };
 
-      select: function(fields: string) {
-        this.selectFields = fields;
-        return this;
-      },
-      where: function(condition: string) {
-        this.whereClause = `WHERE ${condition}`;
-        return this;
-      },
-      order: function(field: string) {
-        this.orderClause = `ORDER BY ${field}`;
-        return this;
-      },
-      limit: function(n: number) {
-        this.limitValue = `LIMIT ${n}`;
-        return this;
-      },
-      execute: function() {
-        const sql = `SELECT ${this.selectFields} FROM ${this.table} ${this.whereClause} ${this.orderClause} ${this.limitValue}`;
-        console.log(`[Query Builder] ${sql}`);
-        return [];
-      },
+    builder.select = function(fields: string) {
+      builder.selectFields = fields;
+      return builder;
+    };
+    
+    builder.where = function(condition: string) {
+      builder.whereClause = `WHERE ${condition}`;
+      return builder;
+    };
+    
+    builder.order = function(field: string) {
+      builder.orderClause = `ORDER BY ${field}`;
+      return builder;
+    };
+    
+    builder.limit = function(n: number) {
+      builder.limitValue = `LIMIT ${n}`;
+      return builder;
+    };
+    
+    builder.execute = function() {
+      const sql = `SELECT ${builder.selectFields} FROM ${builder.table} ${builder.whereClause} ${builder.orderClause} ${builder.limitValue}`;
+      console.log(`[Query Builder] ${sql}`);
+      return [];
     };
 
     return builder;
@@ -1719,7 +2083,6 @@ export class StdDate {
  * Crypto Module
  * ========================================
  */
-import * as crypto from 'crypto';
 
 export class StdCrypto {
   /**
@@ -1988,7 +2351,6 @@ export class StdProcess {
  * IO Module - Entrada e Saída
  * ========================================
  */
-import * as readline from 'readline';
 
 export class StdIO {
   private static rl: readline.Interface | null = null;
@@ -2123,6 +2485,471 @@ export class StdIO {
 }
 
 /**
+ * ========================================
+ * DOM Module - Manipulação de DOM (Front-End)
+ * ========================================
+ */
+export class StdDOM {
+  /**
+   * Verifica se está rodando no navegador
+   */
+  private static isBrowser(): boolean {
+    return typeof (globalThis as any).window !== 'undefined' && typeof (globalThis as any).document !== 'undefined';
+  }
+
+  /**
+   * Selecionar elemento (querySelector)
+   */
+  static selecionar(seletor: string): any {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.selecionar só funciona no navegador. Use --mode web para compilar.');
+    }
+    return ((globalThis as any).document as any).querySelector(seletor);
+  }
+
+  static select(seletor: string): any {
+    return this.selecionar(seletor);
+  }
+
+  /**
+   * Adicionar evento (addEventListener)
+   */
+  static evento(elemento: any, tipo: string, callback: Function): void {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.evento só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.addEventListener) {
+      elemento.addEventListener(tipo, callback);
+    }
+  }
+
+  static addEvent(elemento: any, tipo: string, callback: Function): void {
+    this.evento(elemento, tipo, callback);
+  }
+
+  /**
+   * Manipular texto (innerText)
+   */
+  static texto(elemento: any, valor?: string): string | void {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.texto só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (!elemento) return '';
+    if (valor !== undefined) {
+      elemento.innerText = valor;
+    } else {
+      return elemento.innerText || '';
+    }
+  }
+
+  static setText(elemento: any, valor?: string): string | void {
+    return this.texto(elemento, valor);
+  }
+
+  /**
+   * Manipular HTML (innerHTML)
+   */
+  static html(elemento: any, valor?: string): string | void {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.html só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (!elemento) return '';
+    if (valor !== undefined) {
+      elemento.innerHTML = valor;
+    } else {
+      return elemento.innerHTML || '';
+    }
+  }
+
+  static setHTML(elemento: any, valor?: string): string | void {
+    return this.html(elemento, valor);
+  }
+
+  /**
+   * Obter/definir valor de input (value)
+   */
+  static valor(elemento: any, valor?: any): any {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.valor só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (!elemento) return null;
+    if (valor !== undefined) {
+      elemento.value = valor;
+    } else {
+      return elemento.value !== undefined ? elemento.value : null;
+    }
+  }
+
+  static val(elemento: any, valor?: any): any {
+    return this.valor(elemento, valor);
+  }
+
+  /**
+   * Criar elemento (createElement)
+   */
+  static criar(tag: string): any {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.criar só funciona no navegador. Use --mode web para compilar.');
+    }
+    return ((globalThis as any).document as any).createElement(tag);
+  }
+
+  static create(tag: string): any {
+    return this.criar(tag);
+  }
+
+  /**
+   * Adicionar elemento ao DOM (appendChild)
+   */
+  static adicionar(parent: any, child: any): void {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.adicionar só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (parent && parent.appendChild && child) {
+      parent.appendChild(child);
+    }
+  }
+
+  static append(parent: any, child: any): void {
+    this.adicionar(parent, child);
+  }
+
+  /**
+   * Remover elemento (removeChild)
+   */
+  static remover(elemento: any): void {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.remover só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.parentNode) {
+      elemento.parentNode.removeChild(elemento);
+    }
+  }
+
+  static remove(elemento: any): void {
+    this.remover(elemento);
+  }
+
+  /**
+   * Obter atributo (getAttribute)
+   */
+  static atributo(elemento: any, nome: string): string | null {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.atributo só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (!elemento || !elemento.getAttribute) return null;
+    return elemento.getAttribute(nome);
+  }
+
+  static getAttr(elemento: any, nome: string): string | null {
+    return this.atributo(elemento, nome);
+  }
+
+  /**
+   * Definir atributo (setAttribute)
+   */
+  static definirАтрибут(elemento: any, nome: string, valor: string): void {
+    if (!this.isBrowser()) {
+      throw new Error('DOM.definirАтрибут só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.setAttribute) {
+      elemento.setAttribute(nome, valor);
+    }
+  }
+
+  static setAttr(elemento: any, nome: string, valor: string): void {
+    this.definirАтрибут(elemento, nome, valor);
+  }
+}
+
+/**
+ * ========================================
+ * Style Module - Gerenciamento de CSS
+ * ========================================
+ */
+export class StdStyle {
+  /**
+   * Verifica se está rodando no navegador
+   */
+  private static isBrowser(): boolean {
+    return typeof (globalThis as any).window !== 'undefined' && typeof (globalThis as any).document !== 'undefined';
+  }
+
+  /**
+   * Carregar CSS de CDN (Bootstrap, Tailwind, etc)
+   */
+  static carregarCDN(url: string): void {
+    if (!this.isBrowser()) {
+      throw new Error('Style.carregarCDN só funciona no navegador. Use --mode web para compilar.');
+    }
+    const doc = (globalThis as any).document as any;
+    const link = doc.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    doc.head.appendChild(link);
+  }
+
+  static loadCDN(url: string): void {
+    this.carregarCDN(url);
+  }
+
+  /**
+   * Carregar CSS de arquivo local
+   * No modo web, o compilador deve injetar o conteúdo do arquivo
+   */
+  static carregarАрхив(caminho: string): void {
+    if (!this.isBrowser()) {
+      // No Node.js, apenas log (o compilador web deve injetar)
+      console.log(`[Style] Carregando CSS: ${caminho} (será injetado no bundle)`);
+      return;
+    }
+    // No navegador, criar link para o arquivo
+    const doc = (globalThis as any).document as any;
+    const link = doc.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = caminho;
+    doc.head.appendChild(link);
+  }
+
+  static loadFile(caminho: string): void {
+    this.carregarАрхив(caminho);
+  }
+
+  /**
+   * Aplicar estilos inline a um elemento
+   */
+  static aplicar(elemento: any, estilos: any): void {
+    if (!this.isBrowser()) {
+      throw new Error('Style.aplicar só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (!elemento || !elemento.style) return;
+
+    // Mapear propriedades em cirílico para CSS
+    const mapeamento: { [key: string]: string } = {
+      cor: 'color',
+      фон: 'backgroundColor',
+      фонЦвет: 'backgroundColor',
+      ширина: 'width',
+      высота: 'height',
+      отступ: 'padding',
+      маржа: 'margin',
+      граница: 'border',
+      размерШрифта: 'fontSize',
+      весШрифта: 'fontWeight',
+      выравнивание: 'textAlign',
+      отображение: 'display',
+    };
+
+    for (const key in estilos) {
+      const cssProp = mapeamento[key] || key;
+      elemento.style[cssProp] = estilos[key];
+    }
+  }
+
+  static apply(elemento: any, estilos: any): void {
+    this.aplicar(elemento, estilos);
+  }
+
+  /**
+   * Obter estilo computado
+   */
+  static obter(elemento: any, propriedade: string): string | null {
+    if (!this.isBrowser()) {
+      throw new Error('Style.obter só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (!elemento) return null;
+    const win = (globalThis as any).window as any;
+    const computed = win.getComputedStyle ? win.getComputedStyle(elemento) : null;
+    return computed ? computed[propriedade] : null;
+  }
+
+  static get(elemento: any, propriedade: string): string | null {
+    return this.obter(elemento, propriedade);
+  }
+
+  /**
+   * Definir estilo individual
+   */
+  static definir(elemento: any, propriedade: string, valor: string): void {
+    if (!this.isBrowser()) {
+      throw new Error('Style.definir só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.style) {
+      elemento.style[propriedade] = valor;
+    }
+  }
+
+  static set(elemento: any, propriedade: string, valor: string): void {
+    this.definir(elemento, propriedade, valor);
+  }
+
+  /**
+   * Adicionar classe CSS
+   */
+  static добавитьКласс(elemento: any, classe: string): void {
+    if (!this.isBrowser()) {
+      throw new Error('Style.добавитьКласс só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.classList) {
+      elemento.classList.add(classe);
+    }
+  }
+
+  static addClass(elemento: any, classe: string): void {
+    this.добавитьКласс(elemento, classe);
+  }
+
+  /**
+   * Remover classe CSS
+   */
+  static удалитьКласс(elemento: any, classe: string): void {
+    if (!this.isBrowser()) {
+      throw new Error('Style.удалитьКласс só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.classList) {
+      elemento.classList.remove(classe);
+    }
+  }
+
+  static removeClass(elemento: any, classe: string): void {
+    this.удалитьКласс(elemento, classe);
+  }
+
+  /**
+   * Alternar classe CSS
+   */
+  static переключитьКласс(elemento: any, classe: string): void {
+    if (!this.isBrowser()) {
+      throw new Error('Style.переключитьКласс só funciona no navegador. Use --mode web para compilar.');
+    }
+    if (elemento && elemento.classList) {
+      elemento.classList.toggle(classe);
+    }
+  }
+
+  static toggleClass(elemento: any, classe: string): void {
+    this.переключитьКласс(elemento, classe);
+  }
+}
+
+/**
+ * ========================================
+ * Test Module - Framework de Testes
+ * ========================================
+ */
+export class StdTest {
+  private static tests: Array<{ name: string; fn: Function }> = [];
+  private static results: Array<{ name: string; passed: boolean; error?: string }> = [];
+
+  /**
+   * Descrever um teste
+   */
+  static descrever(nome: string, callback: Function): void {
+    this.tests.push({ name: nome, fn: callback });
+  }
+
+  static describe(nome: string, callback: Function): void {
+    this.descrever(nome, callback);
+  }
+
+  /**
+   * Afirmar condição
+   */
+  static afirmar(condicao: boolean, mensagem: string = 'Assertion failed'): void {
+    if (!condicao) {
+      throw new Error(mensagem);
+    }
+  }
+
+  static assert(condicao: boolean, mensagem: string = 'Assertion failed'): void {
+    this.afirmar(condicao, mensagem);
+  }
+
+  /**
+   * Afirmar igualdade
+   */
+  static igual(esperado: any, atual: any, mensagem?: string): void {
+    if (esperado !== atual) {
+      const msg = mensagem || `Expected ${esperado}, but got ${atual}`;
+      throw new Error(msg);
+    }
+  }
+
+  static equal(esperado: any, atual: any, mensagem?: string): void {
+    this.igual(esperado, atual, mensagem);
+  }
+
+  /**
+   * Afirmar que é verdadeiro
+   */
+  static verdadeiro(valor: any, mensagem?: string): void {
+    if (valor !== true) {
+      const msg = mensagem || `Expected true, but got ${valor}`;
+      throw new Error(msg);
+    }
+  }
+
+  static isTrue(valor: any, mensagem?: string): void {
+    this.verdadeiro(valor, mensagem);
+  }
+
+  /**
+   * Afirmar que é falso
+   */
+  static ложь(valor: any, mensagem?: string): void {
+    if (valor !== false) {
+      const msg = mensagem || `Expected false, but got ${valor}`;
+      throw new Error(msg);
+    }
+  }
+
+  static isFalse(valor: any, mensagem?: string): void {
+    this.ложь(valor, mensagem);
+  }
+
+  /**
+   * Executar todos os testes
+   */
+  static выполнить(): { passed: number; failed: number; results: any[] } {
+    this.results = [];
+    let passed = 0;
+    let failed = 0;
+
+    for (const test of this.tests) {
+      try {
+        test.fn();
+        this.results.push({ name: test.name, passed: true });
+        passed++;
+        console.log(`✅ ${test.name}`);
+      } catch (error: any) {
+        this.results.push({ name: test.name, passed: false, error: error.message });
+        failed++;
+        console.error(`❌ ${test.name}: ${error.message}`);
+      }
+    }
+
+    console.log(`\n📊 Testes: ${passed} passaram, ${failed} falharam`);
+    return { passed, failed, results: this.results };
+  }
+
+  static run(): { passed: number; failed: number; results: any[] } {
+    return this.выполнить();
+  }
+
+  /**
+   * Limpar testes registrados
+   */
+  static limpar(): void {
+    this.tests = [];
+    this.results = [];
+  }
+
+  static clear(): void {
+    this.limpar();
+  }
+}
+
+/**
  * Export all modules
  */
 export const StdModules = {
@@ -2138,5 +2965,8 @@ export const StdModules = {
   Path: StdPath,
   Process: StdProcess,
   IO: StdIO,
+  DOM: StdDOM,
+  Style: StdStyle,
+  Test: StdTest,
 };
 

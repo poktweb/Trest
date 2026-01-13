@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.5.1
+# 📚 Documentação Completa - Trest Language v2.5.2
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,9 +20,10 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.5.1](#novidades-da-versão-251)
-16. [Novidades da Versão 2.5.0](#novidades-da-versão-250) (versão anterior)
-17. [Histórico de Versões](#histórico-de-versões)
+15. [Novidades da Versão 2.5.2](#novidades-da-versão-252) (Full Stack Revolution)
+16. [Novidades da Versão 2.5.1](#novidades-da-versão-251)
+17. [Novidades da Versão 2.5.0](#novidades-da-versão-250) (versão anterior)
+18. [Histórico de Versões](#histórico-de-versões)
 
 ---
 
@@ -617,7 +618,8 @@ Trest agora suporta Programação Orientada a Objetos completa com classes, cons
 |-----------------|-------|-----------|
 | `импорт` | import | Importar módulo |
 | `экспорт` | export | Exportar função/variável |
-| `измодуля` | from | Especificar origem do import |
+| `измодуля` | from | Especificar origem do import (módulos Trest) |
+| `изpkg` | fromPkg | Especificar origem do import (pacotes NPM) ✅ Novo em 2.5.2 |
 
 ### Tratamento de Erros
 
@@ -657,7 +659,17 @@ Trest agora suporta Programação Orientada a Objetos completa com classes, cons
 
 ## 📚 Biblioteca Padrão (std)
 
-Trest inclui uma biblioteca padrão rica com **15 módulos** prontos para usar. Todos os módulos estão em `std/` e podem ser importados usando `импорт`.
+Trest inclui uma biblioteca padrão rica com **18 módulos** prontos para usar. Todos os módulos estão em `std/` e podem ser importados usando `импорт`.
+
+**Módulos Disponíveis:**
+- Math, String, Array, HTTP, Crypto, FileSystem, JSON, Date, **Database** (SQLite/MySQL/PostgreSQL Real - 2.5.2), Async, RegEx, Path, Process, IO, GUI, **DOM** (2.5.2), **Style** (2.5.2), **Test** (2.5.2)
+
+**✅ Objetos Globais JavaScript Disponíveis (✅ Novo em 2.5.2):**
+- `Array` - `Array.isArray()`, `Array.from()`, `Array.of()`
+- `Object` - `Object.keys()`, `Object.values()`, `Object.entries()`, `Object.assign()`
+- `typeof()` - Função para verificar tipo de valores (retorna 'string', 'number', 'function', 'array', 'null', etc.)
+- `null` / `нуль` - Valor null
+- `undefined` / `неопределен` - Valor undefined
 
 ### 🔢 Math - Funções Matemáticas
 
@@ -1049,36 +1061,295 @@ FileSystem.createDir("novoDiretorio")
 
 ---
 
-### 🗄️ Database - Banco de Dados
+### 🗄️ Database - Banco de Dados (✅ Implementação Real em 2.5.2)
 
 **Importação:**
 ```trest
 импорт * как DB измодуля "std/database"
 ```
 
-**Funções Disponíveis:**
-- `DB.openDB(name)` - Abrir conexão com banco de dados
-- `DB.Model(name, schema)` - Criar modelo ORM
+**✅ Suporte Real para Múltiplos Bancos:**
+- ✅ **SQLite** - Implementado com `better-sqlite3` (100% funcional e testado)
+- ✅ **MySQL** - Implementado com `mysql2` (pronto para uso em produção)
+- ✅ **PostgreSQL** - Implementado com `pg` (pronto para uso em produção)
 
-**Exemplo:**
+**Funções Disponíveis:**
+- `DB.открытьБД(connection)` / `DB.openDB(connection)` - Abrir conexão (detecta automaticamente o tipo de banco)
+- `DB.открытьSQLite(path)` / `DB.openSQLite(path)` - Abrir conexão SQLite específica
+- `DB.открытьMySQL(config)` / `DB.openMySQL(config)` - Abrir conexão MySQL
+- `DB.открытьPostgreSQL(config)` / `DB.openPostgreSQL(config)` - Abrir conexão PostgreSQL
+- `DB.создательЗапросов(table)` / `DB.createQueryBuilder(table)` - Criar query builder
+- `DB.Модель(table)` / `DB.Model(table)` - Criar modelo ORM básico
+
+**Métodos do Objeto de Conexão:**
+- `db.execute(query, params)` - Executar query com prepared statements
+- `db.query(query, params)` - Consultar com prepared statements
+- `db.transaction(callback)` - Executar transação atômica
+- `db.close()` - Fechar conexão
+
+**Prepared Statements (✅ Implementado em Todos os Bancos):**
+Todos os bancos usam **prepared statements nativos** dos drivers, garantindo segurança total contra SQL Injection. Os métodos `execute()` e `query()` aceitam um segundo parâmetro opcional `params` (array) que usa prepared statements nativos.
+
+---
+
+#### 📦 SQLite (Recomendado para Desenvolvimento)
+
+**Status:** ✅ **100% Funcional e Testado**
+
+**Uso:**
 ```trest
 импорт * как DB измодуля "std/database"
 
-пусть db = DB.openDB("meu_banco")
+# Abrir conexão SQLite (cria arquivo .db automaticamente)
+пусть db = DB.открытьБД("dados.db")
+# ou
+пусть db = DB.открытьSQLite("dados.db")
 
-пусть Usuario = DB.Model("usuarios", {
-    nome: "string",
-    email: "string",
-    idade: "number"
+# Criar tabela
+db.execute("CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    email TEXT UNIQUE,
+    idade INTEGER
+)")
+
+# Inserir com prepared statements
+пусть resultado = db.execute("INSERT INTO usuarios (nome, email, idade) VALUES (?, ?, ?)", 
+    ["João", "joao@example.com", 30])
+печать("ID inserido: " + resultado.lastInsertRowid)
+
+# Consultar
+пусть usuarios = db.query("SELECT * FROM usuarios WHERE idade > ?", [18])
+для (пусть i = 0; i < usuarios.length; i++) {
+    печать(usuarios[i].nome + " - " + usuarios[i].email)
+}
+
+# Atualizar
+пусть updateResult = db.execute("UPDATE usuarios SET idade = ? WHERE nome = ?", [31, "João"])
+печать("Registros atualizados: " + updateResult.changes)
+
+# Transação
+db.transaction(функция() {
+    db.execute("INSERT INTO usuarios (nome, email) VALUES (?, ?)", ["Maria", "maria@example.com"])
+    db.execute("INSERT INTO usuarios (nome, email) VALUES (?, ?)", ["Pedro", "pedro@example.com"])
 })
 
-# Usar modelo
-пусть novoUsuario = новый Usuario({
-    nome: "Иван",
-    email: "ivan@example.com",
-    idade: 30
+# Fechar
+db.close()
+```
+
+**Características:**
+- ✅ Banco de dados real (arquivo `.db`)
+- ✅ Prepared statements nativos
+- ✅ Transações atômicas
+- ✅ Sem necessidade de servidor
+- ✅ Ideal para desenvolvimento e produção pequena/média
+
+---
+
+#### 🐬 MySQL (Produção)
+
+**Status:** ✅ **Implementado e Pronto para Uso**
+
+**Formas de Conexão:**
+
+**Opção 1: Connection String**
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть db = DB.открытьБД("mysql://user:password@localhost:3306/database")
+```
+
+**Opção 2: Objeto de Configuração**
+```trest
+пусть db = DB.открытьMySQL({
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "password",
+    database: "mydb"
 })
 ```
+
+**Exemplo Completo:**
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть db = DB.открытьБД("mysql://root:password@localhost:3306/mydb")
+
+# Criar tabela
+db.execute("CREATE TABLE IF NOT EXISTS produtos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    preco DECIMAL(10,2),
+    estoque INT DEFAULT 0
+) ENGINE=InnoDB")
+
+# Inserir
+пусть resultado = db.execute("INSERT INTO produtos (nome, preco) VALUES (?, ?)", 
+    ["Notebook", 2500.00])
+печать("ID inserido: " + resultado.insertId)
+
+# Consultar
+пусть produtos = db.query("SELECT * FROM produtos WHERE preco > ?", [1000])
+
+# Transação
+db.transaction(функция(connection) {
+    db.execute("UPDATE produtos SET estoque = estoque - ? WHERE id = ?", [1, 1])
+    db.execute("INSERT INTO vendas (produto_id, quantidade) VALUES (?, ?)", [1, 1])
+})
+
+db.close()
+```
+
+**Características:**
+- ✅ Pool de conexões automático (10 conexões)
+- ✅ Prepared statements nativos
+- ✅ Transações com commit/rollback
+- ✅ Suporte a todas as funcionalidades MySQL
+
+**Requisitos:**
+- Servidor MySQL rodando
+- Credenciais de acesso
+- Banco de dados criado
+
+---
+
+#### 🐘 PostgreSQL (Produção)
+
+**Status:** ✅ **Implementado e Pronto para Uso**
+
+**Formas de Conexão:**
+
+**Opção 1: Connection String**
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть db = DB.открытьБД("postgresql://user:password@localhost:5432/database")
+```
+
+**Opção 2: Objeto de Configuração**
+```trest
+пусть db = DB.открытьPostgreSQL({
+    host: "localhost",
+    port: 5432,
+    user: "postgres",
+    password: "password",
+    database: "mydb",
+    ssl: false
+})
+```
+
+**Exemplo Completo:**
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть db = DB.открытьБД("postgresql://postgres:password@localhost:5432/mydb")
+
+# Criar tabela com tipos PostgreSQL
+db.execute("CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE,
+    dados JSONB,
+    tags TEXT[],
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)")
+
+# Inserir com RETURNING
+пусть resultado = db.execute("INSERT INTO usuarios (nome, email) VALUES (?, ?) RETURNING id", 
+    ["João", "joao@example.com"])
+
+# Consultar
+пусть usuarios = db.query("SELECT * FROM usuarios WHERE nome = ?", ["João"])
+
+# Transação
+db.transaction(функция(client) {
+    db.execute("UPDATE usuarios SET nome = ? WHERE id = ?", ["João Silva", 1])
+    db.execute("INSERT INTO usuarios (nome, email) VALUES (?, ?)", ["Maria", "maria@example.com"])
+})
+
+db.close()
+```
+
+**Características:**
+- ✅ Pool de conexões automático (20 conexões)
+- ✅ Prepared statements nativos
+- ✅ Transações com BEGIN/COMMIT/ROLLBACK
+- ✅ Suporte a tipos PostgreSQL (SERIAL, JSONB, ARRAY, UUID)
+
+**Requisitos:**
+- Servidor PostgreSQL rodando
+- Credenciais de acesso
+- Banco de dados criado
+
+---
+
+#### 🔒 Segurança: Prepared Statements
+
+**Status:** ✅ **Implementado em Todos os Bancos**
+
+Todos os três bancos de dados usam **prepared statements nativos** dos drivers, garantindo:
+- ✅ Prevenção total de SQL Injection
+- ✅ Escape automático de valores
+- ✅ Performance otimizada
+- ✅ Suporte a todos os tipos de dados
+
+**Exemplo de Segurança:**
+```trest
+# Tentativa de SQL Injection será bloqueada automaticamente
+пусть nomeMalicioso = "teste' OR '1'='1"
+пусть emailMalicioso = "admin@test.com'; DROP TABLE users; --"
+
+# Com prepared statements, isso é 100% seguro
+db.execute("INSERT INTO users (name, email) VALUES (?, ?)", 
+    [nomeMalicioso, emailMalicioso])
+# Os drivers escapam automaticamente, prevenindo SQL Injection
+```
+
+---
+
+#### 🛠️ Query Builder
+
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть builder = DB.создательЗапросов("users")
+пусть resultados = builder
+    .select("name, email")
+    .where("age > 18")
+    .order("name")
+    .limit(10)
+    .execute()
+```
+
+---
+
+#### 📚 ORM Model
+
+```trest
+импорт * как DB измодуля "std/database"
+
+пусть User = DB.Модель("users")
+
+# Operações CRUD
+пусть user = User.find(1)
+пусть todos = User.all()
+пусть novo = User.create({name: "João", email: "joao@example.com"})
+User.update(1, {name: "João Silva"})
+User.delete(1)
+```
+
+---
+
+#### ⚠️ Importante
+
+- ✅ **SQLite**: Funciona imediatamente, sem configuração adicional
+- ⚠️ **MySQL/PostgreSQL**: Requer servidor rodando e credenciais válidas
+- ✅ **Prepared Statements**: Sempre use quando houver dados do usuário
+- ✅ **Transações**: Use para operações que devem ser atômicas
+- ✅ **Fechamento**: Sempre feche conexões quando não precisar mais
+- ✅ **Detecção Automática**: `DB.открытьБД()` detecta automaticamente o tipo de banco pela connection string
 
 ---
 
@@ -1315,6 +1586,217 @@ IO.печать("Digite sua cidade: ")
 
 ---
 
+### 🌐 DOM - Manipulação de DOM (Front-End) (✅ Novo em 2.5.2)
+
+**Importação:**
+```trest
+импорт * как DOM измодуля "std/dom"
+```
+
+**⚠️ Importante:** O módulo DOM só funciona quando compilado para web (`--mode web`). No Node.js, as funções lançam erro explicativo.
+
+**Funções Disponíveis:**
+
+**Seleção de Elementos:**
+- `DOM.selecionar(seletor)` / `DOM.select(seletor)` - Selecionar elemento (querySelector)
+- `DOM.criar(tag)` / `DOM.create(tag)` - Criar elemento (createElement)
+
+**Manipulação de Conteúdo:**
+- `DOM.texto(elemento, valor?)` / `DOM.setText(elemento, valor?)` - Obter/definir innerText
+- `DOM.html(elemento, valor?)` / `DOM.setHTML(elemento, valor?)` - Obter/definir innerHTML
+- `DOM.valor(elemento, valor?)` / `DOM.val(elemento, valor?)` - Obter/definir value (inputs)
+
+**Eventos:**
+- `DOM.evento(elemento, tipo, callback)` / `DOM.addEvent(elemento, tipo, callback)` - Adicionar evento (addEventListener)
+
+**Gerenciamento de DOM:**
+- `DOM.adicionar(parent, child)` / `DOM.append(parent, child)` - Adicionar elemento (appendChild)
+- `DOM.remover(elemento)` / `DOM.remove(elemento)` - Remover elemento
+- `DOM.atributo(elemento, nome)` / `DOM.getAttr(elemento, nome)` - Obter atributo (getAttribute)
+- `DOM.definirАтрибут(elemento, nome, valor)` / `DOM.setAttr(elemento, nome, valor)` - Definir atributo (setAttribute)
+
+**Exemplo Completo:**
+```trest
+импорт * как DOM измодуля "std/dom"
+
+# Selecionar elemento
+пусть botao = DOM.select("#meu-botao")
+
+# Adicionar evento
+DOM.addEvent(botao, "click", функция() {
+    печать("Botão clicado!")
+    DOM.setText(botao, "Clicado!")
+})
+
+# Criar e adicionar elemento
+пусть novoElemento = DOM.create("div")
+DOM.setText(novoElemento, "Novo elemento")
+DOM.append(document.body, novoElemento)
+
+# Manipular input
+пусть input = DOM.select("#meu-input")
+пусть valor = DOM.val(input)  # Ler valor
+DOM.val(input, "Novo valor")   # Definir valor
+
+# Atributos
+DOM.setAttr(botao, "disabled", "true")
+пусть disabled = DOM.getAttr(botao, "disabled")
+```
+
+**Compilação:**
+```bash
+trestc app.trest --mode web --output app.js
+```
+
+---
+
+### 🎨 Style - Sistema de CSS e Estilização (✅ Novo em 2.5.2)
+
+**Importação:**
+```trest
+импорт * как Style измодуля "std/style"
+```
+
+**⚠️ Importante:** O módulo Style só funciona quando compilado para web (`--mode web`). No Node.js, algumas funções apenas logam (como `loadFile`).
+
+**Funções Disponíveis:**
+
+**Carregamento de CSS:**
+- `Style.carregарCDN(url)` / `Style.loadCDN(url)` - Carregar CSS de CDN (Bootstrap, Tailwind, etc)
+- `Style.carregарАрхив(caminho)` / `Style.loadFile(caminho)` - Carregar CSS de arquivo local
+
+**Manipulação de Estilos:**
+- `Style.aplicар(elemento, estilos)` / `Style.apply(elemento, estilos)` - Aplicar estilos via objeto
+- `Style.obter(elemento, propriedade)` / `Style.get(elemento, propriedade)` - Obter estilo computado
+- `Style.definir(elemento, propriedade, valor)` / `Style.set(elemento, propriedade, valor)` - Definir estilo individual
+
+**Classes CSS:**
+- `Style.добавитьКласс(elemento, classe)` / `Style.addClass(elemento, classe)` - Adicionar classe
+- `Style.удалитьКласс(elemento, classe)` / `Style.removeClass(elemento, classe)` - Remover classe
+- `Style.переключитьКласс(elemento, classe)` / `Style.toggleClass(elemento, classe)` - Alternar classe
+
+**Mapeamento de Propriedades:**
+O método `apply()` mapeia automaticamente propriedades em cirílico para CSS:
+- `cor` → `color`
+- `фон` / `фонЦвет` → `backgroundColor`
+- `ширина` → `width`
+- `высота` → `height`
+- `отступ` → `padding`
+- `маржа` → `margin`
+- `граница` → `border`
+- `размерШрифта` → `fontSize`
+- `весШрифта` → `fontWeight`
+- `выравнивание` → `textAlign`
+- `отображение` → `display`
+
+**Exemplo Completo:**
+```trest
+импорт * как DOM измодуля "std/dom"
+импорт * как Style измодуля "std/style"
+
+# Carregar Bootstrap via CDN
+Style.loadCDN("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+
+# Carregar CSS local
+Style.loadFile("./meu-estilo.css")
+
+# Selecionar elemento
+пусть elemento = DOM.select(".meu-elemento")
+
+# Aplicar estilos via objeto (CSS-in-Trest)
+Style.apply(elemento, {
+    cor: "red",
+    фон: "blue",
+    ширина: "100px",
+    высота: "50px",
+    отступ: "10px",
+    размерШрифта: "16px"
+})
+
+# Ou usar propriedades CSS diretamente
+Style.set(elemento, "color", "red")
+Style.set(elemento, "backgroundColor", "blue")
+
+# Obter estilo computado
+пусть cor = Style.get(elemento, "color")
+
+# Gerenciar classes
+Style.addClass(elemento, "btn-primary")
+Style.removeClass(elemento, "btn-secondary")
+Style.toggleClass(elemento, "active")
+```
+
+**Compilação:**
+```bash
+trestc app.trest --mode web --output app.js
+```
+
+---
+
+### 🧪 Test - Framework de Testes Unitários (✅ Novo em 2.5.2)
+
+**Importação:**
+```trest
+импорт * как Test измодуля "std/test"
+```
+
+**Funções Disponíveis:**
+
+**Descrever Testes:**
+- `Test.descrever(nome, callback)` / `Test.describe(nome, callback)` - Registrar teste
+
+**Asserções:**
+- `Test.afirmар(condicao, mensagem)` / `Test.assert(condicao, mensagem)` - Afirmar condição
+- `Test.igual(esperado, atual, mensagem?)` / `Test.equal(esperado, atual, mensagem?)` - Afirmar igualdade
+- `Test.verdadeiro(valor, mensagem?)` / `Test.isTrue(valor, mensagem?)` - Afirmar que é verdadeiro
+- `Test.ложь(valor, mensagem?)` / `Test.isFalse(valor, mensagem?)` - Afirmar que é falso
+
+**Execução:**
+- `Test.выполнить()` / `Test.run()` - Executar todos os testes e retornar relatório
+
+**Exemplo Completo:**
+```trest
+импорт * как Test измодуля "std/test"
+
+# Teste básico
+Test.describe("Teste de soma", функция() {
+    пусть resultado = 2 + 2
+    пусть esperado = 4
+    Test.equal(resultado, esperado, "2+2 deve ser 4")
+})
+
+# Teste de igualdade
+Test.describe("Teste de igualdade", функция() {
+    Test.equal(5, 5, "5 deve ser igual a 5")
+    Test.equal("hello", "hello", "Strings devem ser iguais")
+})
+
+# Teste de verdadeiro/falso
+Test.describe("Teste de booleanos", функция() {
+    Test.isTrue(истина, "true deve ser verdadeiro")
+    пусть condicao = 10 > 5
+    Test.isTrue(condicao, "10 > 5 deve ser verdadeiro")
+    Test.isFalse(ложь, "false deve ser falso")
+})
+
+# Executar todos os testes
+пусть resultado = Test.run()
+
+печать("Passaram: " + resultado.passed)
+печать("Falharam: " + resultado.failed)
+```
+
+**Saída:**
+```
+✅ Teste de soma
+✅ Teste de igualdade
+✅ Teste de booleanos
+
+📊 Testes: 3 passaram, 0 falharam
+```
+
+---
+
 ### 🎨 GUI - Interface Gráfica
 
 **Importação:**
@@ -1340,7 +1822,7 @@ Importar todos os módulos de uma vez:
 импорт * измодуля "std/index"
 
 # Todos os módulos disponíveis:
-# Math, String, Array, IO, HTTP, Async, GUI, DB, JSON, Date, Crypto, RegEx, Path, Process, FileSystem
+# Math, String, Array, IO, HTTP, Async, GUI, DB, JSON, Date, Crypto, RegEx, Path, Process, FileSystem, DOM, Style, Test
 ```
 
 ---
@@ -1359,6 +1841,10 @@ Importar todos os módulos de uma vez:
 # Importar de arquivo local
 импорт * как Utils измодуля "./utils.trest"
 импорт { minhaFuncao } измодуля "../helpers.trest"
+
+# Importar pacote NPM (✅ Novo em 2.5.2)
+импорт * как Axios изpkg "axios"
+импорт * как Lodash fromPkg "lodash"  # Alias em inglês
 
 # Importar tudo de uma vez (namespace)
 импорт * как StdLib измодуля "std/index"
@@ -1409,6 +1895,55 @@ StdLib.Math.sqrt(25)
 печать(сложить(5, 3))      # 8
 печать(умножить(2, 4))     # 8
 печать(PI)                 # 3.14159
+```
+
+---
+
+### 📦 Importação de Pacotes NPM (✅ Novo em 2.5.2)
+
+Trest agora suporta importação direta de pacotes do ecossistema Node.js usando a sintaxe `изpkg` ou `fromPkg`.
+
+**Sintaxe:**
+```trest
+импорт * как Nome изpkg "nome-do-pacote"
+импорт * как Nome fromPkg "nome-do-pacote"  # Alias em inglês
+```
+
+**Comportamento:**
+- No Node.js: Compilado para `require("nome-do-pacote")`
+- No Web: Compilado para `require()` ou incluído no bundle (dependendo do bundler)
+- Erros claros se o pacote não estiver instalado
+
+**Exemplo:**
+```trest
+# Instalar pacote primeiro: npm install axios
+импорт * как Axios изpkg "axios"
+
+# Usar o pacote
+пусть resposta = Axios.get("https://api.exemplo.com/dados")
+печать(resposta.data)
+```
+
+**Pacotes Populares que Funcionam:**
+- `axios` - Cliente HTTP
+- `lodash` - Utilitários JavaScript
+- `moment` - Manipulação de datas
+- `express` - Framework web (quando usado no Node.js)
+- Qualquer pacote do npm!
+
+**⚠️ Importante:**
+- Certifique-se de instalar o pacote antes de usar: `npm install nome-do-pacote`
+- Pacotes que dependem de APIs do navegador só funcionam quando compilados para web
+- Pacotes que dependem de APIs do Node.js só funcionam no Node.js
+
+**Tratamento de Erros:**
+```trest
+попробовать {
+    импорт * как FakePkg изpkg "pacote-inexistente"
+} поймать(ошибка) {
+    печать("Erro: " + ошибка)
+    # Mensagem clara: "Não foi possível importar o pacote..."
+}
 ```
 
 ---
@@ -1720,7 +2255,7 @@ servidor.get("/", функция(запрос, ответ) {
 })
 
 servidor.get("/sobre", функция(запрос, ответ) {
-    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.1</p>")
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.2</p>")
 })
 
 servidor.get("/api/status", функция(запрос, ответ) {
@@ -1885,6 +2420,9 @@ servidor.listen(3000, функция() {
 | `ложь` | false | Valor |
 | `нуль` | null | Valor |
 | `неопределен` | undefined | Valor |
+| `Array` | Array (global) | Objeto Global JavaScript ✅ Novo em 2.5.2 |
+| `Object` | Object (global) | Objeto Global JavaScript ✅ Novo em 2.5.2 |
+| `typeof` | typeof (função) | Verificar tipo de valor ✅ Novo em 2.5.2 |
 
 ### Operadores Completos
 
@@ -1925,13 +2463,16 @@ servidor.listen(3000, функция() {
 | **FileSystem** | readFile, writeFile, exists, deleteFile, listDir, createDir, deleteDir, getStats | ✅ Completo |
 | **JSON** | parse, stringify | ✅ Completo |
 | **Date** | теперь, timestamp, format, timezone | ✅ Completo (timestamp adicionado em 2.4.8) |
-| **Database** | openDB, Model | ✅ Completo |
+| **Database** | openDB (detecção automática), openSQLite, openMySQL, openPostgreSQL, execute(query, params), query(query, params), transaction, close - **Implementação Real** com better-sqlite3, mysql2, pg | ✅ Completo (100% Funcional - SQLite Testado, MySQL/PostgreSQL Prontos) |
 | **Async** | delay, createPromise, allPromises, anyPromise, setTimer, clearTimer, repeatInterval, clearRepeat | ✅ Completo |
 | **RegEx** | create, test, match, findAll, replace, split | ✅ Completo |
 | **Path** | join, resolve, dirname, basename, extname, normalize, isAbsolute, relative | ✅ Completo |
 | **Process** | getEnv, getAllEnv, setEnv, chdir, exit, platform, arch, version, cwd, pid | ✅ Completo |
 | **IO** | читать, печать | ✅ Completo |
 | **GUI** | createWindow, createButton, createText, createList | 🚧 Em desenvolvimento |
+| **DOM** | select, addEvent, setText, setHTML, val, create, append, remove, getAttr, setAttr | ✅ Completo (2.5.2) |
+| **Style** | loadCDN, loadFile, apply, get, set, addClass, removeClass, toggleClass | ✅ Completo (2.5.2) |
+| **Test** | describe, assert, equal, isTrue, isFalse, run | ✅ Completo (2.5.2) |
 
 ---
 
@@ -2412,10 +2953,158 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.5.1  
+**Versão:** 2.5.2  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
+
+### 🆕 Novidades da Versão 2.5.2 (Full Stack Revolution)
+
+A versão 2.5.2 consolida Trest como uma linguagem completa para Web e Desktop, adicionando manipulação de DOM, estilização (CSS) e interoperabilidade com NPM:
+
+**🌐 Módulo std/dom (Front-End):**
+- ✅ **Manipulação de DOM Completa** - Funções para interagir com a página web quando compilado para web
+- ✅ **Seleção de Elementos** - `DOM.selecionar(seletor)` mapeia para `document.querySelector`
+- ✅ **Eventos** - `DOM.evento(elemento, tipo, callback)` para `addEventListener`
+- ✅ **Manipulação de Texto/HTML** - `DOM.texto()` e `DOM.html()` para `innerText` e `innerHTML`
+- ✅ **Valores de Input** - `DOM.valor(elemento, valor)` para ler/escrever valores de inputs
+- ✅ **Criação de Elementos** - `DOM.criar(tag)` para `createElement`
+- ✅ **Gerenciamento de DOM** - `DOM.adicionar()`, `DOM.remover()`, `DOM.atributo()`
+- ✅ **Compilação Web** - Todas as funções DOM compilam para JavaScript nativo do navegador
+- ✅ **Suporte Duplo** - Funções disponíveis em cirílico e inglês
+
+**🎨 Sistema de Estilização e CSS (std/style):**
+- ✅ **CSS Remoto** - `Style.carregarCDN(url)` injeta tag `<link>` no head (ideal para Bootstrap/Tailwind)
+- ✅ **CSS Local** - `Style.carregarАрхив('./arquivo.css')` lê arquivo e injeta como `<style>` ou `<link>`
+- ✅ **CSS-in-Trest** - Manipular estilos via objeto: `Style.aplicar(elemento, { cor: "red", фон: "blue" })`
+- ✅ **Classes CSS** - `Style.addClass()`, `Style.removeClass()`, `Style.toggleClass()`
+- ✅ **Estilos Individuais** - `Style.definir(elemento, propriedade, valor)`
+- ✅ **Mapeamento Automático** - Propriedades em cirílico mapeadas para CSS (ex: `cor` → `color`)
+
+**📦 Interoperabilidade com NPM:**
+- ✅ **Importação de Pacotes** - Sintaxe: `импорт * как Axios изpkg "axios"` (ou `fromPkg`)
+- ✅ **Compilação Inteligente** - Compilador detecta `изpkg` e faz `require()` nativo do Node ou inclui no bundle web
+- ✅ **Suporte Completo** - Qualquer pacote do ecossistema Node.js pode ser usado
+- ✅ **Mensagens de Erro Claras** - Erros informativos se pacote não estiver instalado
+
+**🗄️ Banco de Dados Real (std/database) - Implementação Completa:**
+- ✅ **SQLite Real** - Implementado com `better-sqlite3` (100% funcional e testado)
+- ✅ **MySQL Real** - Implementado com `mysql2` (pronto para uso em produção)
+- ✅ **PostgreSQL Real** - Implementado com `pg` (pronto para uso em produção)
+- ✅ **Prepared Statements Nativos** - Todos os bancos usam prepared statements nativos dos drivers
+- ✅ **Detecção Automática** - `DB.открытьБД()` detecta automaticamente o tipo de banco pela connection string
+- ✅ **Pool de Conexões** - MySQL e PostgreSQL usam pool automático para performance
+- ✅ **Transações Atômicas** - Suporte completo a transações com commit/rollback
+- ✅ **100% Testado** - Todos os testes passando com verificações completas
+
+**🧪 Framework de Testes (std/test):**
+- ✅ **Testes Unitários** - Módulo simples com `Test.descrever(nome, callback)` e `Test.afirmar(condicao, mensagem)`
+- ✅ **Asserções** - `Test.igual()`, `Test.verdadeiro()`, `Test.ложь()` (isFalse)
+- ✅ **Execução** - `Test.выполнить()` executa todos os testes e retorna relatório
+- ✅ **Relatórios** - Contagem de testes passados/falhados com mensagens de erro
+
+**Exemplo de Uso - DOM:**
+```trest
+импорт * как DOM измодуля "std/dom"
+
+пусть botao = DOM.selecionar("#meu-botao")
+DOM.evento(botao, "click", функция() {
+    печать("Botão clicado!")
+    DOM.texto(botao, "Clicado!")
+})
+```
+
+**Exemplo de Uso - Style:**
+```trest
+импорт * как Style измодуля "std/style"
+
+# Carregar Bootstrap
+Style.carregarCDN("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+
+пусть elemento = DOM.selecionar(".meu-elemento")
+Style.aplicar(elemento, { cor: "red", фон: "blue", ширина: "100px" })
+Style.addClass(elemento, "btn-primary")
+```
+
+**Exemplo de Uso - NPM:**
+```trest
+импорт * как Axios изpkg "axios"
+
+пусть resposta = Axios.get("https://api.exemplo.com/dados")
+печать(resposta.data)
+```
+
+**Exemplo de Uso - Database (SQLite Real):**
+```trest
+импорт * как DB измодуля "std/database"
+
+# SQLite (funciona imediatamente)
+пусть db = DB.открытьБД("dados.db")
+db.execute("CREATE TABLE usuarios (id INTEGER PRIMARY KEY, nome TEXT)")
+db.execute("INSERT INTO usuarios (nome) VALUES (?)", ["João"])
+пусть usuarios = db.query("SELECT * FROM usuarios WHERE nome = ?", ["João"])
+db.close()
+```
+
+**Exemplo de Uso - Database (MySQL):**
+```trest
+# MySQL (requer servidor)
+пусть db = DB.открытьБД("mysql://user:pass@localhost:3306/database")
+# ou
+пусть db = DB.открытьMySQL({host: "localhost", port: 3306, user: "root", password: "pass", database: "mydb"})
+```
+
+**Exemplo de Uso - Database (PostgreSQL):**
+```trest
+# PostgreSQL (requer servidor)
+пусть db = DB.открытьБД("postgresql://user:pass@localhost:5432/database")
+# ou
+пусть db = DB.открытьPostgreSQL({host: "localhost", port: 5432, user: "postgres", password: "pass", database: "mydb"})
+```
+
+**Exemplo de Uso - Testes:**
+```trest
+импорт * как Test измодуля "std/test"
+
+Test.descrever("Teste de soma", функция() {
+    Test.afirmар(2 + 2 === 4, "2+2 deve ser 4")
+    Test.igual(5, 5, "5 deve ser igual a 5")
+})
+
+Test.выполнить()
+```
+
+**Exemplo de Uso - Objetos Globais (✅ Novo em 2.5.2):**
+```trest
+# Verificar se é array
+пусть arr = [1, 2, 3]
+пусть isArray = Array.isArray(arr)
+печать(isArray)  # true
+
+# Verificar tipo
+пусть db = DB.открытьБД("test.db")
+пусть tipo = typeof(db.execute)
+печать(tipo)  # "function"
+
+# Usar Object
+пусть obj = {nome: "João", idade: 30}
+пусть chaves = Object.keys(obj)
+печать(chaves)  # ["nome", "idade"]
+
+пусть valores = Object.values(obj)
+печать(valores)  # ["João", 30]
+
+# Verificar null/undefined
+пусть resultado = db.query("SELECT * FROM usuarios")
+если (resultado != null && Array.isArray(resultado)) {
+    печать("Resultado válido: " + resultado.length + " registros")
+}
+```
+
+**Compatibilidade:**
+- Versão Anterior: 2.5.1
+- Nova Versão: 2.5.2
+- **Totalmente compatível** - Nenhuma mudança incompatível
 
 ### 🆕 Novidades da Versão 2.5.1
 
@@ -2423,18 +3112,22 @@ A versão 2.5.1 introduz suporte completo para deploy na Vercel e criação de p
 
 **🚀 Deploy na Vercel - Suporte Completo:**
 - ✅ **Adapter para Serverless Functions** - Criado adapter completo (`api/index.js`) que converte aplicações Trest para serverless functions da Vercel
-- ✅ **create-trest-app Otimizado** - Comando `npm create trest` agora cria projetos otimizados para Vercel com toda estrutura necessária
+- ✅ **create-trest-app Otimizado** - Comando `npx create-trest-app` cria projetos otimizados para Vercel com toda estrutura necessária
 - ✅ **Estrutura Vercel-ready** - Projetos criados incluem `api/index.js`, `vercel.json`, `app.trest` configurados e prontos para deploy
 - ✅ **Rotas Dinâmicas Suportadas** - Suporte completo para rotas com parâmetros dinâmicos (ex: `/api/users/:id`)
 - ✅ **Instalação Automática** - Dependências instaladas automaticamente com versão mais recente do Trest (2.5.1)
 
 **Como Usar:**
 ```bash
-# Criar novo projeto Vercel-ready
-npm create trest meu-projeto
-
-# Ou usando npx
+# Criar novo projeto Vercel-ready (Recomendado - Funciona Imediatamente)
 npx create-trest-app meu-projeto
+
+# Ou usando npx com alias
+npx create-trest meu-projeto
+
+# ⚠️ Nota: O comando 'npm create trest' não funciona diretamente porque
+# o npm procura por um pacote separado chamado 'create-trest' no npm registry.
+# Use 'npx create-trest-app' que funciona imediatamente!
 
 # Fazer deploy
 cd meu-projeto

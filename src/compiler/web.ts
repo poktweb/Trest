@@ -276,10 +276,24 @@ export class WebCompiler {
   }
 
   private compileImportStatement(node: any): void {
-    // Marcar como importado para bundling
-    this.imports.add(node.source);
-    // Em compilação web, imports podem ser convertidos para require ou import ES6
-    this.addLine(`// import ${node.specifiers.map((s: any) => s.local || s.imported).join(', ')} from '${node.source}'`);
+    const isPkg = node.isPkg || false;
+    
+    if (isPkg) {
+      // Importação de pacote NPM - usar require() ou import ES6
+      for (const spec of node.specifiers) {
+        if (spec.imported === '*') {
+          const localName = spec.local || '*';
+          this.addLine(`const ${localName} = require('${node.source}');`);
+        } else {
+          const localName = spec.local || spec.imported;
+          this.addLine(`const { ${spec.imported}: ${localName} } = require('${node.source}');`);
+        }
+      }
+    } else {
+      // Importação de módulo Trest - marcar para bundling
+      this.imports.add(node.source);
+      this.addLine(`// import ${node.specifiers.map((s: any) => s.local || s.imported).join(', ')} from '${node.source}'`);
+    }
   }
 
   private compileTryStatement(node: any): void {
@@ -347,7 +361,139 @@ export class WebCompiler {
   private compileCallExpression(expr: any): string {
     const callee = this.compileExpression(expr.callee);
     const args = expr.arguments.map((arg: Expression) => this.compileExpression(arg)).join(', ');
+    
+    // Compilar chamadas DOM para JavaScript nativo do navegador
+    if (callee.startsWith('DOM.')) {
+      return this.compileDOMCall(callee, args);
+    }
+    
+    // Compilar chamadas Style para JavaScript nativo do navegador
+    if (callee.startsWith('Style.')) {
+      return this.compileStyleCall(callee, args);
+    }
+    
     return `${callee}(${args})`;
+  }
+
+  /**
+   * Compila chamadas DOM para JavaScript nativo do navegador
+   */
+  private compileDOMCall(callee: string, args: string): string {
+    const method = callee.replace('DOM.', '');
+    
+    // Mapear métodos Trest para JavaScript nativo
+    const domMap: { [key: string]: string } = {
+      'selecionar': 'document.querySelector',
+      'select': 'document.querySelector',
+      'evento': 'addEventListener',
+      'addEvent': 'addEventListener',
+      'texto': 'innerText',
+      'setText': 'innerText',
+      'html': 'innerHTML',
+      'setHTML': 'innerHTML',
+      'valor': 'value',
+      'val': 'value',
+      'criar': 'document.createElement',
+      'create': 'document.createElement',
+      'adicionar': 'appendChild',
+      'append': 'appendChild',
+      'remover': 'remove',
+      'remove': 'remove',
+      'atributo': 'getAttribute',
+      'getAttr': 'getAttribute',
+      'definirАтрибут': 'setAttribute',
+      'setAttr': 'setAttribute',
+    };
+    
+    const jsMethod = domMap[method] || method;
+    
+    // Métodos que retornam propriedades (getters)
+    if (['texto', 'setText', 'html', 'setHTML', 'valor', 'val', 'atributo', 'getAttr'].includes(method)) {
+      if (args) {
+        // Setter: elemento.innerText = valor
+        return `${args.split(',')[0]}.${jsMethod} = ${args.split(',')[1] || args.split(',')[0]}`;
+      } else {
+        // Getter: elemento.innerText
+        return `${args}.${jsMethod}`;
+      }
+    }
+    
+    // Métodos que são chamadas de função
+    if (jsMethod.includes('.')) {
+      // document.querySelector, document.createElement
+      return `${jsMethod}(${args})`;
+    } else {
+      // addEventListener, appendChild, etc (métodos de elemento)
+      const element = args.split(',')[0];
+      const restArgs = args.split(',').slice(1).join(',');
+      return `${element}.${jsMethod}(${restArgs})`;
+    }
+  }
+
+  /**
+   * Compila chamadas Style para JavaScript nativo do navegador
+   */
+  private compileStyleCall(callee: string, args: string): string {
+    const method = callee.replace('Style.', '');
+    
+    // Mapear métodos Trest para JavaScript nativo
+    const styleMap: { [key: string]: string } = {
+      'carregarCDN': 'loadCDN',
+      'loadCDN': 'loadCDN',
+      'carregarАрхив': 'loadFile',
+      'loadFile': 'loadFile',
+      'aplicar': 'apply',
+      'apply': 'apply',
+      'obter': 'getComputedStyle',
+      'get': 'getComputedStyle',
+      'definir': 'style',
+      'set': 'style',
+      'добавитьКласс': 'classList.add',
+      'addClass': 'classList.add',
+      'удалитьКласс': 'classList.remove',
+      'removeClass': 'classList.remove',
+      'переключитьКласс': 'classList.toggle',
+      'toggleClass': 'classList.toggle',
+    };
+    
+    const jsMethod = styleMap[method] || method;
+    
+    // Carregar CDN - criar elemento <link>
+    if (method === 'carregarCDN' || method === 'loadCDN') {
+      return `(function() { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = ${args}; document.head.appendChild(link); })()`;
+    }
+    
+    // Carregar arquivo - criar elemento <link>
+    if (method === 'carregарАрхив' || method === 'loadFile') {
+      return `(function() { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = ${args}; document.head.appendChild(link); })()`;
+    }
+    
+    // Aplicar estilos - aplicar objeto de estilos
+    if (method === 'aplicar' || method === 'apply') {
+      const [element, styles] = args.split(',').map(a => a.trim());
+      return `(function() { const el = ${element}; const s = ${styles}; for (const k in s) { el.style[k] = s[k]; } })()`;
+    }
+    
+    // Obter estilo computado
+    if (method === 'obter' || method === 'get') {
+      const [element, property] = args.split(',').map(a => a.trim());
+      return `window.getComputedStyle(${element}).${property}`;
+    }
+    
+    // Definir estilo
+    if (method === 'definir' || method === 'set') {
+      const [element, property, value] = args.split(',').map(a => a.trim());
+      return `${element}.style.${property} = ${value}`;
+    }
+    
+    // Classes CSS
+    if (method.includes('classList')) {
+      const [element, className] = args.split(',').map(a => a.trim());
+      const action = method.includes('add') ? 'add' : method.includes('remove') ? 'remove' : 'toggle';
+      return `${element}.classList.${action}(${className})`;
+    }
+    
+    return `Style.${method}(${args})`;
   }
 
   private compileAssignmentExpression(expr: any): string {

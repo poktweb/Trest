@@ -910,6 +910,10 @@ export class Parser {
       }
     }
     
+    // Verificar se é изpkg ou измодуля
+    const fromToken = this.currentToken();
+    const isPkg = fromToken.value === 'изpkg' || fromToken.value === 'fromPkg';
+    
     this.expect(TokenType.FROM);
     const source = this.expect(TokenType.STRING).value as string;
     this.skipNewlines();
@@ -918,6 +922,7 @@ export class Parser {
       type: 'ImportStatement',
       specifiers,
       source,
+      isPkg: isPkg || false,  // Marcar se é importação de pacote NPM
     };
   }
 

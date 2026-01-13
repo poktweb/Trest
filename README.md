@@ -9,9 +9,11 @@ Linguagem de programação moderna e profissional, estruturalmente organizada e 
 
 > **🎯 Característica Única:** Trest permite programar usando palavras-chave em cirílico ou latino, mantendo a mesma sintaxe e funcionalidades.
 
-> **🔒 Segurança:** Versão 2.5.1 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
+> **🔒 Segurança:** Versão 2.5.2 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
 
-> **🚀 Deploy na Vercel:** Versão 2.5.1 inclui suporte completo para deploy na Vercel! Use `npm create trest` para criar projetos otimizados para serverless functions.
+> **🚀 Deploy na Vercel:** Versão 2.5.2 inclui suporte completo para deploy na Vercel! Use `npm create trest` para criar projetos otimizados para serverless functions.
+
+> **🌐 Full Stack Revolution:** Versão 2.5.2 adiciona manipulação de DOM, CSS e interoperabilidade com NPM! Trest agora é uma linguagem completa para Web e Desktop.
 
 ## 🚀 Principais Funcionalidades
 
@@ -19,6 +21,10 @@ Linguagem de programação moderna e profissional, estruturalmente organizada e 
 - ✅ **Compilação para Web** - Gera JavaScript otimizado
 - ✅ **Compilação para Desktop** - Cria executáveis .exe nativos
 - ✅ **Deploy na Vercel** - Crie projetos otimizados para serverless functions
+- ✅ **Manipulação de DOM** - Módulo std/dom para interação com páginas web
+- ✅ **Sistema de CSS** - Módulo std/style para estilização e carregamento de CSS
+- ✅ **Interoperabilidade NPM** - Importe qualquer pacote do ecossistema Node.js
+- ✅ **Framework de Testes** - Módulo std/test para testes unitários
 - ✅ **Sistema de Módulos** - Import/Export de módulos
 - ✅ **Biblioteca Padrão** - std com funções matemáticas, strings, arrays e I/O
 - ✅ **Tratamento de Erros** - Try/Catch/Throw estendido
@@ -86,12 +92,18 @@ npm --version   # deve ser >= 9
 
 ### Criar novo projeto (Vercel-ready)
 ```bash
-npm create trest meu-projeto
-# ou
+# Opção 1: Usando npx (Recomendado)
 npx create-trest-app meu-projeto
-cd meu-projeto
-npm start
+
+# Opção 2: Usando npx com alias
+npx create-trest meu-projeto
+
+# Opção 3: Se já tiver instalado globalmente
+npm install -g treste@latest
+create-trest-app meu-projeto
 ```
+
+**Nota:** O comando `npm create trest` requer um pacote separado `create-trest` no npm. Use `npx create-trest-app` que funciona imediatamente.
 
 ### Executar código inline (sem arquivo)
 ```bash
@@ -481,7 +493,7 @@ Veja a pasta `exemplos/` para programas completos demonstrando:
 
 ## 🔒 Segurança
 
-**Versão 2.5.1** mantém todas as correções de segurança da cadeia de suprimentos:
+**Versão 2.5.2** mantém todas as correções de segurança da cadeia de suprimentos:
 - ✅ Scripts de instalação removidos
 - ✅ Sem acesso ao shell durante instalação
 - ✅ Acesso à rede controlado e documentado

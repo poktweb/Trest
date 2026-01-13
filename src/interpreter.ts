@@ -40,6 +40,7 @@ type RuntimeValue =
   | string
   | boolean
   | null
+  | undefined
   | RuntimeValue[]
   | FunctionValue
   | { [key: string]: RuntimeValue | ((...args: any[]) => any) }
@@ -80,8 +81,44 @@ export class Interpreter {
       constants: new Set(),
     };
     
+    // Registrar objetos globais JavaScript
+    this.registerGlobalObjects();
+    
     // Registrar módulos nativos
     this.registerNativeModules();
+  }
+
+  /**
+   * Registra objetos globais JavaScript (Array, Object, etc.)
+   */
+  private registerGlobalObjects(): void {
+    // Array global
+    this.globalEnv.variables.set('Array', {
+      isArray: Array.isArray.bind(Array),
+      from: Array.from.bind(Array),
+      of: Array.of.bind(Array),
+    });
+
+    // Object global
+    this.globalEnv.variables.set('Object', {
+      keys: Object.keys.bind(Object),
+      values: Object.values.bind(Object),
+      entries: Object.entries.bind(Object),
+      assign: Object.assign.bind(Object),
+    });
+
+    // typeof function
+    this.globalEnv.variables.set('typeof', (value: any) => {
+      if (value === null) return 'null';
+      if (Array.isArray(value)) return 'array';
+      return typeof value;
+    });
+
+    // null e undefined
+    this.globalEnv.variables.set('null', null);
+    this.globalEnv.variables.set('нуль', null);
+    this.globalEnv.variables.set('undefined', undefined);
+    this.globalEnv.variables.set('неопределен', undefined);
   }
 
   /**
@@ -120,8 +157,17 @@ export class Interpreter {
     // Database Module
     this.globalEnv.variables.set('DB', {
       открытьБД: StdModules.Database.openDB.bind(StdModules.Database),
+      openDB: StdModules.Database.openDB.bind(StdModules.Database),
+      открытьSQLite: StdModules.Database.openSQLite.bind(StdModules.Database),
+      openSQLite: StdModules.Database.openSQLite.bind(StdModules.Database),
+      открытьMySQL: StdModules.Database.openMySQL.bind(StdModules.Database),
+      openMySQL: StdModules.Database.openMySQL.bind(StdModules.Database),
+      открытьPostgreSQL: StdModules.Database.openPostgreSQL.bind(StdModules.Database),
+      openPostgreSQL: StdModules.Database.openPostgreSQL.bind(StdModules.Database),
       создательЗапросов: StdModules.Database.createQueryBuilder.bind(StdModules.Database),
+      createQueryBuilder: StdModules.Database.createQueryBuilder.bind(StdModules.Database),
       Модель: StdModules.Database.Model.bind(StdModules.Database),
+      Model: StdModules.Database.Model.bind(StdModules.Database),
     });
 
     // FileSystem Module
@@ -210,6 +256,66 @@ export class Interpreter {
       читать: StdModules.IO.read.bind(StdModules.IO),
       печать: StdModules.IO.print.bind(StdModules.IO),
       печатьВстроенный: StdModules.IO.printInline.bind(StdModules.IO),
+    });
+
+    // DOM Module
+    this.globalEnv.variables.set('DOM', {
+      selecionar: StdModules.DOM.selecionar.bind(StdModules.DOM),
+      select: StdModules.DOM.select.bind(StdModules.DOM),
+      evento: StdModules.DOM.evento.bind(StdModules.DOM),
+      addEvent: StdModules.DOM.addEvent.bind(StdModules.DOM),
+      texto: StdModules.DOM.texto.bind(StdModules.DOM),
+      setText: StdModules.DOM.setText.bind(StdModules.DOM),
+      html: StdModules.DOM.html.bind(StdModules.DOM),
+      setHTML: StdModules.DOM.setHTML.bind(StdModules.DOM),
+      valor: StdModules.DOM.valor.bind(StdModules.DOM),
+      val: StdModules.DOM.val.bind(StdModules.DOM),
+      criar: StdModules.DOM.criar.bind(StdModules.DOM),
+      create: StdModules.DOM.create.bind(StdModules.DOM),
+      adicionar: StdModules.DOM.adicionar.bind(StdModules.DOM),
+      append: StdModules.DOM.append.bind(StdModules.DOM),
+      remover: StdModules.DOM.remover.bind(StdModules.DOM),
+      remove: StdModules.DOM.remove.bind(StdModules.DOM),
+      atributo: StdModules.DOM.atributo.bind(StdModules.DOM),
+      getAttr: StdModules.DOM.getAttr.bind(StdModules.DOM),
+      definirАтрибут: StdModules.DOM.definirАтрибут.bind(StdModules.DOM),
+      setAttr: StdModules.DOM.setAttr.bind(StdModules.DOM),
+    });
+
+    // Style Module
+    this.globalEnv.variables.set('Style', {
+      carregarCDN: StdModules.Style.carregarCDN.bind(StdModules.Style),
+      loadCDN: StdModules.Style.loadCDN.bind(StdModules.Style),
+      carregarАрхив: StdModules.Style.carregarАрхив.bind(StdModules.Style),
+      loadFile: StdModules.Style.loadFile.bind(StdModules.Style),
+      aplicar: StdModules.Style.aplicar.bind(StdModules.Style),
+      apply: StdModules.Style.apply.bind(StdModules.Style),
+      obter: StdModules.Style.obter.bind(StdModules.Style),
+      get: StdModules.Style.get.bind(StdModules.Style),
+      definir: StdModules.Style.definir.bind(StdModules.Style),
+      set: StdModules.Style.set.bind(StdModules.Style),
+      добавитьКласс: StdModules.Style.добавитьКласс.bind(StdModules.Style),
+      addClass: StdModules.Style.addClass.bind(StdModules.Style),
+      удалитьКласс: StdModules.Style.удалитьКласс.bind(StdModules.Style),
+      removeClass: StdModules.Style.removeClass.bind(StdModules.Style),
+      переключитьКласс: StdModules.Style.переключитьКласс.bind(StdModules.Style),
+      toggleClass: StdModules.Style.toggleClass.bind(StdModules.Style),
+    });
+
+    // Test Module
+    this.globalEnv.variables.set('Test', {
+      descrever: StdModules.Test.descrever.bind(StdModules.Test),
+      describe: StdModules.Test.describe.bind(StdModules.Test),
+      afirmar: StdModules.Test.afirmar.bind(StdModules.Test),
+      assert: StdModules.Test.assert.bind(StdModules.Test),
+      igual: StdModules.Test.igual.bind(StdModules.Test),
+      equal: StdModules.Test.equal.bind(StdModules.Test),
+      verdadeiro: StdModules.Test.verdadeiro.bind(StdModules.Test),
+      isTrue: StdModules.Test.isTrue.bind(StdModules.Test),
+      ложь: StdModules.Test.ложь.bind(StdModules.Test),
+      isFalse: StdModules.Test.isFalse.bind(StdModules.Test),
+      выполнить: StdModules.Test.выполнить.bind(StdModules.Test),
+      run: StdModules.Test.run.bind(StdModules.Test),
     });
   }
 
@@ -1288,6 +1394,9 @@ export class Interpreter {
               Path: StdModules.Path,
               Process: StdModules.Process,
               IO: StdModules.IO,
+              DOM: StdModules.DOM,
+              Style: StdModules.Style,
+              Test: StdModules.Test,
             },
             'http': {
               GET: StdModules.HTTP.GET.bind(StdModules.HTTP),
@@ -1338,7 +1447,17 @@ export class Interpreter {
             },
             'database': {
               открытьБД: StdModules.Database.openDB.bind(StdModules.Database),
+              openDB: StdModules.Database.openDB.bind(StdModules.Database),
+              открытьSQLite: StdModules.Database.openSQLite.bind(StdModules.Database),
+              openSQLite: StdModules.Database.openSQLite.bind(StdModules.Database),
+              открытьMySQL: StdModules.Database.openMySQL.bind(StdModules.Database),
+              openMySQL: StdModules.Database.openMySQL.bind(StdModules.Database),
+              открытьPostgreSQL: StdModules.Database.openPostgreSQL.bind(StdModules.Database),
+              openPostgreSQL: StdModules.Database.openPostgreSQL.bind(StdModules.Database),
+              создательЗапросов: StdModules.Database.createQueryBuilder.bind(StdModules.Database),
+              createQueryBuilder: StdModules.Database.createQueryBuilder.bind(StdModules.Database),
               Модель: StdModules.Database.Model.bind(StdModules.Database),
+              Model: StdModules.Database.Model.bind(StdModules.Database),
             },
             'crypto': {
               md5: StdModules.Crypto.md5.bind(StdModules.Crypto),
@@ -1411,6 +1530,60 @@ export class Interpreter {
               читать: StdModules.IO.read.bind(StdModules.IO),
               печать: StdModules.IO.print.bind(StdModules.IO),
               печатьВстроенный: StdModules.IO.printInline.bind(StdModules.IO),
+            },
+            'dom': {
+              selecionar: StdModules.DOM.selecionar.bind(StdModules.DOM),
+              select: StdModules.DOM.select.bind(StdModules.DOM),
+              evento: StdModules.DOM.evento.bind(StdModules.DOM),
+              addEvent: StdModules.DOM.addEvent.bind(StdModules.DOM),
+              texto: StdModules.DOM.texto.bind(StdModules.DOM),
+              setText: StdModules.DOM.setText.bind(StdModules.DOM),
+              html: StdModules.DOM.html.bind(StdModules.DOM),
+              setHTML: StdModules.DOM.setHTML.bind(StdModules.DOM),
+              valor: StdModules.DOM.valor.bind(StdModules.DOM),
+              val: StdModules.DOM.val.bind(StdModules.DOM),
+              criar: StdModules.DOM.criar.bind(StdModules.DOM),
+              create: StdModules.DOM.create.bind(StdModules.DOM),
+              adicionar: StdModules.DOM.adicionar.bind(StdModules.DOM),
+              append: StdModules.DOM.append.bind(StdModules.DOM),
+              remover: StdModules.DOM.remover.bind(StdModules.DOM),
+              remove: StdModules.DOM.remove.bind(StdModules.DOM),
+              atributo: StdModules.DOM.atributo.bind(StdModules.DOM),
+              getAttr: StdModules.DOM.getAttr.bind(StdModules.DOM),
+              definirАтрибут: StdModules.DOM.definirАтрибут.bind(StdModules.DOM),
+              setAttr: StdModules.DOM.setAttr.bind(StdModules.DOM),
+            },
+            'style': {
+              carregarCDN: StdModules.Style.carregarCDN.bind(StdModules.Style),
+              loadCDN: StdModules.Style.loadCDN.bind(StdModules.Style),
+              carregarАрхив: StdModules.Style.carregarАрхив.bind(StdModules.Style),
+              loadFile: StdModules.Style.loadFile.bind(StdModules.Style),
+              aplicar: StdModules.Style.aplicar.bind(StdModules.Style),
+              apply: StdModules.Style.apply.bind(StdModules.Style),
+              obter: StdModules.Style.obter.bind(StdModules.Style),
+              get: StdModules.Style.get.bind(StdModules.Style),
+              definir: StdModules.Style.definir.bind(StdModules.Style),
+              set: StdModules.Style.set.bind(StdModules.Style),
+              добавитьКласс: StdModules.Style.добавитьКласс.bind(StdModules.Style),
+              addClass: StdModules.Style.addClass.bind(StdModules.Style),
+              удалитьКласс: StdModules.Style.удалитьКласс.bind(StdModules.Style),
+              removeClass: StdModules.Style.removeClass.bind(StdModules.Style),
+              переключитьКласс: StdModules.Style.переключитьКласс.bind(StdModules.Style),
+              toggleClass: StdModules.Style.toggleClass.bind(StdModules.Style),
+            },
+            'test': {
+              descrever: StdModules.Test.descrever.bind(StdModules.Test),
+              describe: StdModules.Test.describe.bind(StdModules.Test),
+              afirmar: StdModules.Test.afirmar.bind(StdModules.Test),
+              assert: StdModules.Test.assert.bind(StdModules.Test),
+              igual: StdModules.Test.igual.bind(StdModules.Test),
+              equal: StdModules.Test.equal.bind(StdModules.Test),
+              verdadeiro: StdModules.Test.verdadeiro.bind(StdModules.Test),
+              isTrue: StdModules.Test.isTrue.bind(StdModules.Test),
+              ложь: StdModules.Test.ложь.bind(StdModules.Test),
+              isFalse: StdModules.Test.isFalse.bind(StdModules.Test),
+              выполнить: StdModules.Test.выполнить.bind(StdModules.Test),
+              run: StdModules.Test.run.bind(StdModules.Test),
             },
             'math': {
               abs: Math.abs,

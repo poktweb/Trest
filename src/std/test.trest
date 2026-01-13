@@ -1,0 +1,61 @@
+# Test Library - Framework de Testes Unitários
+
+# Descrever um teste
+экспорт функция descrever(имя, обратныйВызов) {
+    # Executa callback e reporta resultado
+    # Implementação nativa
+}
+
+экспорт функция describe(имя, обратныйВызов) {
+    вернуть descrever(имя, обратныйВызов)
+}
+
+# Afirmar condição
+экспорт функция afirmar(условие, сообщение) {
+    # Lança erro se condição for falsa
+    # Implementação nativa
+}
+
+экспорт функция assert(условие, сообщение) {
+    вернуть afirmar(условие, сообщение)
+}
+
+# Afirmar igualdade
+экспорт функция igual(ожидаемое, фактическое, сообщение) {
+    # Verifica se valores são iguais
+    # Implementação nativa
+}
+
+экспорт функция equal(ожидаемое, фактическое, сообщение) {
+    вернуть igual(ожидаемое, фактическое, сообщение)
+}
+
+# Afirmar que é verdadeiro
+экспорт функция verdadeiro(значение, сообщение) {
+    # Verifica se valor é true
+    # Implementação nativa
+}
+
+экспорт функция isTrue(значение, сообщение) {
+    вернуть verdadeiro(значение, сообщение)
+}
+
+# Afirmar que é falso
+экспорт функция ложь(значение, сообщение) {
+    # Verifica se valor é false
+    # Implementação nativa
+}
+
+экспорт функция isFalse(значение, сообщение) {
+    вернуть ложь(значение, сообщение)
+}
+
+# Executar todos os testes
+экспорт функция выполнить() {
+    # Executa todos os testes registrados
+    # Implementação nativa
+}
+
+экспорт функция run() {
+    вернуть выполнить()
+}

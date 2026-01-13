@@ -21,10 +21,16 @@ O `create-trest-app` (ou `create-treste-app`) cria um novo projeto Trest otimiza
 
 ## 🚀 Como Usar
 
-### Opção 1: Usando npx (Recomendado)
+### Opção 1: Usando npx (Recomendado - Funciona Imediatamente)
 
 ```bash
 npx create-trest-app meu-projeto
+```
+
+ou
+
+```bash
+npx create-trest meu-projeto
 ```
 
 ou
@@ -40,6 +46,12 @@ npm install -g treste@latest
 create-trest-app meu-projeto
 ```
 
+ou
+
+```bash
+create-trest meu-projeto
+```
+
 ### Opção 3: Sem especificar nome (Modo Interativo)
 
 ```bash
@@ -47,6 +59,11 @@ npx create-trest-app
 ```
 
 O comando perguntará o nome do projeto interativamente.
+
+**⚠️ Nota Importante sobre `npm create trest`:**
+O comando `npm create trest` não funciona diretamente porque o npm procura por um pacote separado chamado `create-trest` no npm registry. Para que funcione, seria necessário publicar um pacote separado. 
+
+**Solução:** Use `npx create-trest-app` ou `npx create-trest` que funcionam imediatamente sem necessidade de pacote separado.
 
 ## 📁 Estrutura Criada
 

@@ -142,6 +142,8 @@ export class Lexer {
     'импорт': TokenType.IMPORT,
     'экспорт': TokenType.EXPORT,
     'измодуля': TokenType.FROM,
+    'изpkg': TokenType.FROM,  // Para importação de pacotes NPM
+    'fromPkg': TokenType.FROM,  // Alias em inglês
     'как': TokenType.AS,
     'прервать': TokenType.BREAK,
     'продолжить': TokenType.CONTINUE,

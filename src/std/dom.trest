@@ -1,0 +1,96 @@
+# DOM Library - Manipulação de DOM para Front-End
+
+# Selecionar elemento
+экспорт функция selecionar(селектор) {
+    # Implementação nativa no navegador
+    вернуть null
+}
+
+экспорт функция select(селектор) {
+    вернуть selecionar(селектор)
+}
+
+# Adicionar evento
+экспорт функция evento(элемент, тип, обратныйВызов) {
+    # Implementação nativa no navegador
+}
+
+экспорт функция addEvent(элемент, тип, обратныйВызов) {
+    вернуть evento(элемент, тип, обратныйВызов)
+}
+
+# Manipular texto
+экспорт функция texto(элемент, значение) {
+    # Implementação nativa no navegador
+}
+
+экспорт функция setText(элемент, значение) {
+    вернуть texto(элемент, значение)
+}
+
+# Manipular HTML
+экспорт функция html(элемент, значение) {
+    # Implementação nativa no navegador
+}
+
+экспорт функция setHTML(элемент, значение) {
+    вернуть html(элемент, значение)
+}
+
+# Obter/definir valor de input
+экспорт функция valor(элемент, значение) {
+    # Se valor fornecido, define; senão, retorna
+    # Implementação nativa no navegador
+    вернуть null
+}
+
+экспорт функция val(элемент, значение) {
+    вернуть valor(элемент, значение)
+}
+
+# Criar elemento
+экспорт функция criar(тег) {
+    # Implementação nativa no navegador
+    вернуть null
+}
+
+экспорт функция create(тег) {
+    вернуть criar(тег)
+}
+
+# Adicionar elemento ao DOM
+экспорт функция adicionar(родитель, дочерний) {
+    # Implementação nativa no navegador
+}
+
+экспорт функция append(родитель, дочерний) {
+    вернуть adicionar(родитель, дочерний)
+}
+
+# Remover elemento
+экспорт функция remover(элемент) {
+    # Implementação nativa no navegador
+}
+
+экспорт функция remove(элемент) {
+    вернуть remover(элемент)
+}
+
+# Obter atributo
+экспорт функция atributo(элемент, имя) {
+    # Implementação nativa no navegador
+    вернуть null
+}
+
+экспорт функция getAttr(элемент, имя) {
+    вернуть atributo(элемент, имя)
+}
+
+# Definir atributo
+экспорт функция definirАтрибут(элемент, имя, значение) {
+    # Implementação nativa no navegador
+}
+
+экспорт функция setAttr(элемент, имя, значение) {
+    вернуть definirАтрибут(элемент, имя, значение)
+}
