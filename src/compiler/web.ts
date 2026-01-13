@@ -10,9 +10,11 @@ export class WebCompiler {
   private output: string[] = [];
   private indentLevel: number = 0;
   private imports: Set<string> = new Set();
+  private basePath: string;
 
   constructor(basePath: string = process.cwd()) {
     this.moduleSystem = new ModuleSystem(basePath);
+    this.basePath = basePath;
   }
 
   public compile(filePath: string, options: { minify?: boolean; bundle?: boolean; expose?: boolean } = {}): string {
@@ -25,6 +27,8 @@ export class WebCompiler {
     this.output = [];
     this.imports.clear();
     this.indentLevel = 0;
+    // Atualizar basePath para o diretório do arquivo sendo compilado
+    this.basePath = path.dirname(path.resolve(filePath));
 
     if (options.bundle) {
       this.compileProgramBundled(program, filePath, options.expose);
@@ -186,7 +190,8 @@ export class WebCompiler {
 
   private compileFunctionDeclaration(node: any): void {
     const params = node.params.join(', ');
-    this.addLine(`function ${node.name}(${params}) {`);
+    const asyncKeyword = node.async ? 'async ' : '';
+    this.addLine(`${asyncKeyword}function ${node.name}(${params}) {`);
     this.indent();
     this.compileBlockStatement(node.body);
     this.dedent();
@@ -355,6 +360,10 @@ export class WebCompiler {
   }
 
   private compileUnaryExpression(expr: any): string {
+    // Suporte a await
+    if (expr.operator === 'await') {
+      return `await ${this.compileExpression(expr.argument)}`;
+    }
     return `${expr.operator}${this.compileExpression(expr.argument)}`;
   }
 
@@ -463,8 +472,44 @@ export class WebCompiler {
       return `(function() { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = ${args}; document.head.appendChild(link); })()`;
     }
     
-    // Carregar arquivo - criar elemento <link>
+    // Carregar arquivo - ler CSS do disco e injetar como <style>
     if (method === 'carregарАрхив' || method === 'loadFile') {
+      // Extrair o caminho do arquivo do argumento
+      const cssPath = this.extractStringFromArgs(args);
+      if (cssPath) {
+        // Resolver caminho relativo ao arquivo fonte
+        const resolvedPath = path.resolve(this.basePath, cssPath);
+        
+        // Verificar se arquivo existe
+        if (fs.existsSync(resolvedPath)) {
+          // Ler conteúdo do CSS
+          const cssContent = fs.readFileSync(resolvedPath, 'utf-8');
+          // Minificar CSS básico (remover espaços extras)
+          const minifiedCSS = cssContent
+            .replace(/\/\*[\s\S]*?\*\//g, '') // Remover comentários
+            .replace(/\s+/g, ' ') // Comprimir espaços
+            .replace(/;\s*}/g, ';}') // Remover espaços antes de }
+            .replace(/\s*{\s*/g, '{') // Remover espaços em {
+            .replace(/\s*:\s*/g, ':') // Remover espaços em :
+            .trim();
+          
+          // Escapar para JavaScript string
+          const escapedCSS = minifiedCSS
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r');
+          
+          // Retornar código que injeta o CSS como <style>
+          return `(function() { const style = document.createElement('style'); style.textContent = '${escapedCSS}'; document.head.appendChild(style); })()`;
+        } else {
+          // Arquivo não encontrado - avisar mas não quebrar
+          console.warn(`[Web Compiler] Arquivo CSS não encontrado: ${resolvedPath}`);
+          return `(function() { console.warn('CSS file not found: ${cssPath}'); })()`;
+        }
+      }
+      // Fallback para comportamento antigo se não conseguir extrair caminho
       return `(function() { const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = ${args}; document.head.appendChild(link); })()`;
     }
     
@@ -530,9 +575,10 @@ export class WebCompiler {
   private compileFunctionExpression(expr: any): string {
     const name = expr.name || '';
     const params = expr.params.join(', ');
+    const asyncKeyword = expr.async ? 'async ' : '';
     
     // Criar função anônima ou nomeada
-    const funcName = name ? `function ${name}` : 'function';
+    const funcName = name ? `${asyncKeyword}function ${name}` : `${asyncKeyword}function`;
     
     // Compilar o corpo da função em um buffer separado
     const funcBodyBuffer: string[] = [];
@@ -582,6 +628,20 @@ export class WebCompiler {
 
   private dedent(): void {
     this.indentLevel--;
+  }
+
+  /**
+   * Extrai string literal dos argumentos (para Style.loadFile)
+   */
+  private extractStringFromArgs(args: string): string | null {
+    // Remover espaços e tentar extrair string
+    const trimmed = args.trim();
+    // Se começa e termina com aspas simples ou duplas
+    if ((trimmed.startsWith("'") && trimmed.endsWith("'")) || 
+        (trimmed.startsWith('"') && trimmed.endsWith('"'))) {
+      return trimmed.slice(1, -1);
+    }
+    return null;
   }
 
   private minify(code: string): string {

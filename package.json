@@ -1,7 +1,12 @@
 {
   "name": "treste",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "Trest - Linguagem de programação moderna e profissional para Web e Desktop com suporte a Cirílico. Inclui módulo HTTP opcional para requisições de rede (acesso controlado pelo usuário, documentado em SECURITY.md).",
+  "security": {
+    "audit": true,
+    "shell-access": "documented",
+    "network-access": "user-controlled"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -62,7 +67,8 @@
     "src/std/",
     "README.md",
     "LICENSE",
-    "INSTALL.md"
+    "INSTALL.md",
+    "SECURITY.md"
   ],
   "homepage": "https://trest-site.vercel.app",
   "publishConfig": {
@@ -88,8 +94,8 @@
   },
   "dependencies": {
     "@types/pg": "^8.16.0",
-    "better-sqlite3": "^9.6.0",
-    "electron": "^28.3.3",
+    "better-sqlite3": "^12.6.0",
+    "electron": "^35.7.5",
     "minimist": "^1.2.8",
     "mysql2": "^3.16.0",
     "pg": "^8.16.3",

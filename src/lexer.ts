@@ -167,6 +167,8 @@ export class Lexer {
     'защищенный': TokenType.PROTECTED,
     'асинхронный': TokenType.ASYNC,
     'ожидать': TokenType.AWAIT,
+    'aguardar': TokenType.AWAIT,  // Alias em português
+    'wait': TokenType.AWAIT,  // Alias em inglês
     'все': TokenType.ALL,
     'модуль': TokenType.MODULE,
     'в': TokenType.IN,

@@ -167,6 +167,12 @@ export class Parser {
   }
 
   private parseFunctionDeclaration(): FunctionDeclaration {
+    // Verificar se é função async
+    const isAsync = this.currentToken().type === TokenType.ASYNC;
+    if (isAsync) {
+      this.advance(); // Consumir ASYNC
+    }
+    
     this.expect(TokenType.FUNC);
     const name = this.expect(TokenType.IDENTIFIER).value as string;
     this.expect(TokenType.LPAREN);
@@ -188,6 +194,7 @@ export class Parser {
       name,
       params,
       body,
+      async: isAsync || undefined,
     };
   }
 
@@ -710,6 +717,16 @@ export class Parser {
   }
 
   private parseUnary(): Expression {
+    // Suporte a await (ожидать)
+    if (this.currentToken().type === TokenType.AWAIT) {
+      this.advance();
+      return {
+        type: 'UnaryExpression',
+        operator: 'await',
+        argument: this.parseUnary(),
+      };
+    }
+    
     if (
       this.currentToken().type === TokenType.MINUS ||
       this.currentToken().type === TokenType.NOT
@@ -1122,6 +1139,12 @@ export class Parser {
   }
 
   private parseFunctionExpression(): FunctionExpression {
+    // Verificar se é função async
+    const isAsync = this.currentToken().type === TokenType.ASYNC;
+    if (isAsync) {
+      this.advance(); // Consumir ASYNC
+    }
+    
     this.expect(TokenType.FUNC);
     
     let name: string | undefined;
@@ -1148,6 +1171,7 @@ export class Parser {
       name,
       params,
       body,
+      async: isAsync || undefined,
     };
   }
 }

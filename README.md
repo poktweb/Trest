@@ -9,11 +9,11 @@ Linguagem de programação moderna e profissional, estruturalmente organizada e 
 
 > **🎯 Característica Única:** Trest permite programar usando palavras-chave em cirílico ou latino, mantendo a mesma sintaxe e funcionalidades.
 
-> **🔒 Segurança:** Versão 2.5.2 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
+> **🔒 Segurança:** Versão 2.5.3 mantém todas as correções de segurança da cadeia de suprimentos. Veja [DOCUMENTACAO_COMPLETA.md](./DOCUMENTACAO_COMPLETA.md#segurança) para detalhes.
 
-> **🚀 Deploy na Vercel:** Versão 2.5.2 inclui suporte completo para deploy na Vercel! Use `npm create trest` para criar projetos otimizados para serverless functions.
+> **🚀 Deploy na Vercel:** Versão 2.5.3 inclui suporte completo para deploy na Vercel! Use `npm create trest` para criar projetos otimizados para serverless functions.
 
-> **🌐 Full Stack Revolution:** Versão 2.5.2 adiciona manipulação de DOM, CSS e interoperabilidade com NPM! Trest agora é uma linguagem completa para Web e Desktop.
+> **🌐 Full Stack Revolution:** Versão 2.5.3 adiciona manipulação de DOM, CSS e interoperabilidade com NPM! Trest agora é uma linguagem completa para Web e Desktop.
 
 ## 🚀 Principais Funcionalidades
 
@@ -493,7 +493,7 @@ Veja a pasta `exemplos/` para programas completos demonstrando:
 
 ## 🔒 Segurança
 
-**Versão 2.5.2** mantém todas as correções de segurança da cadeia de suprimentos:
+**Versão 2.5.3** mantém todas as correções de segurança da cadeia de suprimentos:
 - ✅ Scripts de instalação removidos
 - ✅ Sem acesso ao shell durante instalação
 - ✅ Acesso à rede controlado e documentado

@@ -52,6 +52,7 @@ export interface FunctionDeclaration {
   name: string;
   params: string[];
   body: BlockStatement;
+  async?: boolean;
 }
 
 export interface FunctionExpression {
@@ -59,6 +60,7 @@ export interface FunctionExpression {
   name?: string;
   params: string[];
   body: BlockStatement;
+  async?: boolean;
 }
 
 export interface ClassDeclaration {

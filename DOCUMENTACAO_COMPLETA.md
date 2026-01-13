@@ -1,4 +1,4 @@
-# 📚 Documentação Completa - Trest Language v2.5.2
+# 📚 Documentação Completa - Trest Language v2.5.3
 
 **Linguagem de programação moderna e profissional para Web e Desktop com suporte completo a Cirílico**
 
@@ -20,7 +20,7 @@
 12. [Referência Completa](#referência-completa)
 13. [Arquitetura e Funcionamento Interno](#arquitetura-e-funcionamento-interno)
 14. [Segurança](#segurança)
-15. [Novidades da Versão 2.5.2](#novidades-da-versão-252) (Full Stack Revolution)
+15. [Novidades da Versão 2.5.3](#novidades-da-versão-253) (Correções de Segurança e Melhorias)
 16. [Novidades da Versão 2.5.1](#novidades-da-versão-251)
 17. [Novidades da Versão 2.5.0](#novidades-da-versão-250) (versão anterior)
 18. [Histórico de Versões](#histórico-de-versões)
@@ -620,6 +620,8 @@ Trest agora suporta Programação Orientada a Objetos completa com classes, cons
 | `экспорт` | export | Exportar função/variável |
 | `измодуля` | from | Especificar origem do import (módulos Trest) |
 | `изpkg` | fromPkg | Especificar origem do import (pacotes NPM) ✅ Novo em 2.5.2 |
+| `асинхронный` | async | Função assíncrona ✅ Novo em 2.5.2 |
+| `ожидать` | await, aguardar, wait | Aguardar Promise ✅ Novo em 2.5.2 |
 
 ### Tratamento de Erros
 
@@ -1663,7 +1665,11 @@ trestc app.trest --mode web --output app.js
 
 **Carregamento de CSS:**
 - `Style.carregарCDN(url)` / `Style.loadCDN(url)` - Carregar CSS de CDN (Bootstrap, Tailwind, etc)
-- `Style.carregарАрхив(caminho)` / `Style.loadFile(caminho)` - Carregar CSS de arquivo local
+- `Style.carregарАрхив(caminho)` / `Style.loadFile(caminho)` - **Carregar CSS de arquivo local (✅ Build Time em 2.5.2)**
+  - Durante compilação web, o compilador lê o arquivo CSS do disco
+  - O CSS é minificado automaticamente (remove comentários, espaços extras)
+  - O conteúdo é injetado diretamente no JavaScript gerado como tag `<style>`
+  - Não requer requisição HTTP adicional em runtime
 
 **Manipulação de Estilos:**
 - `Style.aplicар(elemento, estilos)` / `Style.apply(elemento, estilos)` - Aplicar estilos via objeto
@@ -1697,8 +1703,8 @@ O método `apply()` mapeia automaticamente propriedades em cirílico para CSS:
 # Carregar Bootstrap via CDN
 Style.loadCDN("https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
 
-# Carregar CSS local
-Style.loadFile("./meu-estilo.css")
+# Carregar CSS local (Build Time - CSS é lido do disco durante compilação)
+Style.loadFile("./meu-estilo.css")  # ✅ CSS minificado incluído no bundle
 
 # Selecionar elemento
 пусть elemento = DOM.select(".meu-elemento")
@@ -2255,7 +2261,7 @@ servidor.get("/", функция(запрос, ответ) {
 })
 
 servidor.get("/sobre", функция(запрос, ответ) {
-    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.2</p>")
+    ответ.send("<h1>Sobre Trest</h1><p>Versão 2.5.3</p>")
 })
 
 servidor.get("/api/status", функция(запрос, ответ) {
@@ -2953,10 +2959,25 @@ trest -e "печать('Привет, Trest!')"
 
 ---
 
-**Versão:** 2.5.2  
+**Versão:** 2.5.3  
 **Autor:** PoktWeb  
 **Licença:** MIT  
 **Ano:** 2025
+
+### 🆕 Novidades da Versão 2.5.3 (Correções de Segurança e Melhorias)
+
+A versão 2.5.3 inclui correções importantes de segurança e melhorias de estabilidade:
+
+**🛡️ Correções de Segurança:**
+- ✅ **Electron atualizado** - De 28.3.3 para 35.7.5 (corrige CVE moderado GHSA-vmqv-hx8q-j7mg)
+- ✅ **better-sqlite3 atualizado** - De 9.6.0 para 12.6.0 (versão mais recente)
+- ✅ **Documentação de segurança** - SECURITY.md criado com explicações completas
+- ✅ **npm audit --production** - 0 vulnerabilidades em dependências de produção
+
+**📚 Melhorias:**
+- ✅ **Documentação completa** - Todas as funcionalidades documentadas em SECURITY.md
+- ✅ **Shell access documentado** - Uso de child_process explicado e justificado
+- ✅ **Network access documentado** - Acesso à rede controlado pelo usuário
 
 ### 🆕 Novidades da Versão 2.5.2 (Full Stack Revolution)
 
@@ -2975,7 +2996,7 @@ A versão 2.5.2 consolida Trest como uma linguagem completa para Web e Desktop, 
 
 **🎨 Sistema de Estilização e CSS (std/style):**
 - ✅ **CSS Remoto** - `Style.carregarCDN(url)` injeta tag `<link>` no head (ideal para Bootstrap/Tailwind)
-- ✅ **CSS Local** - `Style.carregarАрхив('./arquivo.css')` lê arquivo e injeta como `<style>` ou `<link>`
+- ✅ **CSS Local com Build** - `Style.carregarАрхив('./arquivo.css')` lê arquivo CSS do disco durante compilação e injeta conteúdo minificado como `<style>` no JS gerado (✅ Novo em 2.5.2 - Build Time)
 - ✅ **CSS-in-Trest** - Manipular estilos via objeto: `Style.aplicar(elemento, { cor: "red", фон: "blue" })`
 - ✅ **Classes CSS** - `Style.addClass()`, `Style.removeClass()`, `Style.toggleClass()`
 - ✅ **Estilos Individuais** - `Style.definir(elemento, propriedade, valor)`
@@ -2986,6 +3007,7 @@ A versão 2.5.2 consolida Trest como uma linguagem completa para Web e Desktop, 
 - ✅ **Compilação Inteligente** - Compilador detecta `изpkg` e faz `require()` nativo do Node ou inclui no bundle web
 - ✅ **Suporte Completo** - Qualquer pacote do ecossistema Node.js pode ser usado
 - ✅ **Mensagens de Erro Claras** - Erros informativos se pacote não estiver instalado
+- ✅ **Async/Await Nativo** - Suporte completo a `ожидать` (await) para trabalhar com Promises de forma limpa (✅ Novo em 2.5.2)
 
 **🗄️ Banco de Dados Real (std/database) - Implementação Completa:**
 - ✅ **SQLite Real** - Implementado com `better-sqlite3` (100% funcional e testado)
@@ -3026,12 +3048,28 @@ Style.aplicar(elemento, { cor: "red", фон: "blue", ширина: "100px" })
 Style.addClass(elemento, "btn-primary")
 ```
 
-**Exemplo de Uso - NPM:**
+**Exemplo de Uso - NPM com Async/Await:**
 ```trest
 импорт * как Axios изpkg "axios"
 
-пусть resposta = Axios.get("https://api.exemplo.com/dados")
-печать(resposta.data)
+асинхронный функция pegarDados() {
+    пусть resposta = ожидать Axios.get("https://api.exemplo.com/dados")
+    печать(resposta.data)
+}
+
+# Ou usando alias
+async function buscarUsuario() {
+    пусть user = aguardar Axios.get("https://api.exemplo.com/users/1")
+    печать(user.data)
+}
+```
+
+**Exemplo de Uso - CSS Build (Web):**
+```trest
+импорт * как Style измодуля "std/style"
+
+# Durante compilação, o arquivo CSS é lido do disco e injetado no JS
+Style.carregарАрхив("./styles.css")  # CSS é minificado e incluído no bundle
 ```
 
 **Exemplo de Uso - Database (SQLite Real):**
@@ -3102,8 +3140,8 @@ Test.выполнить()
 ```
 
 **Compatibilidade:**
-- Versão Anterior: 2.5.1
-- Nova Versão: 2.5.2
+- Versão Anterior: 2.5.2
+- Nova Versão: 2.5.3
 - **Totalmente compatível** - Nenhuma mudança incompatível
 
 ### 🆕 Novidades da Versão 2.5.1
