@@ -94,7 +94,7 @@
   },
   "dependencies": {
     "@types/pg": "^8.16.0",
-    "better-sqlite3": "^12.6.0",
+    "better-sqlite3": "^12.6.2",
     "electron": "^35.7.5",
     "minimist": "^1.2.8",
     "mysql2": "^3.16.0",
